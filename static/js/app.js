@@ -137,6 +137,23 @@ function copyText(elementId) {
         .catch(() => toast('Copy failed', 'error'));
 }
 
+// === Score viral potential ===
+async function scoreScript(scriptId) {
+    const display = document.getElementById('viral-score-display');
+    if (display) display.innerHTML = '<span style="font-size: 14px; color: #9ca3af;">Scoring...</span>';
+    const result = await api('/api/scripts/' + scriptId + '/score', 'POST');
+    if (result && result.ok) {
+        const s = result.viral_score;
+        let color = '#9ca3af', label = 'LOW';
+        if (s >= 70) { color = '#16a34a'; label = 'HIGH POTENTIAL'; }
+        else if (s >= 50) { color = '#ca8a04'; label = 'MODERATE'; }
+        if (display) display.innerHTML = '<span style="font-size:32px;font-weight:800;color:' + color + ';">' + s + '</span><span style="font-size:12px;color:' + color + ';display:block;">' + label + '</span>';
+        toast('Scored: ' + s + '/100', 'success');
+    } else {
+        toast('Scoring failed', 'error');
+    }
+}
+
 // === Classify script ===
 async function classifyScript(scriptId) {
     const badge = document.getElementById('character-badge');

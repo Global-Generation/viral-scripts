@@ -37,7 +37,7 @@
                     <th class="th">Video</th>
                     <th class="th">Category</th>
                     <th class="th">Character</th>
-                    <th class="th">Status</th>
+                    <th class="th">Score</th>
                     <th class="th">Date</th>
                     <th class="th"></th>
                 </tr>
@@ -76,10 +76,14 @@
                         {% endif %}
                     </td>
                     <td class="td">
-                        {% if script.status == 'modified' %}
-                        <span class="status-badge status-completed">Modified</span>
+                        {% if script.viral_score >= 70 %}
+                        <span style="font-weight: 700; color: #16a34a; font-size: 13px;">{{ script.viral_score }}</span>
+                        {% elif script.viral_score >= 50 %}
+                        <span style="font-weight: 600; color: #ca8a04; font-size: 13px;">{{ script.viral_score }}</span>
+                        {% elif script.viral_score > 0 %}
+                        <span style="color: #9ca3af; font-size: 13px;">{{ script.viral_score }}</span>
                         {% else %}
-                        <span class="status-badge status-running">Extracted</span>
+                        <span style="color: #d1d5db; font-size: 11px;">—</span>
                         {% endif %}
                     </td>
                     <td class="td text-gray-400 text-xs">{{ script.created_at.strftime('%b %d') }}</td>

@@ -8,6 +8,7 @@ from models import Video, Script
 from services.pipeline import extract_script_for_video
 from services.rewriter import rewrite_provocative
 from services.classifier import classify_script
+from services.scorer import score_viral_potential
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "original_text": script.original_text,
         "modified_text": script.modified_text,
         "character_type": script.character_type,
+        "viral_score": script.viral_score,
         "status": script.status,
     }
 
@@ -88,6 +90,19 @@ def classify_one(script_id: int, db: Session = Depends(get_db)):
     script.character_type = char_type
     db.commit()
     return {"ok": True, "character_type": char_type}
+
+
+@router.post("/{script_id}/score")
+def score_one(script_id: int, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if not script.original_text:
+        raise HTTPException(status_code=400, detail="No text to score")
+    vs = score_viral_potential(script.original_text)
+    script.viral_score = vs
+    db.commit()
+    return {"ok": True, "viral_score": vs}
 
 
 @router.post("/batch-extract")

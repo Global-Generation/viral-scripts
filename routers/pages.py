@@ -73,7 +73,7 @@ def scripts_library(
         db.query(Script)
         .join(Video)
         .join(Search, Video.search_id == Search.id)
-        .order_by(Script.created_at.desc())
+        .order_by(Script.viral_score.desc(), Script.created_at.desc())
     )
     if category:
         q = q.filter(Search.category == category)

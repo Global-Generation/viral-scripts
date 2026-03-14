@@ -35,19 +35,21 @@ def startup():
 
 
 def _migrate_character_type():
-    """Add character_type column if it doesn't exist (for existing DBs)."""
+    """Add new columns if they don't exist (for existing DBs)."""
+    from sqlalchemy import text
     db = SessionLocal()
-    try:
-        from sqlalchemy import text
-        db.execute(text("SELECT character_type FROM scripts LIMIT 1"))
-    except Exception:
-        db.rollback()
-        from sqlalchemy import text
-        db.execute(text("ALTER TABLE scripts ADD COLUMN character_type VARCHAR DEFAULT ''"))
-        db.commit()
-        logging.info("Migrated: added character_type column to scripts")
-    finally:
-        db.close()
+    for col, sql in [
+        ("character_type", "ALTER TABLE scripts ADD COLUMN character_type VARCHAR DEFAULT ''"),
+        ("viral_score", "ALTER TABLE scripts ADD COLUMN viral_score INTEGER DEFAULT 0"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to scripts")
+    db.close()
 
 
 def _seed_presets():

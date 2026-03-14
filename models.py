@@ -43,6 +43,7 @@ class Script(Base):
     original_text = Column(Text, default="")
     modified_text = Column(Text, default="")
     character_type = Column(String, default="")
+    viral_score = Column(Integer, default=0)
     status = Column(String, default="extracted")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

@@ -122,6 +122,28 @@
         </div>
         {% endif %}
 
+        <!-- Viral Score -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Viral Potential</h2>
+            <div id="viral-score-display" class="text-center mb-3">
+                {% if script.viral_score >= 70 %}
+                <span style="font-size: 32px; font-weight: 800; color: #16a34a;">{{ script.viral_score }}</span>
+                <span style="font-size: 12px; color: #16a34a; display: block;">HIGH POTENTIAL</span>
+                {% elif script.viral_score >= 50 %}
+                <span style="font-size: 32px; font-weight: 800; color: #ca8a04;">{{ script.viral_score }}</span>
+                <span style="font-size: 12px; color: #ca8a04; display: block;">MODERATE</span>
+                {% elif script.viral_score > 0 %}
+                <span style="font-size: 32px; font-weight: 800; color: #9ca3af;">{{ script.viral_score }}</span>
+                <span style="font-size: 12px; color: #9ca3af; display: block;">LOW</span>
+                {% else %}
+                <span style="font-size: 14px; color: #d1d5db;">Not scored</span>
+                {% endif %}
+            </div>
+            <button class="btn btn-secondary w-full justify-center text-xs" onclick="scoreScript({{ script.id }})">
+                {% if script.viral_score > 0 %}Re-score{% else %}Score{% endif %}
+            </button>
+        </div>
+
         <!-- Script metadata -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Script Info</h2>
