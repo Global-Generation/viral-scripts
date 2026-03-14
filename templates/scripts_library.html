@@ -17,12 +17,22 @@
 </div>
 
 <!-- Character filter tabs -->
+<div class="flex gap-1 mb-2">
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if not character %}active{% endif %}" style="font-size: 11px;">All Characters</a>
+    <a href="/scripts?character=grandpa{% if category %}&category={{ category }}{% endif %}{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if character == 'grandpa' %}active{% endif %}" style="font-size: 11px;">&#x1F474; Grandpa</a>
+    <a href="/scripts?character=auntie{% if category %}&category={{ category }}{% endif %}{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if character == 'auntie' %}active{% endif %}" style="font-size: 11px;">&#x1F469;&#x200D;&#x1F4BC; Auntie</a>
+    <a href="/scripts?character=techguy{% if category %}&category={{ category }}{% endif %}{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if character == 'techguy' %}active{% endif %}" style="font-size: 11px;">&#x1F468;&#x200D;&#x1F4BB; Tech Guy</a>
+    <a href="/scripts?character=cartoon{% if category %}&category={{ category }}{% endif %}{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if character == 'cartoon' %}active{% endif %}" style="font-size: 11px;">&#x1F3AC; Cartoon</a>
+</div>
+
+<!-- Assignment filter tabs -->
 <div class="flex gap-1 mb-4">
-    <a href="/scripts{% if category %}?category={{ category }}{% endif %}" class="prompt-tab {% if not character %}active{% endif %}" style="font-size: 11px;">All Characters</a>
-    <a href="/scripts?character=grandpa{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'grandpa' %}active{% endif %}" style="font-size: 11px;">&#x1F474; Grandpa</a>
-    <a href="/scripts?character=auntie{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'auntie' %}active{% endif %}" style="font-size: 11px;">&#x1F469;&#x200D;&#x1F4BC; Auntie</a>
-    <a href="/scripts?character=techguy{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'techguy' %}active{% endif %}" style="font-size: 11px;">&#x1F468;&#x200D;&#x1F4BB; Tech Guy</a>
-    <a href="/scripts?character=cartoon{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'cartoon' %}active{% endif %}" style="font-size: 11px;">&#x1F3AC; Cartoon</a>
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if not assigned %}active{% endif %}" style="font-size: 11px;">All</a>
+    <a href="/scripts?assigned=yes{% if category %}&category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if assigned == 'yes' %}active{% endif %}" style="font-size: 11px;">Assigned</a>
+    <a href="/scripts?assigned=no{% if category %}&category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if assigned == 'no' %}active{% endif %}" style="font-size: 11px;">Unassigned</a>
+    <a href="/scripts?assigned=boris{% if category %}&category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if assigned == 'boris' %}active{% endif %}" style="font-size: 11px; color: #2563EB;">Boris</a>
+    <a href="/scripts?assigned=thomas{% if category %}&category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if assigned == 'thomas' %}active{% endif %}" style="font-size: 11px; color: #16a34a;">Thomas</a>
+    <a href="/scripts?assigned=daniel{% if category %}&category={{ category }}{% endif %}{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if assigned == 'daniel' %}active{% endif %}" style="font-size: 11px; color: #ea580c;">Daniel</a>
 </div>
 
 {% if not scripts %}
@@ -40,6 +50,7 @@
                     <th class="th">Category</th>
                     <th class="th">Character</th>
                     <th class="th">Score</th>
+                    <th class="th">Assigned</th>
                     <th class="th">Date</th>
                     <th class="th"></th>
                 </tr>
@@ -88,6 +99,17 @@
                         <span style="font-weight: 600; color: #ca8a04; font-size: 13px;">{{ script.viral_score }}</span>
                         {% elif script.viral_score > 0 %}
                         <span style="color: #9ca3af; font-size: 13px;">{{ script.viral_score }}</span>
+                        {% else %}
+                        <span style="color: #d1d5db; font-size: 11px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="td">
+                        {% if script.assigned_to == 'boris' %}
+                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB; font-size: 10px;">Boris</span>
+                        {% elif script.assigned_to == 'thomas' %}
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">Thomas</span>
+                        {% elif script.assigned_to == 'daniel' %}
+                        <span class="status-badge" style="background: rgba(234,88,12,0.1); color: #ea580c; font-size: 10px;">Daniel</span>
                         {% else %}
                         <span style="color: #d1d5db; font-size: 11px;">—</span>
                         {% endif %}

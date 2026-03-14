@@ -41,6 +41,7 @@ def _migrate_character_type():
     for col, sql in [
         ("character_type", "ALTER TABLE scripts ADD COLUMN character_type VARCHAR DEFAULT ''"),
         ("viral_score", "ALTER TABLE scripts ADD COLUMN viral_score INTEGER DEFAULT 0"),
+        ("assigned_to", "ALTER TABLE scripts ADD COLUMN assigned_to VARCHAR DEFAULT ''"),
     ]:
         try:
             db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))

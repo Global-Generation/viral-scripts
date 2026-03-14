@@ -70,6 +70,30 @@
             </button>
         </div>
 
+        <!-- Assigned To -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Assigned To</h2>
+            <div id="assigned-badge" class="mb-3">
+                {% if script.assigned_to == 'boris' %}
+                <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">Boris</span>
+                {% elif script.assigned_to == 'thomas' %}
+                <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 13px; padding: 6px 12px;">Thomas</span>
+                {% elif script.assigned_to == 'daniel' %}
+                <span class="status-badge" style="background: rgba(234,88,12,0.1); color: #ea580c; font-size: 13px; padding: 6px 12px;">Daniel</span>
+                {% else %}
+                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Unassigned</span>
+                {% endif %}
+            </div>
+            <div class="flex gap-1 flex-wrap">
+                <button class="btn-sm {% if script.assigned_to == 'boris' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'boris')">Boris</button>
+                <button class="btn-sm {% if script.assigned_to == 'thomas' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'thomas')">Thomas</button>
+                <button class="btn-sm {% if script.assigned_to == 'daniel' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'daniel')">Daniel</button>
+                {% if script.assigned_to %}
+                <button class="btn-sm btn-danger" style="font-size: 10px;" onclick="assignScript({{ script.id }}, '')">Unassign</button>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Actions</h2>

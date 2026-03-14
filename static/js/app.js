@@ -174,6 +174,17 @@ async function classifyScript(scriptId) {
     }
 }
 
+// === Assign script ===
+async function assignScript(scriptId, assignee) {
+    const result = await api('/api/scripts/' + scriptId + '/assign', 'POST', { assigned_to: assignee });
+    if (result && result.ok) {
+        toast(assignee ? 'Assigned to ' + assignee : 'Unassigned', 'success');
+        location.reload();
+    } else {
+        toast('Assignment failed', 'error');
+    }
+}
+
 // === Presets ===
 async function addPreset(category) {
     const input = document.getElementById(category + '-new-preset');

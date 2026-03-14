@@ -42,8 +42,21 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "modified_text": script.modified_text,
         "character_type": script.character_type,
         "viral_score": script.viral_score,
+        "assigned_to": script.assigned_to,
         "status": script.status,
     }
+
+
+VALID_ASSIGNEES = {"boris", "thomas", "daniel", ""}
+
+
+class AssignRequest(BaseModel):
+    assigned_to: str
+
+
+class BatchAssignRequest(BaseModel):
+    script_ids: list[int]
+    assigned_to: str
 
 
 class ScriptUpdate(BaseModel):
@@ -138,6 +151,32 @@ def batch_rewrite(db: Session = Depends(get_db)):
             errors += 1
             logger.error(f"Rewrite failed for script #{script.id}: {e}")
     return {"ok": True, "rewritten": count, "errors": errors}
+
+
+@router.post("/{script_id}/assign")
+def assign_script(script_id: int, data: AssignRequest, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if data.assigned_to not in VALID_ASSIGNEES:
+        raise HTTPException(status_code=400, detail=f"Invalid assignee. Valid: {VALID_ASSIGNEES}")
+    script.assigned_to = data.assigned_to
+    db.commit()
+    return {"ok": True, "assigned_to": data.assigned_to}
+
+
+@router.post("/batch-assign")
+def batch_assign(data: BatchAssignRequest, db: Session = Depends(get_db)):
+    if data.assigned_to not in VALID_ASSIGNEES:
+        raise HTTPException(status_code=400, detail=f"Invalid assignee. Valid: {VALID_ASSIGNEES}")
+    count = 0
+    for sid in data.script_ids:
+        script = db.query(Script).get(sid)
+        if script:
+            script.assigned_to = data.assigned_to
+            count += 1
+    db.commit()
+    return {"ok": True, "assigned": count}
 
 
 @router.delete("/{script_id}")

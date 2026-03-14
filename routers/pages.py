@@ -81,6 +81,7 @@ def scripts_library(
     request: Request,
     category: str = Query(""),
     character: str = Query(""),
+    assigned: str = Query(""),
     db: Session = Depends(get_db)
 ):
     q = (
@@ -93,10 +94,16 @@ def scripts_library(
         q = q.filter(Search.category == category)
     if character:
         q = q.filter(Script.character_type == character)
+    if assigned == "yes":
+        q = q.filter(Script.assigned_to != "", Script.assigned_to.isnot(None))
+    elif assigned == "no":
+        q = q.filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
+    elif assigned in ("boris", "thomas", "daniel"):
+        q = q.filter(Script.assigned_to == assigned)
     scripts = q.all()
     return templates.TemplateResponse(
         "scripts_library.html",
-        ctx(request, "scripts", scripts=scripts, category=category, character=character)
+        ctx(request, "scripts", scripts=scripts, category=category, character=character, assigned=assigned)
     )
 
 
