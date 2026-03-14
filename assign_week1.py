@@ -1,4 +1,5 @@
 """One-time script: assign top 42 AI scripts to Boris/Thomas/Daniel for Week 1.
+Takes the 42 highest viral_score scripts, period. No round-robin nonsense.
 Run inside the container: python assign_week1.py
 """
 import os
@@ -9,65 +10,44 @@ from models import Script, Video, Search
 
 db = SessionLocal()
 
-# Get all AI scripts ordered by viral_score desc
-ai_scripts = (
+# Step 1: Clear all existing assignments
+cleared = db.query(Script).filter(Script.assigned_to != "", Script.assigned_to.isnot(None)).all()
+for s in cleared:
+    s.assigned_to = ""
+db.commit()
+print(f"Cleared {len(cleared)} existing assignments")
+
+# Step 2: Get ALL AI scripts ordered by viral_score desc — top 42
+top_scripts = (
     db.query(Script)
     .join(Video)
     .join(Search, Video.search_id == Search.id)
     .filter(Search.category == "ai")
-    .filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
     .order_by(Script.viral_score.desc(), Script.created_at.desc())
+    .limit(42)
     .all()
 )
 
-print(f"Found {len(ai_scripts)} unassigned AI scripts")
+print(f"Top 42 AI scripts by viral_score:")
+for i, s in enumerate(top_scripts):
+    print(f"  {i+1}. #{s.id} score={s.viral_score} char={s.character_type}")
 
-if len(ai_scripts) < 42:
-    print(f"WARNING: Only {len(ai_scripts)} AI scripts available, need 42. Will assign what we have.")
-
-# Round-robin by character type to spread variety across the 3 men
-# Group by character type first
-by_char = {}
-for s in ai_scripts:
-    ct = s.character_type or "unknown"
-    by_char.setdefault(ct, []).append(s)
-
-print("Character type distribution:")
-for ct, scripts in by_char.items():
-    print(f"  {ct}: {len(scripts)} scripts")
-
-# Build interleaved list: pick from each character type in round-robin
-interleaved = []
-char_types = list(by_char.keys())
-indices = {ct: 0 for ct in char_types}
-while len(interleaved) < min(42, len(ai_scripts)):
-    added = False
-    for ct in char_types:
-        if indices[ct] < len(by_char[ct]) and len(interleaved) < min(42, len(ai_scripts)):
-            interleaved.append(by_char[ct][indices[ct]])
-            indices[ct] += 1
-            added = True
-    if not added:
-        break
-
-# Assign: first 14 = boris, next 14 = thomas, last 14 = daniel
-assignees = ["boris"] * 14 + ["thomas"] * 14 + ["daniel"] * 14
-for i, script in enumerate(interleaved):
-    if i >= len(assignees):
-        break
-    script.assigned_to = assignees[i]
+# Step 3: Assign round-robin: boris, thomas, daniel, boris, thomas, daniel...
+names = ["boris", "thomas", "daniel"]
+for i, script in enumerate(top_scripts):
+    script.assigned_to = names[i % 3]
 
 db.commit()
 
 # Summary
-boris = [s for s in interleaved[:14]]
-thomas = [s for s in interleaved[14:28]]
-daniel = [s for s in interleaved[28:42]]
-
-print(f"\nAssigned {min(len(interleaved), 42)} scripts:")
-print(f"  Boris:  {len(boris)} scripts, chars: {[s.character_type for s in boris]}")
-print(f"  Thomas: {len(thomas)} scripts, chars: {[s.character_type for s in thomas]}")
-print(f"  Daniel: {len(daniel)} scripts, chars: {[s.character_type for s in daniel]}")
+for name in names:
+    person_scripts = [s for s in top_scripts if s.assigned_to == name]
+    scores = [s.viral_score for s in person_scripts]
+    print(f"\n{name.upper()}: {len(person_scripts)} scripts")
+    print(f"  Scores: {scores}")
+    print(f"  Min={min(scores)}, Max={max(scores)}, Avg={sum(scores)/len(scores):.0f}")
+    for s in person_scripts:
+        print(f"    #{s.id} score={s.viral_score} char={s.character_type}")
 
 db.close()
-print("Done!")
+print("\nDone!")
