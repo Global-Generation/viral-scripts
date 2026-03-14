@@ -67,6 +67,11 @@ class PublishRequest(BaseModel):
     platform: str
 
 
+class PublishDateRequest(BaseModel):
+    platform: str
+    date: str  # ISO date string or empty to clear
+
+
 class BatchAssignRequest(BaseModel):
     script_ids: list[int]
     assigned_to: str
@@ -212,6 +217,25 @@ def toggle_publish(script_id: int, data: PublishRequest, db: Session = Depends(g
         setattr(script, col, now)
         db.commit()
         return {"ok": True, "published": True, "date": now.isoformat()}
+
+
+@router.post("/{script_id}/publish-date")
+def set_publish_date(script_id: int, data: PublishDateRequest, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if data.platform not in VALID_PLATFORMS:
+        raise HTTPException(status_code=400, detail=f"Invalid platform. Valid: {VALID_PLATFORMS}")
+    col = f"published_{data.platform}"
+    if data.date:
+        dt = datetime.fromisoformat(data.date.replace('Z', '+00:00'))
+        setattr(script, col, dt)
+        db.commit()
+        return {"ok": True, "date": dt.isoformat()}
+    else:
+        setattr(script, col, None)
+        db.commit()
+        return {"ok": True, "date": None}
 
 
 @router.post("/batch-assign")

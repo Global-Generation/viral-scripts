@@ -134,17 +134,6 @@
                     {% endif %}
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600 font-medium">YouTube</span>
-                    {% if script.published_youtube %}
-                    <div class="flex items-center gap-2">
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_youtube.strftime('%b %d') }}</span>
-                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'youtube')">Unpublish</button>
-                    </div>
-                    {% else %}
-                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'youtube')">Publish</button>
-                    {% endif %}
-                </div>
-                <div class="flex items-center justify-between">
                     <span class="text-xs text-gray-600 font-medium">Instagram</span>
                     {% if script.published_instagram %}
                     <div class="flex items-center gap-2">
@@ -153,6 +142,17 @@
                     </div>
                     {% else %}
                     <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'instagram')">Publish</button>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-600 font-medium">YouTube</span>
+                    {% if script.published_youtube %}
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_youtube.strftime('%b %d') }}</span>
+                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'youtube')">Unpublish</button>
+                    </div>
+                    {% else %}
+                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'youtube')">Publish</button>
                     {% endif %}
                 </div>
             </div>

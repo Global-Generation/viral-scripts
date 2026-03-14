@@ -33,23 +33,23 @@
 {% else %}
 <div class="stat-card">
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full" id="scripts-table">
             <thead>
                 <tr class="border-b border-gray-100">
-                    <th class="th">Script Preview</th>
-                    <th class="th">Video</th>
-                    <th class="th">Category</th>
-                    <th class="th">Score</th>
-                    <th class="th">Status</th>
-                    <th class="th">TikTok</th>
-                    <th class="th">YouTube</th>
-                    <th class="th">Instagram</th>
+                    <th class="th sortable" data-sort="text" data-col="0" style="cursor:pointer;">Script Preview <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;">Video <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="num" data-col="3" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="5" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="7" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
                     <th class="th"></th>
                 </tr>
             </thead>
             <tbody>
                 {% for script in scripts %}
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50" data-script-id="{{ script.id }}">
                     <td class="td" style="max-width: 300px;">
                         <p class="text-xs text-gray-600 truncate">{{ script.original_text[:120] }}</p>
                     </td>
@@ -82,37 +82,22 @@
                         <span style="color: #d1d5db; font-size: 11px;">—</span>
                         {% endif %}
                     </td>
-                    <td class="td">
-                        {% if script.production_status == 'ready' %}
-                        <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 10px;">Ready</span>
-                        {% elif script.production_status == 'filmed' %}
-                        <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 10px;">Filmed</span>
-                        {% elif script.production_status == 'published' %}
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">Published</span>
-                        {% else %}
-                        <span style="color: #d1d5db; font-size: 11px;">—</span>
-                        {% endif %}
+                    <td class="td" id="status-cell-{{ script.id }}">
+                        <select class="inline-select" onchange="inlineUpdateProduction({{ script.id }}, this.value)" style="font-size: 10px; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; min-width: 70px;">
+                            <option value="" {% if not script.production_status %}selected{% endif %}>—</option>
+                            <option value="ready" {% if script.production_status == 'ready' %}selected{% endif %}>Ready</option>
+                            <option value="filmed" {% if script.production_status == 'filmed' %}selected{% endif %}>Filmed</option>
+                            <option value="published" {% if script.production_status == 'published' %}selected{% endif %}>Published</option>
+                        </select>
                     </td>
                     <td class="td">
-                        {% if script.published_tiktok %}
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'tiktok')">{{ script.published_tiktok.strftime('%b %d') }}</span>
-                        {% else %}
-                        <span style="color: #d1d5db; font-size: 11px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'tiktok')">—</span>
-                        {% endif %}
+                        <input type="date" class="inline-date" value="{{ script.published_tiktok.strftime('%Y-%m-%d') if script.published_tiktok else '' }}" onchange="inlineSetDate({{ script.id }}, 'tiktok', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if script.published_tiktok else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if script.published_tiktok else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if script.published_tiktok else '#9ca3af' }};">
                     </td>
                     <td class="td">
-                        {% if script.published_youtube %}
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'youtube')">{{ script.published_youtube.strftime('%b %d') }}</span>
-                        {% else %}
-                        <span style="color: #d1d5db; font-size: 11px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'youtube')">—</span>
-                        {% endif %}
+                        <input type="date" class="inline-date" value="{{ script.published_instagram.strftime('%Y-%m-%d') if script.published_instagram else '' }}" onchange="inlineSetDate({{ script.id }}, 'instagram', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if script.published_instagram else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if script.published_instagram else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if script.published_instagram else '#9ca3af' }};">
                     </td>
                     <td class="td">
-                        {% if script.published_instagram %}
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'instagram')">{{ script.published_instagram.strftime('%b %d') }}</span>
-                        {% else %}
-                        <span style="color: #d1d5db; font-size: 11px; cursor: pointer;" onclick="togglePublish({{ script.id }}, 'instagram')">—</span>
-                        {% endif %}
+                        <input type="date" class="inline-date" value="{{ script.published_youtube.strftime('%Y-%m-%d') if script.published_youtube else '' }}" onchange="inlineSetDate({{ script.id }}, 'youtube', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if script.published_youtube else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if script.published_youtube else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if script.published_youtube else '#9ca3af' }};">
                     </td>
                     <td class="td">
                         <div class="flex gap-1">
@@ -127,4 +112,111 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// === Sortable table ===
+(function() {
+    const table = document.getElementById('scripts-table');
+    if (!table) return;
+    const headers = table.querySelectorAll('th.sortable');
+    let currentSort = { col: -1, asc: true };
+
+    headers.forEach(th => {
+        th.addEventListener('click', function() {
+            const col = parseInt(this.dataset.col);
+            const type = this.dataset.sort;
+            const asc = (currentSort.col === col) ? !currentSort.asc : true;
+            currentSort = { col, asc };
+
+            // Update sort icons
+            headers.forEach(h => h.querySelector('.sort-icon').textContent = '');
+            this.querySelector('.sort-icon').textContent = asc ? ' \u25B2' : ' \u25BC';
+
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let va = getCellValue(a, col, type);
+                let vb = getCellValue(b, col, type);
+                if (type === 'num') {
+                    va = parseFloat(va) || 0;
+                    vb = parseFloat(vb) || 0;
+                    return asc ? va - vb : vb - va;
+                }
+                if (type === 'date') {
+                    // Empty dates go last
+                    if (!va && !vb) return 0;
+                    if (!va) return 1;
+                    if (!vb) return -1;
+                    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+                }
+                // text
+                va = va.toLowerCase();
+                vb = vb.toLowerCase();
+                if (va === vb) return 0;
+                return asc ? (va < vb ? -1 : 1) : (va > vb ? -1 : 1);
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        });
+    });
+
+    function getCellValue(row, col, type) {
+        const cell = row.children[col];
+        if (type === 'date') {
+            const input = cell.querySelector('input[type="date"]');
+            return input ? input.value : '';
+        }
+        if (type === 'num') {
+            const span = cell.querySelector('span');
+            return span ? span.textContent.replace(/[^0-9.]/g, '') : '0';
+        }
+        // For select (status column)
+        const select = cell.querySelector('select');
+        if (select) return select.value;
+        // For badge/text
+        const badge = cell.querySelector('.status-badge');
+        if (badge) return badge.textContent.trim();
+        return cell.textContent.trim();
+    }
+})();
+
+// === Inline production status update (no reload) ===
+async function inlineUpdateProduction(scriptId, status) {
+    const result = await api('/api/scripts/' + scriptId + '/production', 'POST', { production_status: status });
+    if (result && result.ok) {
+        toast(status ? 'Status: ' + status : 'Status cleared', 'success');
+    } else {
+        toast('Update failed', 'error');
+    }
+}
+
+// === Inline date set (no reload) ===
+async function inlineSetDate(scriptId, platform, dateValue) {
+    const result = await api('/api/scripts/' + scriptId + '/publish-date', 'POST', { platform: platform, date: dateValue || '' });
+    if (result && result.ok) {
+        // Update input styling
+        const row = document.querySelector('tr[data-script-id="' + scriptId + '"]');
+        if (row) {
+            const platformIndex = { tiktok: 5, instagram: 6, youtube: 7 };
+            const cell = row.children[platformIndex[platform]];
+            const input = cell.querySelector('input');
+            if (dateValue) {
+                input.style.borderColor = '#bbf7d0';
+                input.style.background = 'rgba(22,163,74,0.05)';
+                input.style.color = '#16a34a';
+            } else {
+                input.style.borderColor = '#e2e8f0';
+                input.style.background = 'white';
+                input.style.color = '#9ca3af';
+            }
+        }
+        toast(dateValue ? platform + ' date set' : platform + ' cleared', 'success');
+    } else {
+        toast('Update failed', 'error');
+    }
+}
+</script>
 {% endblock %}
