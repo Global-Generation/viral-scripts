@@ -29,12 +29,13 @@ CAMERA
 Three framing types. Alternate STRICTLY. Same framing twice in a row = FORBIDDEN.
 
 CLOSE-UP:
-Face fills the entire frame. Camera straight on, at eye level.
+Face fills the entire frame. Camera at eye level.
 Background blurred or barely visible. Only face, neck, top of shoulders visible.
 Used for emotional impacts, pauses, direct gaze into camera.
+Camera can be slightly angled (not always dead center) — adds life.
 
 MEDIUM SHOT:
-Upper body — from waist/table to head. Camera straight on.
+Upper body — from waist/table to head.
 Hand gesticulation visible, object in hands, body posture. Background readable.
 Main working framing for conversation.
 
@@ -43,17 +44,54 @@ Camera pulled back and shifted to the side — lateral angle approximately 30-45
 Entire setting visible: furniture, walls, decor + character in context.
 Character occupies ~40% of frame. Used for lists, pauses, "exhale" moments.
 
-TRANSITIONS — describe as live camera movement:
-"Camera smoothly pushes in on the face" / "Camera pulls back, revealing the room, side 3/4 angle" / "Close-up again — face fills the frame" — each transition = physical movement, NOT an edit cut.
+══════════════════════
+CAMERA MOVEMENT (CRITICAL — NO STATIC SHOTS!)
+══════════════════════
+The camera is ALWAYS MOVING. Never describe a static locked-off frame.
+Every shot has subtle or dramatic movement. Types of movement:
+
+ORBIT: Camera slowly arcs around the character (left-to-right or right-to-left).
+  Example: "Camera orbits slowly from his left shoulder to face him straight on"
+
+DOLLY: Camera physically moves toward or away (NOT zoom — actual movement with parallax).
+  Example: "Camera dollies in from medium to close-up, background shifting behind him"
+
+DRIFT: Subtle lateral slide during a held shot, keeping it alive.
+  Example: "Camera drifts slightly to the right as he speaks, reframing him off-center"
+
+PUSH-IN: Slow creep toward the subject during a key line for intensity.
+  Example: "Slow push-in tightens the frame as his voice drops"
+
+PULL-OUT REVEAL: Camera pulls back to reveal environment or body language.
+  Example: "Camera pulls out and arcs to wide 3/4, revealing the room"
+
+COMBINE movements with framing changes. Every transition between framings
+must describe the camera's PHYSICAL PATH — how it travels from one position to another.
+
+DO NOT just say "medium shot" or "close-up" as if cutting between angles.
+Describe the MOVEMENT that gets us there. The viewer should feel the camera gliding.
+
+══════════════════════
+HOOK — FIRST 2 SECONDS (CRITICAL FOR RETENTION!)
+══════════════════════
+The opening MUST be visually dynamic. Do NOT start with a calm static medium shot.
+Options for opening (vary between scripts):
+- Start TIGHT on close-up, already mid-orbit, then pull out as first line hits
+- Start on wide 3/4 and dolly in fast to medium as character snaps attention to camera
+- Start with camera drifting past an object/detail, then whip-settling on his face
+- Start with a push-in already in motion, catching him mid-gesture
+
+The first camera movement should be the most dramatic in the entire video.
+Grab visual attention BEFORE the words even register.
 
 ══════════════════════
 STRUCTURE
 ══════════════════════
-HOOK (opening) — medium shot, direct gaze, first line
-DEVELOPMENT — alternating close-up ↔ wide 3/4 ↔ medium
-TURN — energy shift, close-up → medium
-IMPACT — close-up, main idea, pause, direct gaze
-FINALE — medium or wide 3/4 (different each time)
+HOOK (opening) — dynamic camera movement + first line (NOT static medium shot!)
+DEVELOPMENT — alternating framings with constant camera movement between them
+TURN — energy shift, orbit or dolly to new angle
+IMPACT — slow push-in to close-up, main idea, pause, direct gaze
+FINALE — pull-out to medium or wide 3/4 (different each time)
 
 ══════════════════════
 OUTPUT FORMAT
