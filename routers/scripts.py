@@ -7,6 +7,7 @@ from database import get_db
 from models import Video, Script
 from services.pipeline import extract_script_for_video
 from services.rewriter import rewrite_provocative
+from services.classifier import classify_script
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "video_id": script.video_id,
         "original_text": script.original_text,
         "modified_text": script.modified_text,
+        "character_type": script.character_type,
         "status": script.status,
     }
 
@@ -73,6 +75,19 @@ def rewrite_script(script_id: int, db: Session = Depends(get_db)):
     script.status = "modified"
     db.commit()
     return {"ok": True, "modified_text": rewritten}
+
+
+@router.post("/{script_id}/classify")
+def classify_one(script_id: int, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if not script.original_text:
+        raise HTTPException(status_code=400, detail="No text to classify")
+    char_type = classify_script(script.original_text)
+    script.character_type = char_type
+    db.commit()
+    return {"ok": True, "character_type": char_type}
 
 
 @router.post("/batch-extract")

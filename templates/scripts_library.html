@@ -7,11 +7,20 @@
     <p class="text-sm text-gray-500">All extracted and modified TikTok scripts</p>
 </div>
 
-<!-- Filter tabs -->
-<div class="flex gap-1 mb-4 border-b border-gray-200">
-    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}">All</a>
-    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
-    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+<!-- Category filter tabs -->
+<div class="flex gap-1 mb-2 border-b border-gray-200">
+    <a href="/scripts{% if character %}?character={{ character }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
+    <a href="/scripts?category=ai{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
+    <a href="/scripts?category=finance{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+</div>
+
+<!-- Character filter tabs -->
+<div class="flex gap-1 mb-4">
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}" class="prompt-tab {% if not character %}active{% endif %}" style="font-size: 11px;">All Characters</a>
+    <a href="/scripts?character=grandpa{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'grandpa' %}active{% endif %}" style="font-size: 11px;">&#x1F474; Grandpa</a>
+    <a href="/scripts?character=auntie{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'auntie' %}active{% endif %}" style="font-size: 11px;">&#x1F469;&#x200D;&#x1F4BC; Auntie</a>
+    <a href="/scripts?character=techguy{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'techguy' %}active{% endif %}" style="font-size: 11px;">&#x1F468;&#x200D;&#x1F4BB; Tech Guy</a>
+    <a href="/scripts?character=cartoon{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if character == 'cartoon' %}active{% endif %}" style="font-size: 11px;">&#x1F3AC; Cartoon</a>
 </div>
 
 {% if not scripts %}
@@ -27,6 +36,7 @@
                     <th class="th">Script Preview</th>
                     <th class="th">Video</th>
                     <th class="th">Category</th>
+                    <th class="th">Character</th>
                     <th class="th">Status</th>
                     <th class="th">Date</th>
                     <th class="th"></th>
@@ -50,6 +60,19 @@
                             {% else %}
                             <span class="status-badge status-queued">General</span>
                             {% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="td">
+                        {% if script.character_type == 'grandpa' %}
+                        <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 10px;">&#x1F474; Grandpa</span>
+                        {% elif script.character_type == 'auntie' %}
+                        <span class="status-badge" style="background: rgba(236,72,153,0.1); color: #DB2777; font-size: 10px;">&#x1F469;&#x200D;&#x1F4BC; Auntie</span>
+                        {% elif script.character_type == 'techguy' %}
+                        <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 10px;">&#x1F468;&#x200D;&#x1F4BB; Tech</span>
+                        {% elif script.character_type == 'cartoon' %}
+                        <span class="status-badge" style="background: rgba(168,85,247,0.1); color: #7C3AED; font-size: 10px;">&#x1F3AC; Cartoon</span>
+                        {% else %}
+                        <span class="status-badge status-queued" style="font-size: 10px;">—</span>
                         {% endif %}
                     </td>
                     <td class="td">

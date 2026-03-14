@@ -49,6 +49,27 @@
 
     <!-- Right: Actions panel -->
     <div class="space-y-4">
+        <!-- Character Type -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Character Type</h2>
+            <div id="character-badge" class="mb-3">
+                {% if script.character_type == 'grandpa' %}
+                <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 13px; padding: 6px 12px;">&#x1F474; Wall Street Grandpa</span>
+                {% elif script.character_type == 'auntie' %}
+                <span class="status-badge" style="background: rgba(236,72,153,0.1); color: #DB2777; font-size: 13px; padding: 6px 12px;">&#x1F469;&#x200D;&#x1F4BC; Wall Street Auntie</span>
+                {% elif script.character_type == 'techguy' %}
+                <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">&#x1F468;&#x200D;&#x1F4BB; IT Tech Guy</span>
+                {% elif script.character_type == 'cartoon' %}
+                <span class="status-badge" style="background: rgba(168,85,247,0.1); color: #7C3AED; font-size: 13px; padding: 6px 12px;">&#x1F3AC; Cartoon</span>
+                {% else %}
+                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Not classified</span>
+                {% endif %}
+            </div>
+            <button class="btn btn-secondary w-full justify-center text-xs" onclick="classifyScript({{ script.id }})">
+                {% if script.character_type %}Re-classify{% else %}Classify{% endif %}
+            </button>
+        </div>
+
         <!-- Actions -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Actions</h2>

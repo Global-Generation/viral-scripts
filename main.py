@@ -30,7 +30,24 @@ def startup():
     os.makedirs("./data", exist_ok=True)
     os.makedirs(os.getenv("DOWNLOADS_DIR", "./downloads"), exist_ok=True)
     init_db()
+    _migrate_character_type()
     _seed_presets()
+
+
+def _migrate_character_type():
+    """Add character_type column if it doesn't exist (for existing DBs)."""
+    db = SessionLocal()
+    try:
+        from sqlalchemy import text
+        db.execute(text("SELECT character_type FROM scripts LIMIT 1"))
+    except Exception:
+        db.rollback()
+        from sqlalchemy import text
+        db.execute(text("ALTER TABLE scripts ADD COLUMN character_type VARCHAR DEFAULT ''"))
+        db.commit()
+        logging.info("Migrated: added character_type column to scripts")
+    finally:
+        db.close()
 
 
 def _seed_presets():

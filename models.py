@@ -42,6 +42,7 @@ class Script(Base):
     video_id = Column(Integer, ForeignKey("videos.id"), nullable=False, unique=True)
     original_text = Column(Text, default="")
     modified_text = Column(Text, default="")
+    character_type = Column(String, default="")
     status = Column(String, default="extracted")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

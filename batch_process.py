@@ -4,6 +4,7 @@ from database import SessionLocal
 from models import Video, Script
 from services.pipeline import extract_script_for_video
 from services.rewriter import rewrite_provocative
+from services.classifier import classify_script
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
@@ -64,8 +65,40 @@ def batch_rewrite():
     return done
 
 
+def batch_classify():
+    db = SessionLocal()
+    scripts = db.query(Script).filter(
+        Script.original_text != "",
+        Script.original_text.isnot(None),
+        (Script.character_type == "") | (Script.character_type.is_(None)),
+    ).all()
+    log.info(f"Classifying {len(scripts)} scripts...")
+
+    done = 0
+    errors = 0
+    for script in scripts:
+        try:
+            char_type = classify_script(script.original_text)
+            script.character_type = char_type
+            db.commit()
+            done += 1
+            log.info(f"Classified #{script.id} -> {char_type} ({done}/{len(scripts)})")
+        except Exception as e:
+            errors += 1
+            log.error(f"Classify failed #{script.id}: {e}")
+
+    db.close()
+    log.info(f"Classification done: {done} ok, {errors} errors")
+    return done
+
+
 if __name__ == "__main__":
+    import sys
     log.info("=== BATCH PROCESSING START ===")
-    batch_extract()
-    batch_rewrite()
+    if len(sys.argv) > 1 and sys.argv[1] == "classify":
+        batch_classify()
+    else:
+        batch_extract()
+        batch_rewrite()
+        batch_classify()
     log.info("=== ALL DONE ===")

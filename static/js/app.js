@@ -137,6 +137,26 @@ function copyText(elementId) {
         .catch(() => toast('Copy failed', 'error'));
 }
 
+// === Classify script ===
+async function classifyScript(scriptId) {
+    const badge = document.getElementById('character-badge');
+    if (badge) badge.innerHTML = '<span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Classifying...</span>';
+    const result = await api('/api/scripts/' + scriptId + '/classify', 'POST');
+    if (result && result.ok) {
+        const labels = {
+            grandpa: {emoji: '&#x1F474;', name: 'Wall Street Grandpa', bg: 'rgba(234,179,8,0.1)', color: '#B45309'},
+            auntie: {emoji: '&#x1F469;&#x200D;&#x1F4BC;', name: 'Wall Street Auntie', bg: 'rgba(236,72,153,0.1)', color: '#DB2777'},
+            techguy: {emoji: '&#x1F468;&#x200D;&#x1F4BB;', name: 'IT Tech Guy', bg: 'rgba(59,130,246,0.1)', color: '#2563EB'},
+            cartoon: {emoji: '&#x1F3AC;', name: 'Cartoon', bg: 'rgba(168,85,247,0.1)', color: '#7C3AED'},
+        };
+        const l = labels[result.character_type] || labels.cartoon;
+        if (badge) badge.innerHTML = '<span class="status-badge" style="background:' + l.bg + '; color:' + l.color + '; font-size: 13px; padding: 6px 12px;">' + l.emoji + ' ' + l.name + '</span>';
+        toast('Classified as ' + result.character_type, 'success');
+    } else {
+        toast('Classification failed', 'error');
+    }
+}
+
 // === Presets ===
 async function addPreset(category) {
     const input = document.getElementById(category + '-new-preset');
