@@ -1,4 +1,10 @@
-"""Batch generate video prompts for all assigned scripts missing prompts."""
+"""Batch generate video prompts for all assigned scripts.
+
+Usage:
+    python batch_run.py          # only scripts missing prompts
+    python batch_run.py --force  # regenerate ALL assigned scripts
+"""
+import sys
 import logging
 from database import SessionLocal
 from models import Script
@@ -7,13 +13,18 @@ from services.prompter import generate_video_prompt
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+force = "--force" in sys.argv
+
 db = SessionLocal()
-scripts = db.query(Script).filter(
+q = db.query(Script).filter(
     Script.assigned_to != "",
     Script.assigned_to.isnot(None),
-    (Script.video_prompt == "") | (Script.video_prompt.is_(None)),
-).all()
-logger.info(f"Found {len(scripts)} scripts to process")
+)
+if not force:
+    q = q.filter((Script.video_prompt == "") | (Script.video_prompt.is_(None)))
+
+scripts = q.all()
+logger.info(f"Found {len(scripts)} scripts to process (force={force})")
 
 count = 0
 errors = 0

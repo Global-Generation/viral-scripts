@@ -4,19 +4,8 @@ from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a professional video director for vertical TikTok/Reels content.
-You transform raw scripts into TWO separate video generation prompts.
-Each prompt is fully self-contained (generated from scratch). They will be spliced together later.
-
-STRICT RULES:
-
-══════════════════════
-TEXT
-══════════════════════
-- ~40-50 words of dialogue per video. If the script is longer — condense, keep the meaning
-- Split the script text in half. Video 1 = first half, Video 2 = second half
-- Text chunks between camera changes must be EQUAL length (1-2 sentences each)
-
+# Shared rules included in both steps
+SHARED_RULES = """
 ══════════════════════
 CHARACTER & LOCATION
 ══════════════════════
@@ -56,7 +45,7 @@ TRANSITIONS — describe as live camera movement:
 "Camera smoothly pushes in on the face" / "Camera pulls back, revealing the room, side 3/4 angle" / "Close-up again — face fills the frame" — each transition = physical movement, NOT an edit cut.
 
 ══════════════════════
-STRUCTURE OF EACH VIDEO
+STRUCTURE
 ══════════════════════
 HOOK (opening) — medium shot, direct gaze, first line
 DEVELOPMENT — alternating close-up ↔ wide 3/4 ↔ medium
@@ -65,43 +54,68 @@ IMPACT — close-up, main idea, pause, direct gaze
 FINALE — medium or wide 3/4 (different each time)
 
 ══════════════════════
-SPLICE POINT (CRITICAL!)
+OUTPUT FORMAT
 ══════════════════════
-Video 1 and Video 2 are generated separately, but when spliced
-must feel like ONE continuous clip. For this:
+Character, location, frame format, resolution — all taken from reference photo and generator settings. Do NOT duplicate in prompt text.
+Format — continuous text as a directorial scene description.
+No lists, no timecodes, no bullet points.
+~40-50 words of dialogue. Text chunks between camera changes must be EQUAL length (1-2 sentences each)."""
 
-The LAST FRAME of Video 1 and FIRST FRAME of Video 2 must match:
-- SAME camera framing (same shot type)
-- SAME body pose (same position, same lean)
-- SAME energy level (do NOT drop, do NOT restart)
-- SAME facial expression (same emotion, same gaze)
+# ── STEP 1: Generate Video 1 ──
 
-Video 1 ends MID-THOUGHT — character is still speaking,
-energy is high, body leaning forward, gaze into camera.
+SYSTEM_VIDEO1 = f"""You are a professional video director for vertical TikTok/Reels content.
+You generate a SINGLE video prompt — Video 1 (the PROBLEM half).
 
-Video 2 STARTS FROM THAT SAME STATE — same framing, same pose,
-same energy, as if the camera never stopped. Character
-CONTINUES speaking at the same tension level. Only THEN
-does the energy begin to shift — smoothly transitioning to resolution.
-
-In Video 2's prompt, EXPLICITLY describe the starting state:
-which framing, which pose, which energy — so the generator
-starts from exactly that point, not from zero.
+{SHARED_RULES}
 
 ══════════════════════
-ENERGY
+ENERGY — VIDEO 1 = PROBLEM
 ══════════════════════
-Overall arc across BOTH videos: QUIET → louder → FAST → PAUSE → IMPACT → exhale.
-This is a single story in two parts.
-
-VIDEO 1 = problem. Energy BUILDS from start to end.
+Energy BUILDS from start to end.
 Start — calm tone, minimal gestures, direct gaze.
 Middle — voice strengthens, gesticulation appears, lean forward.
 End — energy at peak, body tense, leaning forward.
 Thought NOT CLOSED. Sentence hangs. Feeling: "and then what?"
 Speech tempo accelerates toward the end.
 
-VIDEO 2 = solution. Energy does NOT DROP at the start.
+══════════════════════
+ENDING (CRITICAL!)
+══════════════════════
+Video 1 ends MID-THOUGHT — character is still speaking,
+energy is high, body leaning forward, gaze into camera.
+The sentence is NOT finished. It hangs in the air.
+
+At the VERY END of your output, add a line starting with:
+SPLICE STATE: [describe the exact final camera framing, body pose, lean direction, energy level, facial expression, gaze direction, and the emotion on the face]
+
+This splice state will be passed to the Video 2 generator to ensure continuity."""
+
+USER_VIDEO1 = """Generate Video 1 (problem half) from this script.
+Use approximately the FIRST HALF of the script content. Condense to ~40-50 words of dialogue.
+
+Output format:
+
+VIDEO 1:
+[continuous directorial description with dialogue in "quotes"]
+
+SPLICE STATE: [exact description of final frame state]
+
+---
+
+ORIGINAL SCRIPT:
+{script}"""
+
+# ── STEP 2: Generate Video 2 using splice state from Video 1 ──
+
+SYSTEM_VIDEO2 = f"""You are a professional video director for vertical TikTok/Reels content.
+You generate a SINGLE video prompt — Video 2 (the SOLUTION half).
+
+{SHARED_RULES}
+
+══════════════════════
+ENERGY — VIDEO 2 = SOLUTION
+══════════════════════
+Energy does NOT DROP at the start.
 First 1-2 seconds — THE SAME high energy as Video 1's ending.
 Character continues with same tension, same pose, same tone.
 Then SMOOTH transition: exhale, leans back, tone lowers,
@@ -111,30 +125,29 @@ End — IMPACT: main idea, close-up, direct gaze, nod, silence.
 Feeling of a PERIOD. Everything said.
 
 ══════════════════════
-OUTPUT FORMAT
+STARTING STATE (CRITICAL!)
 ══════════════════════
-Each prompt contains:
-1. Camera rules (framing alternation, transitions)
-2. Energy type (building / resolving)
-3. Continuous scene description with dialogue text in "quotes"
+You will receive a SPLICE STATE describing exactly how Video 1 ended:
+camera framing, body pose, energy level, facial expression.
 
-Character, location, frame format, resolution — all taken
-from reference photo and generator settings. Do NOT duplicate in prompt text.
+Your Video 2 MUST START from EXACTLY that state — same framing,
+same pose, same energy, as if the camera never stopped.
+The character CONTINUES speaking at the same tension level.
+Only THEN does the energy begin to shift.
 
-Format — continuous text as a directorial scene description.
-No lists, no timecodes, no bullet points."""
+In your prompt, EXPLICITLY describe this starting state in the first sentence
+so the video generator reproduces it exactly."""
 
-USER_PROMPT = """Transform this script into TWO separate video generation prompts.
+USER_VIDEO2 = """Generate Video 2 (solution half) from this script.
+Use approximately the SECOND HALF of the script content. Condense to ~40-50 words of dialogue.
 
-Follow ALL the rules in your system prompt strictly.
+Video 1 ended with this state — your Video 2 MUST START from exactly this:
+{splice_state}
 
-The output format MUST be exactly:
-
-VIDEO 1:
-[continuous directorial description with dialogue in "quotes", ~40-50 words of dialogue]
+Output format:
 
 VIDEO 2:
-[continuous directorial description with dialogue in "quotes", ~40-50 words of dialogue, explicitly describe starting state matching Video 1's ending]
+[continuous directorial description with dialogue in "quotes", starting from the splice state above]
 
 ---
 
@@ -145,13 +158,40 @@ ORIGINAL SCRIPT:
 def generate_video_prompt(script_text: str) -> str:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    response = client.messages.create(
+    # Step 1: Generate Video 1
+    response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=2048,
-        system=SYSTEM_PROMPT,
+        system=SYSTEM_VIDEO1,
         messages=[{
             "role": "user",
-            "content": USER_PROMPT.format(script=script_text)
+            "content": USER_VIDEO1.format(script=script_text)
         }]
     )
-    return response.content[0].text.strip()
+    video1_full = response1.content[0].text.strip()
+
+    # Extract splice state from Video 1 output
+    splice_state = ""
+    if "SPLICE STATE:" in video1_full:
+        parts = video1_full.split("SPLICE STATE:", 1)
+        video1_text = parts[0].strip()
+        splice_state = parts[1].strip()
+    else:
+        video1_text = video1_full
+        splice_state = "Medium shot, leaning forward, tense, direct gaze into camera, high energy, mid-sentence"
+        logger.warning("No SPLICE STATE found in Video 1 output, using default")
+
+    # Step 2: Generate Video 2 using splice state
+    response2 = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=2048,
+        system=SYSTEM_VIDEO2,
+        messages=[{
+            "role": "user",
+            "content": USER_VIDEO2.format(script=script_text, splice_state=splice_state)
+        }]
+    )
+    video2_text = response2.content[0].text.strip()
+
+    # Combine both
+    return f"{video1_text}\n\n{video2_text}"
