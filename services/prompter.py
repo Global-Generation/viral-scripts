@@ -9,6 +9,8 @@ SHARED_RULES = """
 ══════════════════════
 CHARACTER & LOCATION
 ══════════════════════
+- The character is ALWAYS MALE. Use masculine pronouns (he/him/his). Remove any female names, references, or pronouns from the original script
+- If the original script mentions a female name (e.g. "Sabrina", "Jessica") — DROP IT completely or replace with a neutral phrase. NEVER keep female names or say "she/her"
 - Appearance, clothing, setting, frame format — ALL from the reference photo and generator settings. Do NOT describe in text
 - Character sits in one location. Does not stand up or walk
 - Natural gesticulation: object in hands, fingers, palms, lean
