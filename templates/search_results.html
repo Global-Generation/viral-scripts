@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Results: {{ search.query }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-sm text-gray-400 hover:text-gray-600 mb-2 inline-block">&larr; Back to search</a>
+    <h1 class="text-xl font-bold text-gray-900 mb-1">{{ search.query }}</h1>
+    <div class="flex items-center gap-2">
+        {% if search.category == 'ai' %}
+        <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
+        {% elif search.category == 'finance' %}
+        <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+        {% endif %}
+        <span class="text-sm text-gray-400">{{ videos|length }} videos found</span>
+    </div>
+</div>
+
+{% if not videos %}
+<div class="stat-card text-center py-12">
+    <p class="text-gray-400 text-sm">No TikTok videos found for this query. Try a different search term.</p>
+</div>
+{% else %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for video in videos %}
+    <div class="stat-card flex flex-col" id="card-{{ video.id }}">
+        <!-- Title -->
+        <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2" style="min-height: 2.5em;">
+            {{ video.title or 'Untitled' }}
+        </h3>
+
+        <!-- Description -->
+        <p class="text-xs text-gray-500 mb-3 line-clamp-3 flex-1">
+            {{ video.description[:200] if video.description else 'No description' }}
+        </p>
+
+        <!-- Score + URL -->
+        <div class="flex items-center justify-between mb-3">
+            <span class="status-badge status-running">Score: {{ '%.2f'|format(video.score) }}</span>
+            <a href="{{ video.tiktok_url }}" target="_blank" class="text-xs text-blue-500 hover:underline truncate ml-2" style="max-width: 120px;">
+                TikTok &rarr;
+            </a>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2">
+            {% if video.status == 'extracted' and video.script %}
+            <a href="/scripts/{{ video.script.id }}" class="btn-sm btn-primary flex-1 justify-center">
+                View Script
+            </a>
+            {% elif video.status == 'extracting' %}
+            <button class="btn-sm btn-secondary flex-1 justify-center" disabled id="btn-{{ video.id }}">
+                <svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                Extracting...
+            </button>
+            {% elif video.status == 'failed' %}
+            <button class="btn-sm btn-danger flex-1 justify-center" onclick="extractScript({{ video.id }})" id="btn-{{ video.id }}">
+                Retry
+            </button>
+            {% else %}
+            <button class="btn-sm btn-primary flex-1 justify-center" onclick="extractScript({{ video.id }})" id="btn-{{ video.id }}">
+                Extract Script
+            </button>
+            {% endif %}
+        </div>
+
+        {% if video.status == 'failed' and video.error_message %}
+        <p class="text-xs text-red-400 mt-2">{{ video.error_message[:100] }}</p>
+        {% endif %}
+
+        <div id="status-{{ video.id }}" class="hidden"></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

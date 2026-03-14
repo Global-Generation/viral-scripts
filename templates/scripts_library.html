@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Scripts Library{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Scripts Library</h1>
+    <p class="text-sm text-gray-500">All extracted and modified TikTok scripts</p>
+</div>
+
+<!-- Filter tabs -->
+<div class="flex gap-1 mb-4 border-b border-gray-200">
+    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}">All</a>
+    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
+    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+</div>
+
+{% if not scripts %}
+<div class="stat-card text-center py-12">
+    <p class="text-gray-400 text-sm">No scripts yet. <a href="/" class="text-blue-500">Search for videos</a> and extract their scripts.</p>
+</div>
+{% else %}
+<div class="stat-card">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th class="th">Script Preview</th>
+                    <th class="th">Video</th>
+                    <th class="th">Category</th>
+                    <th class="th">Status</th>
+                    <th class="th">Date</th>
+                    <th class="th"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for script in scripts %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td class="td" style="max-width: 300px;">
+                        <p class="text-xs text-gray-600 truncate">{{ script.original_text[:120] }}</p>
+                    </td>
+                    <td class="td" style="max-width: 200px;">
+                        <p class="text-xs text-gray-500 truncate">{{ script.video.title[:60] if script.video else 'N/A' }}</p>
+                    </td>
+                    <td class="td">
+                        {% if script.video and script.video.search %}
+                            {% if script.video.search.category == 'ai' %}
+                            <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
+                            {% elif script.video.search.category == 'finance' %}
+                            <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+                            {% else %}
+                            <span class="status-badge status-queued">General</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="td">
+                        {% if script.status == 'modified' %}
+                        <span class="status-badge status-completed">Modified</span>
+                        {% else %}
+                        <span class="status-badge status-running">Extracted</span>
+                        {% endif %}
+                    </td>
+                    <td class="td text-gray-400 text-xs">{{ script.created_at.strftime('%b %d') }}</td>
+                    <td class="td">
+                        <div class="flex gap-1">
+                            <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary">View</a>
+                            <button class="btn-sm btn-danger" onclick="deleteScript({{ script.id }})">Del</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Viral Scripts — Search{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Find Viral TikTok Scripts</h1>
+    <p class="text-sm text-gray-500">Search trending TikTok videos, extract scripts, make them more provocative</p>
+</div>
+
+<!-- Search bar -->
+<div class="stat-card mb-6">
+    <div class="flex gap-3">
+        <input type="text" id="search-input" class="input flex-1" placeholder="Search TikTok videos..."
+               onkeydown="if(event.key==='Enter') doSearch(this.value)">
+        <button id="search-btn" class="btn btn-primary" onclick="doSearch(document.getElementById('search-input').value)">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            Search
+        </button>
+    </div>
+</div>
+
+<!-- Categories -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <!-- AI Presets -->
+    <div class="stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
+            <span class="text-sm font-semibold text-gray-700">Artificial Intelligence</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% for p in ai_presets %}
+            <button class="btn-sm btn-secondary" onclick="doSearch('{{ p.query }}', 'ai')">{{ p.query }}</button>
+            {% endfor %}
+            {% if not ai_presets %}
+            <span class="text-xs text-gray-400">No presets yet. <a href="/presets" class="text-blue-500">Add some</a></span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Finance Presets -->
+    <div class="stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+            <span class="text-sm font-semibold text-gray-700">Money & Investing</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% for p in finance_presets %}
+            <button class="btn-sm btn-secondary" onclick="doSearch('{{ p.query }}', 'finance')">{{ p.query }}</button>
+            {% endfor %}
+            {% if not finance_presets %}
+            <span class="text-xs text-gray-400">No presets yet. <a href="/presets" class="text-blue-500">Add some</a></span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent searches -->
+{% if recent_searches %}
+<div class="stat-card">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Recent Searches</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th class="th">Query</th>
+                    <th class="th">Category</th>
+                    <th class="th">Results</th>
+                    <th class="th">Date</th>
+                    <th class="th"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in recent_searches %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td class="td font-medium">{{ s.query }}</td>
+                    <td class="td">
+                        {% if s.category == 'ai' %}
+                        <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
+                        {% elif s.category == 'finance' %}
+                        <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+                        {% else %}
+                        <span class="status-badge status-queued">General</span>
+                        {% endif %}
+                    </td>
+                    <td class="td">{{ s.result_count }}</td>
+                    <td class="td text-gray-400">{{ s.created_at.strftime('%b %d, %H:%M') }}</td>
+                    <td class="td">
+                        <a href="/search?search_id={{ s.id }}" class="btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
