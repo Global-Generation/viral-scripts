@@ -1,40 +1,36 @@
 """Batch extract + rewrite all pending videos. Run inside container."""
 import logging
-import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from database import SessionLocal
-from models import Video, Script, Search
+from models import Video, Script
 from services.pipeline import extract_script_for_video
 from services.rewriter import rewrite_provocative
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
 
-MAX_EXTRACT_WORKERS = 3
-
 
 def batch_extract():
     db = SessionLocal()
-    video_ids = [
-        v.id for v in db.query(Video).filter(Video.status == "found").all()
-    ]
+    # Reset any stuck extracting videos
+    stuck = db.query(Video).filter(Video.status == "extracting").all()
+    for v in stuck:
+        v.status = "found"
+    db.commit()
+
+    video_ids = [v.id for v in db.query(Video).filter(Video.status == "found").all()]
     db.close()
-    log.info(f"Extracting {len(video_ids)} videos with {MAX_EXTRACT_WORKERS} workers...")
+    log.info(f"Extracting {len(video_ids)} videos sequentially...")
 
     done = 0
     failed = 0
-    with ThreadPoolExecutor(max_workers=MAX_EXTRACT_WORKERS) as pool:
-        futures = {pool.submit(extract_script_for_video, vid): vid for vid in video_ids}
-        for future in as_completed(futures):
-            vid = futures[future]
-            try:
-                future.result()
-                done += 1
-            except Exception as e:
-                failed += 1
-                log.error(f"Video {vid} failed: {e}")
-            if (done + failed) % 10 == 0:
-                log.info(f"Progress: {done + failed}/{len(video_ids)} (ok={done}, fail={failed})")
+    for i, vid in enumerate(video_ids):
+        try:
+            extract_script_for_video(vid)
+            done += 1
+        except Exception as e:
+            failed += 1
+            log.error(f"Video {vid} failed: {e}")
+        log.info(f"Progress: {i+1}/{len(video_ids)} (ok={done}, fail={failed})")
 
     log.info(f"Extraction done: {done} ok, {failed} failed out of {len(video_ids)}")
     return done
