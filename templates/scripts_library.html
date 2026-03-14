@@ -12,6 +12,8 @@
     <a href="/scripts{% if character %}?character={{ character }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
     <a href="/scripts?category=ai{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
     <a href="/scripts?category=finance{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+    <a href="/scripts?category=admissions{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'admissions' %}active{% endif %}">Admissions</a>
+    <a href="/scripts?category=exams{% if character %}&character={{ character }}{% endif %}" class="prompt-tab {% if category == 'exams' %}active{% endif %}">Exams</a>
 </div>
 
 <!-- Character filter tabs -->
@@ -57,6 +59,10 @@
                             <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
                             {% elif script.video.search.category == 'finance' %}
                             <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+                            {% elif script.video.search.category == 'admissions' %}
+                            <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB;">Admissions</span>
+                            {% elif script.video.search.category == 'exams' %}
+                            <span class="status-badge" style="background: rgba(249,115,22,0.1); color: #EA580C;">Exams</span>
                             {% else %}
                             <span class="status-badge status-queued">General</span>
                             {% endif %}
