@@ -42,6 +42,10 @@ def _migrate_character_type():
         ("character_type", "ALTER TABLE scripts ADD COLUMN character_type VARCHAR DEFAULT ''"),
         ("viral_score", "ALTER TABLE scripts ADD COLUMN viral_score INTEGER DEFAULT 0"),
         ("assigned_to", "ALTER TABLE scripts ADD COLUMN assigned_to VARCHAR DEFAULT ''"),
+        ("production_status", "ALTER TABLE scripts ADD COLUMN production_status VARCHAR DEFAULT ''"),
+        ("published_tiktok", "ALTER TABLE scripts ADD COLUMN published_tiktok DATETIME"),
+        ("published_youtube", "ALTER TABLE scripts ADD COLUMN published_youtube DATETIME"),
+        ("published_instagram", "ALTER TABLE scripts ADD COLUMN published_instagram DATETIME"),
     ]:
         try:
             db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))

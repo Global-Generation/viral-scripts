@@ -185,6 +185,28 @@ async function assignScript(scriptId, assignee) {
     }
 }
 
+// === Production status ===
+async function updateProduction(scriptId, status) {
+    const result = await api('/api/scripts/' + scriptId + '/production', 'POST', { production_status: status });
+    if (result && result.ok) {
+        toast(status ? 'Status: ' + status : 'Status cleared', 'success');
+        location.reload();
+    } else {
+        toast('Update failed', 'error');
+    }
+}
+
+// === Toggle publish ===
+async function togglePublish(scriptId, platform) {
+    const result = await api('/api/scripts/' + scriptId + '/publish', 'POST', { platform: platform });
+    if (result && result.ok) {
+        toast(result.published ? platform + ' published' : platform + ' unpublished', 'success');
+        location.reload();
+    } else {
+        toast('Publish toggle failed', 'error');
+    }
+}
+
 // === Presets ===
 async function addPreset(category) {
     const input = document.getElementById(category + '-new-preset');

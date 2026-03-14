@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -43,6 +44,10 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "character_type": script.character_type,
         "viral_score": script.viral_score,
         "assigned_to": script.assigned_to,
+        "production_status": script.production_status or "",
+        "published_tiktok": script.published_tiktok.isoformat() if script.published_tiktok else None,
+        "published_youtube": script.published_youtube.isoformat() if script.published_youtube else None,
+        "published_instagram": script.published_instagram.isoformat() if script.published_instagram else None,
         "status": script.status,
     }
 
@@ -52,6 +57,14 @@ VALID_ASSIGNEES = {"boris", "thomas", "daniel", ""}
 
 class AssignRequest(BaseModel):
     assigned_to: str
+
+
+class ProductionRequest(BaseModel):
+    production_status: str
+
+
+class PublishRequest(BaseModel):
+    platform: str
 
 
 class BatchAssignRequest(BaseModel):
@@ -163,6 +176,42 @@ def assign_script(script_id: int, data: AssignRequest, db: Session = Depends(get
     script.assigned_to = data.assigned_to
     db.commit()
     return {"ok": True, "assigned_to": data.assigned_to}
+
+
+VALID_PRODUCTION_STATUSES = {"", "ready", "filmed", "published"}
+VALID_PLATFORMS = {"tiktok", "youtube", "instagram"}
+
+
+@router.post("/{script_id}/production")
+def update_production(script_id: int, data: ProductionRequest, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if data.production_status not in VALID_PRODUCTION_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Valid: {VALID_PRODUCTION_STATUSES}")
+    script.production_status = data.production_status
+    db.commit()
+    return {"ok": True, "production_status": data.production_status}
+
+
+@router.post("/{script_id}/publish")
+def toggle_publish(script_id: int, data: PublishRequest, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if data.platform not in VALID_PLATFORMS:
+        raise HTTPException(status_code=400, detail=f"Invalid platform. Valid: {VALID_PLATFORMS}")
+    col = f"published_{data.platform}"
+    current = getattr(script, col)
+    if current:
+        setattr(script, col, None)
+        db.commit()
+        return {"ok": True, "published": False, "date": None}
+    else:
+        now = datetime.now(timezone.utc)
+        setattr(script, col, now)
+        db.commit()
+        return {"ok": True, "published": True, "date": now.isoformat()}
 
 
 @router.post("/batch-assign")

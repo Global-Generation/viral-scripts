@@ -94,6 +94,70 @@
             </div>
         </div>
 
+        <!-- Production Status -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Production Status</h2>
+            <div id="production-badge" class="mb-3">
+                {% if script.production_status == 'ready' %}
+                <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">Ready</span>
+                {% elif script.production_status == 'filmed' %}
+                <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 13px; padding: 6px 12px;">Filmed</span>
+                {% elif script.production_status == 'published' %}
+                <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 13px; padding: 6px 12px;">Published</span>
+                {% else %}
+                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Not set</span>
+                {% endif %}
+            </div>
+            <div class="flex gap-1 flex-wrap">
+                <button class="btn-sm {% if script.production_status == 'ready' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'ready')">Ready</button>
+                <button class="btn-sm {% if script.production_status == 'filmed' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'filmed')">Filmed</button>
+                <button class="btn-sm {% if script.production_status == 'published' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'published')">Published</button>
+                {% if script.production_status %}
+                <button class="btn-sm btn-danger" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, '')">Clear</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Publication -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Publication</h2>
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-600 font-medium">TikTok</span>
+                    {% if script.published_tiktok %}
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_tiktok.strftime('%b %d') }}</span>
+                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'tiktok')">Unpublish</button>
+                    </div>
+                    {% else %}
+                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'tiktok')">Publish</button>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-600 font-medium">YouTube</span>
+                    {% if script.published_youtube %}
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_youtube.strftime('%b %d') }}</span>
+                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'youtube')">Unpublish</button>
+                    </div>
+                    {% else %}
+                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'youtube')">Publish</button>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-600 font-medium">Instagram</span>
+                    {% if script.published_instagram %}
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_instagram.strftime('%b %d') }}</span>
+                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'instagram')">Unpublish</button>
+                    </div>
+                    {% else %}
+                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'instagram')">Publish</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Actions</h2>
