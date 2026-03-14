@@ -40,10 +40,11 @@
                     <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;">Video <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="num" data-col="3" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="5" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="7" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Prompt <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="5" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="7" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="8" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
                     <th class="th"></th>
                 </tr>
             </thead>
@@ -80,6 +81,13 @@
                         <span style="color: #9ca3af; font-size: 13px;">{{ script.viral_score }}</span>
                         {% else %}
                         <span style="color: #d1d5db; font-size: 11px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="td" style="text-align: center;">
+                        {% if script.video_prompt %}
+                        <span style="color: #16a34a; font-size: 16px;" title="Prompt ready">&#10003;</span>
+                        {% else %}
+                        <span style="color: #d1d5db; font-size: 13px;">&mdash;</span>
                         {% endif %}
                     </td>
                     <td class="td" id="status-cell-{{ script.id }}">
@@ -200,7 +208,7 @@ async function inlineSetDate(scriptId, platform, dateValue) {
         // Update input styling
         const row = document.querySelector('tr[data-script-id="' + scriptId + '"]');
         if (row) {
-            const platformIndex = { tiktok: 5, instagram: 6, youtube: 7 };
+            const platformIndex = { tiktok: 6, instagram: 7, youtube: 8 };
             const cell = row.children[platformIndex[platform]];
             const input = cell.querySelector('input');
             if (dateValue) {

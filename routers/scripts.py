@@ -10,6 +10,7 @@ from services.pipeline import extract_script_for_video
 from services.rewriter import rewrite_provocative
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
+from services.prompter import generate_video_prompt
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "published_tiktok": script.published_tiktok.isoformat() if script.published_tiktok else None,
         "published_youtube": script.published_youtube.isoformat() if script.published_youtube else None,
         "published_instagram": script.published_instagram.isoformat() if script.published_instagram else None,
+        "video_prompt": script.video_prompt or "",
         "status": script.status,
     }
 
@@ -80,6 +82,7 @@ class BatchAssignRequest(BaseModel):
 class ScriptUpdate(BaseModel):
     original_text: str = None
     modified_text: str = None
+    video_prompt: str = None
 
 
 @router.put("/{script_id}")
@@ -91,6 +94,8 @@ def update_script(script_id: int, data: ScriptUpdate, db: Session = Depends(get_
         script.original_text = data.original_text
     if data.modified_text is not None:
         script.modified_text = data.modified_text
+    if data.video_prompt is not None:
+        script.video_prompt = data.video_prompt
     db.commit()
     return {"ok": True}
 
@@ -250,6 +255,47 @@ def batch_assign(data: BatchAssignRequest, db: Session = Depends(get_db)):
             count += 1
     db.commit()
     return {"ok": True, "assigned": count}
+
+
+@router.post("/{script_id}/generate-prompt")
+def generate_prompt(script_id: int, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    text = script.modified_text or script.original_text
+    if not text:
+        raise HTTPException(status_code=400, detail="No script text to generate prompt from")
+
+    prompt = generate_video_prompt(text)
+    script.video_prompt = prompt
+    db.commit()
+    return {"ok": True, "video_prompt": prompt}
+
+
+@router.post("/batch-generate-prompts")
+def batch_generate_prompts(db: Session = Depends(get_db)):
+    """Generate video prompts for all assigned scripts that don't have one yet."""
+    scripts = db.query(Script).filter(
+        Script.assigned_to != "",
+        Script.assigned_to.isnot(None),
+        (Script.video_prompt == "") | (Script.video_prompt.is_(None)),
+    ).all()
+    count = 0
+    errors = 0
+    for script in scripts:
+        text = script.modified_text or script.original_text
+        if not text:
+            continue
+        try:
+            prompt = generate_video_prompt(text)
+            script.video_prompt = prompt
+            db.commit()
+            count += 1
+            logger.info(f"Generated prompt for script #{script.id}")
+        except Exception as e:
+            errors += 1
+            logger.error(f"Prompt generation failed for script #{script.id}: {e}")
+    return {"ok": True, "generated": count, "errors": errors, "total_queued": len(scripts)}
 
 
 @router.delete("/{script_id}")
