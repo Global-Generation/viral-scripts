@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./analyzer.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/analyzer.db")
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):

@@ -6,12 +6,12 @@ services:
     ports:
       - "8070:8070"
     volumes:
-      - ./analyzer.db:/app/analyzer.db
-      - ./downloads:/app/downloads
+      - viral_data:/app/data
       - whisper_cache:/root/.cache/whisper
     env_file:
       - .env
     restart: unless-stopped
 
 volumes:
+  viral_data:
   whisper_cache:

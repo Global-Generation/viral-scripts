@@ -27,9 +27,10 @@ def health():
 
 @app.on_event("startup")
 def startup():
+    os.makedirs("./data", exist_ok=True)
+    os.makedirs(os.getenv("DOWNLOADS_DIR", "./downloads"), exist_ok=True)
     init_db()
     _seed_presets()
-    os.makedirs(os.getenv("DOWNLOADS_DIR", "./downloads"), exist_ok=True)
 
 
 def _seed_presets():
