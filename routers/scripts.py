@@ -11,7 +11,7 @@ from services.rewriter import rewrite_provocative
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
 
-_executor = ThreadPoolExecutor(max_workers=1)
+_executor = ThreadPoolExecutor(max_workers=3)
 
 
 @router.post("/extract/{video_id}")
@@ -73,6 +73,41 @@ def rewrite_script(script_id: int, db: Session = Depends(get_db)):
     script.status = "modified"
     db.commit()
     return {"ok": True, "modified_text": rewritten}
+
+
+@router.post("/batch-extract")
+def batch_extract(db: Session = Depends(get_db)):
+    """Extract scripts from ALL videos that haven't been extracted yet."""
+    videos = db.query(Video).filter(Video.status == "found").all()
+    count = 0
+    for video in videos:
+        _executor.submit(extract_script_for_video, video.id)
+        count += 1
+    return {"ok": True, "queued": count}
+
+
+@router.post("/batch-rewrite")
+def batch_rewrite(db: Session = Depends(get_db)):
+    """Rewrite ALL scripts that don't have a modified version yet."""
+    scripts = db.query(Script).filter(
+        Script.original_text != "",
+        Script.original_text.isnot(None),
+        (Script.modified_text == "") | (Script.modified_text.is_(None)),
+    ).all()
+    count = 0
+    errors = 0
+    for script in scripts:
+        try:
+            rewritten = rewrite_provocative(script.original_text)
+            script.modified_text = rewritten
+            script.status = "modified"
+            db.commit()
+            count += 1
+            logger.info(f"Rewritten script #{script.id}")
+        except Exception as e:
+            errors += 1
+            logger.error(f"Rewrite failed for script #{script.id}: {e}")
+    return {"ok": True, "rewritten": count, "errors": errors}
 
 
 @router.delete("/{script_id}")
