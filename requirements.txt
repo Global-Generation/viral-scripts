@@ -6,6 +6,6 @@ python-dotenv==1.0.1
 python-multipart==0.0.12
 tavily-python==0.5.0
 yt-dlp>=2024.12.23
-openai-whisper==20240930
+# openai-whisper installed separately in Dockerfile (needs setuptools first)
 anthropic==0.40.0
 aiofiles==24.1.0
