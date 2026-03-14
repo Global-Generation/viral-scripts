@@ -16,9 +16,10 @@ STRICT RULES:
    - Dialogue goes in quotes inline with the camera/gesture directions
 
 2. CAMERA RULES:
-   - Use ONLY these angles: close-up, medium shot, wide 3/4 shot
-   - STRICT alternation: never use the same angle twice in a row
-   - Smooth transitions between angles (no jump cuts described)
+   - FORMAT: Always vertical 9:16 (portrait mode, phone camera)
+   - Use ONLY these framings: close-up, medium shot, full-body 3/4 angle
+   - STRICT alternation: never use the same framing twice in a row
+   - Smooth transitions between framings (no jump cuts described)
    - Character stays in the same location throughout — no scene changes
 
 3. ENERGY ARC:
