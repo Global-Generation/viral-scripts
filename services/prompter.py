@@ -43,31 +43,28 @@ Entire setting visible: furniture, walls, decor + character in context.
 Character occupies ~40% of frame.
 
 ══════════════════════
-CAMERA MOVEMENT (CRITICAL — NO STATIC SHOTS!)
+CAMERA CUTS (CRITICAL — NO SMOOTH MOVEMENTS!)
 ══════════════════════
-The camera is ALWAYS MOVING. Never describe a static locked-off frame.
-Every shot has subtle or dramatic movement. Types:
+Two cameras shoot simultaneously from different fixed positions.
+The camera NEVER moves, orbits, tracks, drifts, or pushes in. Each camera is LOCKED on a tripod.
+All transitions are HARD CUTS — instant switch from one angle to another.
 
-ORBIT: Camera slowly arcs around the character (left-to-right or right-to-left).
-DOLLY: Camera physically moves toward or away (NOT zoom — actual movement with parallax).
-DRIFT: Subtle lateral slide during a held shot, keeping it alive.
-PUSH-IN: Slow creep toward the subject during a key line.
-PULL-OUT REVEAL: Camera pulls back to reveal environment or body language.
+CAMERA A: Front-facing, slightly off-center. Used for close-ups and medium shots.
+CAMERA B: Side angle, ~30-45° offset. Used for wide 3/4 and alternate medium shots.
 
-COMBINE movements with framing changes. Every transition between framings
-must describe the camera's PHYSICAL PATH — how it travels.
-DO NOT just say "medium shot" or "close-up" as if cutting. Describe the MOVEMENT.
+Every transition = CUT. Describe which camera/angle we CUT TO.
+Say "CUT TO close-up from Camera A" — NOT "camera pushes in" or "camera orbits."
+NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc.
 
 ══════════════════════
 HOOK — FIRST 2 SECONDS (CRITICAL!)
 ══════════════════════
-The opening MUST be visually dynamic. Do NOT start with a calm static medium shot.
+The opening MUST grab attention immediately. Do NOT start with a calm medium shot.
 Options (vary between scripts):
-- Start TIGHT on close-up, already mid-orbit, then pull out
-- Start wide 3/4 and dolly in fast to medium
-- Start with camera drifting, then whip-settling on his face
-- Start with a push-in already in motion, catching him mid-gesture
-First camera movement = most dramatic in the entire video.
+- Start TIGHT on close-up (Camera A), then CUT TO wide 3/4 (Camera B)
+- Start on wide 3/4 (Camera B), then quick CUT TO close-up (Camera A)
+- Start on medium (Camera A), mid-gesture, then CUT TO side angle (Camera B)
+First CUT = fastest in the entire video. Rapid angle switch to create energy.
 
 ══════════════════════
 OUTPUT FORMAT
