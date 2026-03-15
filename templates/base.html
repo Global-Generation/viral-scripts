@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Viral Scripts{% endblock %}</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0a0f'/%3E%3Cpath d='M10 8l12 8-12 8V8z' fill='%2300ff88'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e6435b'/%3E%3Cpath d='M10 8l12 8-12 8V8z' fill='white'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="h-full font-sans" style="background: #0a0a0f;">
+<body class="h-full font-sans" style="background: #f8fafc;">
     <!-- Mobile header -->
-    <div class="mobile-header fixed top-0 left-0 right-0 z-30 px-4 h-14 items-center gap-3 lg:hidden" style="background: #0d0d14; border-bottom: 1px solid rgba(0,255,136,0.1);">
-        <button onclick="toggleSidebar()" class="p-1 -ml-1" style="color: #00ff88;">
+    <div class="mobile-header fixed top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 h-14 items-center gap-3 lg:hidden">
+        <button onclick="toggleSidebar()" class="p-1 -ml-1 text-gray-600">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <span class="font-semibold text-sm" style="color: #ffffff;">Viral Scripts</span>
+        <span class="font-semibold text-sm text-gray-900">Viral Scripts</span>
     </div>
     <!-- Sidebar overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
 
     <div class="flex h-full">
         <!-- Sidebar -->
