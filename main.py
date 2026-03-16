@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from database import init_db, SessionLocal
 import models  # noqa: F401 — register all models with Base.metadata
-from models import PresetQuery
+from models import PresetQuery, NariVideo
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -13,11 +13,12 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Viral Scripts")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from routers import pages, search, scripts, presets
+from routers import pages, search, scripts, presets, nari
 app.include_router(pages.router)
 app.include_router(search.router)
 app.include_router(scripts.router)
 app.include_router(presets.router)
+app.include_router(nari.router)
 
 
 @app.get("/health")
@@ -32,6 +33,7 @@ def startup():
     init_db()
     _migrate_character_type()
     _seed_presets()
+    _seed_nari()
 
 
 def _migrate_character_type():
@@ -86,6 +88,44 @@ def _seed_presets():
         db.add_all(defaults)
         db.commit()
         logging.info("Seeded default preset queries")
+    finally:
+        db.close()
+
+
+def _seed_nari():
+    db = SessionLocal()
+    try:
+        if db.query(NariVideo).count() > 0:
+            return
+        titles = [
+            "Are You SAVING ENOUGH to Ensure Your Future Happiness?",
+            "Break Free from Late Bills and Boost Your Credit Score",
+            "Escaping DEBT in 2026: A Challenge No One Can Conquer",
+            "Everyone advises you to save money, yet no one reveals the secrets to doing it.",
+            "Everyone tells you to SAVE MONEY, but no one explains how",
+            "How Unplanned Saving Can Sabotage Your Financial Success",
+            "How Your Fear of Saving is Holding You Back Financially",
+            "If you want a credit score ABOVE 700, this is what actually matters",
+            "Many fear debt consolidation due to a lack of understanding",
+            "Master THESE 3 ESSENTIAL Credit Score Basics",
+            "Most adults MESS UP money because no one taught them this early.",
+            "New credit card MISTAKE nobody warns you about: not using it at all.",
+            "The biggest mistake people make when they get their first credit card",
+            "The Critical Mistake Many Make When Tackling Debt: Trying to Do It All at Once",
+            "The FASTEST Way to Optimize Your Credit Score Before Applying",
+            "The shocking truth about WHY your credit cards get denied",
+            "The SHOCKING truth about your credit report and mortgages",
+            "The surprising secrets of building credit you never realized",
+            "This mindset shift changed EVERYTHING about my debt journey",
+            "Transform Your Finances: Discover the Truth About Your Money",
+            "Unlock the secret to EXTRA MONEY with biweekly pay",
+            "What is the fastest way to build credit from ZERO?",
+            "Why SAVING MONEY feels impossible for most people",
+            "Why Your Budget Fails and What You Can Do",
+        ]
+        db.add_all([NariVideo(title=t) for t in titles])
+        db.commit()
+        logging.info(f"Seeded {len(titles)} Nari videos")
     finally:
         db.close()
 

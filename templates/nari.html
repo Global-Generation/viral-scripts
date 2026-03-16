@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Nari — Human{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Nari — Human</h1>
+    <p class="text-sm text-gray-500">{{ videos|length }} videos by Nari</p>
+</div>
+
+<div class="stat-card">
+    <div class="overflow-x-auto">
+        <table class="w-full" id="nari-table">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th class="th" style="width: 40px;">#</th>
+                    <th class="th">Video Title</th>
+                    <th class="th">Status</th>
+                    <th class="th">TikTok</th>
+                    <th class="th">Instagram</th>
+                    <th class="th">YouTube</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in videos %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td class="td" style="color: #9ca3af; font-size: 11px;">{{ loop.index }}</td>
+                    <td class="td" style="max-width: 500px;">
+                        <p class="text-xs text-gray-800 font-medium">{{ v.title }}</p>
+                    </td>
+                    <td class="td">
+                        <select class="inline-select" onchange="nariUpdateStatus({{ v.id }}, this.value)" style="font-size: 10px; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; min-width: 70px;">
+                            <option value="" {% if not v.production_status %}selected{% endif %}>—</option>
+                            <option value="ready" {% if v.production_status == 'ready' %}selected{% endif %}>Ready</option>
+                            <option value="filmed" {% if v.production_status == 'filmed' %}selected{% endif %}>Filmed</option>
+                            <option value="published" {% if v.production_status == 'published' %}selected{% endif %}>Published</option>
+                        </select>
+                    </td>
+                    <td class="td">
+                        <input type="date" value="{{ v.published_tiktok.strftime('%Y-%m-%d') if v.published_tiktok else '' }}" onchange="nariSetDate({{ v.id }}, 'tiktok', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_tiktok else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_tiktok else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_tiktok else '#9ca3af' }};">
+                    </td>
+                    <td class="td">
+                        <input type="date" value="{{ v.published_instagram.strftime('%Y-%m-%d') if v.published_instagram else '' }}" onchange="nariSetDate({{ v.id }}, 'instagram', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_instagram else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_instagram else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_instagram else '#9ca3af' }};">
+                    </td>
+                    <td class="td">
+                        <input type="date" value="{{ v.published_youtube.strftime('%Y-%m-%d') if v.published_youtube else '' }}" onchange="nariSetDate({{ v.id }}, 'youtube', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_youtube else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_youtube else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_youtube else '#9ca3af' }};">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function nariUpdateStatus(videoId, status) {
+    const result = await api('/api/nari/' + videoId + '/production', 'POST', { production_status: status });
+    if (result && result.ok) {
+        toast(status ? 'Status: ' + status : 'Status cleared', 'success');
+    } else {
+        toast('Update failed', 'error');
+    }
+}
+
+async function nariSetDate(videoId, platform, dateValue) {
+    const result = await api('/api/nari/' + videoId + '/publish-date', 'POST', { platform: platform, date: dateValue || '' });
+    if (result && result.ok) {
+        toast(dateValue ? platform + ' date set' : platform + ' cleared', 'success');
+    } else {
+        toast('Update failed', 'error');
+    }
+}
+</script>
+{% endblock %}
