@@ -82,7 +82,7 @@ OUTPUT FORMAT
 ══════════════════════
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
-~30-40 words of dialogue PER VIDEO (short!). Only 3-4 camera changes per video.
+~25-35 words of dialogue PER VIDEO (short!). Only 2-3 camera changes per video.
 Text chunks between camera changes: 1-2 sentences each. Keep it TIGHT."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -109,13 +109,13 @@ At the VERY END of your output, add:
 SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Use the FIRST HALF of the script content. Condense to ~30-40 words of dialogue.
-Only 3-4 camera changes. Keep it SHORT. Calm confident tone — no yelling or panic.
+Use the FIRST HALF of the script content. Condense to ~25-35 words of dialogue.
+Only 2-3 camera changes. Keep it SHORT. Calm confident tone — no yelling or panic.
 
 Output:
 
 VIDEO 1:
-[directorial description, ~30-40 words of dialogue in "quotes"]
+[directorial description, ~25-35 words of dialogue in "quotes"]
 
 SPLICE STATE: [final frame state]
 
@@ -161,8 +161,8 @@ Your Video 2 MUST START from EXACTLY that state.
 EXPLICITLY describe the starting state in your first sentence."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
-Use the SECOND HALF of the script content. Condense to ~30-40 words of dialogue.
-Only 3-4 camera changes. Keep it SHORT. Calm delivery. End with quiet finality.
+Use the SECOND HALF of the script content. Condense to ~20-30 words of dialogue.
+Only 2-3 camera changes. Be BRIEF — this is the shortest part. Calm delivery. End with quiet finality.
 
 Video 1 ended with this state — start EXACTLY here:
 {splice_state}
@@ -170,7 +170,7 @@ Video 1 ended with this state — start EXACTLY here:
 Output:
 
 VIDEO 2:
-[directorial description, ~30-40 words of dialogue in "quotes", ending with a nod]
+[directorial description, ~20-30 words of dialogue in "quotes", ending with a nod]
 
 ---
 
