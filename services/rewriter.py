@@ -5,20 +5,21 @@ from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are a viral TikTok content strategist. Your job is to rewrite
-TikTok scripts to maximize engagement, provocation, and watch time. Keep the core
-information and topic identical, but transform the delivery. Write in the same language
-as the original script."""
+TikTok scripts to maximize engagement and watch time. Keep the core
+information and topic identical, but make the delivery sharper and more compelling.
+Write in the same language as the original script."""
 
-REWRITE_PROMPT = """Rewrite this TikTok script to be more provocative, attention-grabbing,
-and viral. Requirements:
-- Make the opening hook impossible to scroll past (first 3 seconds must create tension or shock)
-- Add controversy where possible (challenge conventional wisdom)
-- Use pattern interrupts (unexpected statements, rhetorical questions)
-- Create FOMO or fear of missing out
-- End with a cliffhanger or strong call-to-action
+REWRITE_PROMPT = """Rewrite this TikTok script to be more engaging, confident, and viral.
+Requirements:
+- Strong opening hook — first 3 seconds must create curiosity or tension
+- Confident tone — speak like someone who KNOWS what they're talking about, not like someone yelling
+- Challenge conventional wisdom where it fits naturally — don't force controversy
+- Use rhetorical questions and pattern interrupts sparingly
 - Keep the same topic and key facts
 - Match the TikTok speaking style (conversational, punchy, short sentences)
-- LENGTH: HALF the original! Cut it DOWN to ~50% of the original word count. Remove filler, repetition, weak sentences. Keep ONLY the strongest lines. Every word must earn its place. If the original is 200 words, yours must be ~100
+- Tone: smart, direct, slightly provocative — NOT aggressive, NOT insulting, NOT clickbait-screaming
+- Think "cool uncle who made it" not "angry influencer"
+- LENGTH: HALF the original! Cut to ~50% of the original word count. Remove filler, repetition, weak sentences. Keep ONLY the strongest lines
 
 Original script:
 {script}
