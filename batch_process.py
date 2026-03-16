@@ -120,6 +120,36 @@ def batch_score():
     return done
 
 
+def batch_rewrite_force():
+    """Re-rewrite ALL assigned scripts (force overwrite existing modified_text)."""
+    db = SessionLocal()
+    scripts = db.query(Script).filter(
+        Script.original_text != "",
+        Script.original_text.isnot(None),
+        Script.assigned_to.isnot(None),
+        Script.assigned_to != "",
+    ).all()
+    log.info(f"Force-rewriting {len(scripts)} assigned scripts...")
+
+    done = 0
+    errors = 0
+    for script in scripts:
+        try:
+            rewritten = rewrite_provocative(script.original_text)
+            script.modified_text = rewritten
+            script.status = "modified"
+            db.commit()
+            done += 1
+            log.info(f"Rewritten #{script.id} ({done}/{len(scripts)})")
+        except Exception as e:
+            errors += 1
+            log.error(f"Rewrite failed #{script.id}: {e}")
+
+    db.close()
+    log.info(f"Force rewrite done: {done} ok, {errors} errors")
+    return done
+
+
 if __name__ == "__main__":
     import sys
     log.info("=== BATCH PROCESSING START ===")
@@ -128,6 +158,8 @@ if __name__ == "__main__":
         batch_classify()
     elif cmd == "score":
         batch_score()
+    elif cmd == "rewrite-force":
+        batch_rewrite_force()
     else:
         batch_extract()
         batch_rewrite()
