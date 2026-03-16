@@ -18,7 +18,7 @@ and viral. Requirements:
 - End with a cliffhanger or strong call-to-action
 - Keep the same topic and key facts
 - Match the TikTok speaking style (conversational, punchy, short sentences)
-- Length: similar to the original
+- LENGTH: HALF the original! Cut it DOWN to ~50% of the original word count. Remove filler, repetition, weak sentences. Keep ONLY the strongest lines. Every word must earn its place. If the original is 200 words, yours must be ~100
 
 Original script:
 {script}
