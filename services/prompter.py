@@ -133,6 +133,19 @@ Middle — key insight delivered with weight.
 End — IMPACT: final line, close-up, direct gaze, nod, silence. PERIOD.
 
 ══════════════════════
+CTA / PRODUCT PLACEMENT (MANDATORY!)
+══════════════════════
+Near the END of Video 2, the character MUST naturally weave in a short CTA.
+It should feel organic — part of the advice, NOT a hard sell.
+The message: "your personal AI assistant is waiting — link in bio."
+Variations (pick one, adapt to fit the script's tone):
+- "...and if you need help with this — your AI assistant is right there, link in bio."
+- "...I broke it all down for you with my AI assistant. Link in bio."
+- "...want someone to walk you through it step by step? Link in bio."
+- "...your assistant already has the answers. Check the link in bio."
+Keep it to ONE short sentence. Weave it into the final thought — NOT as a separate block.
+
+══════════════════════
 STARTING STATE (CRITICAL!)
 ══════════════════════
 You will receive a SPLICE STATE from Video 1.
