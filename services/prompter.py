@@ -57,21 +57,32 @@ Say "CUT TO close-up from Camera A" — NOT "camera pushes in" or "camera orbits
 NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc.
 
 ══════════════════════
-HOOK — FIRST 2 SECONDS (CRITICAL!)
+HOOK — FIRST 2 SECONDS
 ══════════════════════
-The opening MUST grab attention immediately. Do NOT start with a calm medium shot.
+The opening should feel natural and confident, NOT screaming or panicking.
 Options (vary between scripts):
 - Start TIGHT on close-up (Camera A), then CUT TO wide 3/4 (Camera B)
-- Start on wide 3/4 (Camera B), then quick CUT TO close-up (Camera A)
+- Start on wide 3/4 (Camera B), then CUT TO close-up (Camera A)
 - Start on medium (Camera A), mid-gesture, then CUT TO side angle (Camera B)
-First CUT = fastest in the entire video. Rapid angle switch to create energy.
+First CUT = quick angle switch. But the CHARACTER stays calm.
+
+══════════════════════
+TONE (CRITICAL!)
+══════════════════════
+- The character speaks with CALM CONFIDENCE — like a smart friend explaining something over coffee
+- NO yelling, NO panic, NO "STOP SCROLLING", NO fake shock, NO "WHAT THE HELL"
+- NO exclamation marks in dialogue unless truly warranted
+- NO words like: insane, crazy, mind-blowing, terrifying, shocking, unbelievable
+- Body language: relaxed authority — lean back, measured gestures, occasional lean forward for emphasis
+- Voice: conversational, steady, matter-of-fact. Drops quieter for impact, never louder
+- Think: podcast host who knows his stuff, NOT a hype beast
 
 ══════════════════════
 OUTPUT FORMAT
 ══════════════════════
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
-~40-50 words of dialogue PER VIDEO (short!). Only 3-4 camera changes per video.
+~30-40 words of dialogue PER VIDEO (short!). Only 3-4 camera changes per video.
 Text chunks between camera changes: 1-2 sentences each. Keep it TIGHT."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -82,30 +93,29 @@ You generate a SINGLE video prompt — Video 1 of 2 (the HOOK + TENSION).
 {SHARED_RULES}
 
 ══════════════════════
-ENERGY — VIDEO 1 = HOOK + RISING TENSION
+ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
-This is the FIRST HALF of the story. Attention grab + tension building.
-Energy starts from zero and SPIKES immediately with a provocative opening.
-Then keeps building: more gesticulation, faster tempo, leaning forward.
-The argument deepens and intensifies throughout.
-End MID-THOUGHT at PEAK ENERGY — sentence NOT finished. Maximum tension.
+This is the FIRST HALF of the story. Draw the viewer in with a confident opening.
+Energy starts calm-confident and gradually builds — more leaning in, sharper gestures.
+The argument deepens but the character stays composed. Never frantic.
+End MID-THOUGHT — sentence NOT finished. Viewer wants to hear the rest.
 
 ══════════════════════
-ENDING (CRITICAL!)
+ENDING
 ══════════════════════
-Video 1 ends MID-THOUGHT. Sentence NOT finished. Energy at PEAK.
+Video 1 ends MID-THOUGHT. Sentence NOT finished. Energy is elevated but controlled.
 
 At the VERY END of your output, add:
 SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
 
-USER_VIDEO1 = """Generate Video 1 of 2 (HOOK + TENSION) from this script.
-Use the FIRST HALF of the script content. Condense to ~40-50 words of dialogue.
-Only 3-4 camera changes. Keep it SHORT and punchy.
+USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
+Use the FIRST HALF of the script content. Condense to ~30-40 words of dialogue.
+Only 3-4 camera changes. Keep it SHORT. Calm confident tone — no yelling or panic.
 
 Output:
 
 VIDEO 1:
-[directorial description, ~40-50 words of dialogue in "quotes"]
+[directorial description, ~30-40 words of dialogue in "quotes"]
 
 SPLICE STATE: [final frame state]
 
@@ -125,12 +135,10 @@ You generate a SINGLE video prompt — Video 2 of 2 (RESOLUTION).
 ENERGY — VIDEO 2 = RESOLUTION
 ══════════════════════
 This is the SECOND HALF. The payoff.
-Energy does NOT drop at start — continues from Video 1's peak.
-First frame = EXACT same state as Video 1 ended.
-Then SMOOTH transition: exhale, lean back, tone shifts
-from tension to calm authority/confidence.
-Middle — key insight delivered with weight.
-End — IMPACT: final line, close-up, direct gaze, nod, silence. PERIOD.
+Continues from Video 1's state. First frame = same position.
+Then settles into delivery mode — lean back, open hands, steady voice.
+Middle — key insight delivered simply and clearly.
+End — final thought, close-up, direct gaze, slight nod. Done.
 
 ══════════════════════
 CTA / PRODUCT PLACEMENT (MANDATORY!)
@@ -152,9 +160,9 @@ You will receive a SPLICE STATE from Video 1.
 Your Video 2 MUST START from EXACTLY that state.
 EXPLICITLY describe the starting state in your first sentence."""
 
-USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION — payoff) from this script.
-Use the SECOND HALF of the script content. Condense to ~40-50 words of dialogue.
-Only 3-4 camera changes. Keep it SHORT. End with finality.
+USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
+Use the SECOND HALF of the script content. Condense to ~30-40 words of dialogue.
+Only 3-4 camera changes. Keep it SHORT. Calm delivery. End with quiet finality.
 
 Video 1 ended with this state — start EXACTLY here:
 {splice_state}
@@ -162,7 +170,7 @@ Video 1 ended with this state — start EXACTLY here:
 Output:
 
 VIDEO 2:
-[directorial description, ~40-50 words of dialogue in "quotes", ending with impact]
+[directorial description, ~30-40 words of dialogue in "quotes", ending with a nod]
 
 ---
 
