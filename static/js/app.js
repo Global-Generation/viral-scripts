@@ -165,7 +165,6 @@ async function classifyScript(scriptId) {
     if (result && result.ok) {
         const labels = {
             grandpa: {emoji: '&#x1F474;', name: 'Wall Street Grandpa', bg: 'rgba(234,179,8,0.1)', color: '#B45309'},
-            auntie: {emoji: '&#x1F469;&#x200D;&#x1F4BC;', name: 'Wall Street Auntie', bg: 'rgba(236,72,153,0.1)', color: '#DB2777'},
             techguy: {emoji: '&#x1F468;&#x200D;&#x1F4BB;', name: 'IT Tech Guy', bg: 'rgba(59,130,246,0.1)', color: '#2563EB'},
             cartoon: {emoji: '&#x1F3AC;', name: 'Cartoon', bg: 'rgba(168,85,247,0.1)', color: '#7C3AED'},
         };

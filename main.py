@@ -55,6 +55,14 @@ def _migrate_character_type():
             db.execute(text(sql))
             db.commit()
             logging.info(f"Migrated: added {col} column to scripts")
+    # Fix any auntie → grandpa
+    try:
+        result = db.execute(text("UPDATE scripts SET character_type = 'grandpa' WHERE character_type = 'auntie'"))
+        if result.rowcount > 0:
+            db.commit()
+            logging.info(f"Fixed {result.rowcount} scripts: auntie → grandpa")
+    except Exception:
+        db.rollback()
     db.close()
 
 
