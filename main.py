@@ -74,16 +74,6 @@ def _seed_presets():
             PresetQuery(category="finance", query="investing mistakes beginners", sort_order=2),
             PresetQuery(category="finance", query="financial freedom young", sort_order=3),
             PresetQuery(category="finance", query="money habits rich people", sort_order=4),
-            PresetQuery(category="admissions", query="how to get into Ivy League", sort_order=0),
-            PresetQuery(category="admissions", query="study abroad mistakes avoid", sort_order=1),
-            PresetQuery(category="admissions", query="college application secrets", sort_order=2),
-            PresetQuery(category="admissions", query="international student tips USA", sort_order=3),
-            PresetQuery(category="admissions", query="scholarship hack full ride", sort_order=4),
-            PresetQuery(category="exams", query="SAT tips tricks high score", sort_order=0),
-            PresetQuery(category="exams", query="IELTS speaking band 9", sort_order=1),
-            PresetQuery(category="exams", query="TOEFL preparation hacks", sort_order=2),
-            PresetQuery(category="exams", query="GPA hack study tips", sort_order=3),
-            PresetQuery(category="exams", query="exam anxiety overcome", sort_order=4),
         ]
         db.add_all(defaults)
         db.commit()

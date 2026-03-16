@@ -31,26 +31,12 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         .order_by(PresetQuery.sort_order)
         .all()
     )
-    admissions_presets = (
-        db.query(PresetQuery)
-        .filter(PresetQuery.category == "admissions")
-        .order_by(PresetQuery.sort_order)
-        .all()
-    )
-    exams_presets = (
-        db.query(PresetQuery)
-        .filter(PresetQuery.category == "exams")
-        .order_by(PresetQuery.sort_order)
-        .all()
-    )
     return templates.TemplateResponse(
         "dashboard.html",
         ctx(request, "dashboard",
             recent_searches=recent_searches,
             ai_presets=ai_presets,
-            finance_presets=finance_presets,
-            admissions_presets=admissions_presets,
-            exams_presets=exams_presets)
+            finance_presets=finance_presets)
     )
 
 
