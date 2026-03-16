@@ -159,7 +159,7 @@ STARTING STATE (CRITICAL!)
 You will receive a SPLICE STATE from Video 1.
 Your Video 2 MUST START from EXACTLY that state.
 EXPLICITLY describe the starting state in your first sentence.
-The FIRST 1-2 SECONDS of Video 2 = SILENT BEAT. No dialogue. Character holds position from splice state — a breath, a look, a micro-gesture. THEN the first line begins. This pause is MANDATORY."""
+The FIRST 1 SECOND of Video 2 = SILENT BEAT. No dialogue. Character holds position from splice state — a breath, a look. THEN the first line begins. This pause is MANDATORY."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Use the SECOND HALF of the script content. Condense to ~20-30 words of dialogue.
