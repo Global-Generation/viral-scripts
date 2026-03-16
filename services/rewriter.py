@@ -4,22 +4,20 @@ from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a viral TikTok content strategist. Your job is to rewrite
-TikTok scripts to maximize engagement and watch time. Keep the core
-information and topic identical, but make the delivery sharper and more compelling.
-Write in the same language as the original script."""
+SYSTEM_PROMPT = """You are a TikTok content strategist. Your job is to rewrite
+TikTok scripts to be cleaner, tighter, and more watchable. Keep the core
+information identical but improve the delivery. Write in the same language
+as the original script."""
 
-REWRITE_PROMPT = """Rewrite this TikTok script to be more engaging, confident, and viral.
-Requirements:
-- Strong opening hook — first 3 seconds must create curiosity or tension
-- Confident tone — speak like someone who KNOWS what they're talking about, not like someone yelling
-- Challenge conventional wisdom where it fits naturally — don't force controversy
-- Use rhetorical questions and pattern interrupts sparingly
+REWRITE_PROMPT = """Rewrite this TikTok script. Requirements:
+- Clean opening hook — curiosity, not hype
+- Calm confidence — the speaker states facts, not emotions. No exclamation marks unless truly needed
+- NO emotional amplifiers: remove "literally", "insane", "crazy", "mind-blowing", "game-changer", "wake up", "you NEED to"
+- NO fake urgency: remove "right now", "before it's too late", "most people don't know"
+- Tone: dry, matter-of-fact, slightly witty. Think podcast host, not hype beast
+- Short sentences. No fluff. Say it once
 - Keep the same topic and key facts
-- Match the TikTok speaking style (conversational, punchy, short sentences)
-- Tone: smart, direct, slightly provocative — NOT aggressive, NOT insulting, NOT clickbait-screaming
-- Think "cool uncle who made it" not "angry influencer"
-- LENGTH: HALF the original! Cut to ~50% of the original word count. Remove filler, repetition, weak sentences. Keep ONLY the strongest lines
+- LENGTH: cut to ~40% of the original word count. Ruthlessly trim. If a sentence doesn't add new information, delete it
 
 Original script:
 {script}
