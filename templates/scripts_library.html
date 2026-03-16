@@ -48,7 +48,7 @@
             </thead>
             <tbody>
                 {% for script in scripts %}
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50" data-script-id="{{ script.id }}">
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
                     <td class="td" style="max-width: 300px;">
                         <p class="text-xs text-gray-600 truncate">{{ script.original_text[:120] }}</p>
                     </td>
@@ -103,8 +103,20 @@
                     </td>
                     <td class="td">
                         <div class="flex gap-1">
-                            <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary">View</a>
-                            <button class="btn-sm btn-danger" onclick="deleteScript({{ script.id }})">Del</button>
+                            <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()">View</a>
+                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteScript({{ script.id }})">Del</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="expand-row" id="expand-{{ script.id }}" style="display: none;">
+                    <td colspan="10" style="padding: 0;">
+                        <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <div style="display: flex; gap: 24px;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; letter-spacing: 0.5px;">Provocative Version</div>
+                                    <div style="font-size: 12px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ script.modified_text or '— not rewritten yet —' }}</div>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -118,6 +130,23 @@
 
 {% block scripts %}
 <script>
+// === Expand/collapse provocative text ===
+function toggleExpand(row, event) {
+    // Don't toggle if clicking on interactive elements
+    if (event.target.closest('select, input, a, button')) return;
+    const id = row.dataset.scriptId;
+    const expandRow = document.getElementById('expand-' + id);
+    if (!expandRow) return;
+    const isOpen = expandRow.style.display !== 'none';
+    // Close all other expanded rows
+    document.querySelectorAll('.expand-row').forEach(r => r.style.display = 'none');
+    document.querySelectorAll('.script-row').forEach(r => r.style.background = '');
+    if (!isOpen) {
+        expandRow.style.display = '';
+        row.style.background = '#f1f5f9';
+    }
+}
+
 // === Sortable table ===
 (function() {
     const table = document.getElementById('scripts-table');
@@ -137,7 +166,7 @@
             this.querySelector('.sort-icon').textContent = asc ? ' \u25B2' : ' \u25BC';
 
             const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rows = Array.from(tbody.querySelectorAll('tr.script-row'));
 
             rows.sort((a, b) => {
                 let va = getCellValue(a, col, type);
@@ -161,7 +190,11 @@
                 return asc ? (va < vb ? -1 : 1) : (va > vb ? -1 : 1);
             });
 
-            rows.forEach(r => tbody.appendChild(r));
+            rows.forEach(r => {
+                tbody.appendChild(r);
+                const expandRow = document.getElementById('expand-' + r.dataset.scriptId);
+                if (expandRow) tbody.appendChild(expandRow);
+            });
         });
     });
 
