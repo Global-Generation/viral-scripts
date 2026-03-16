@@ -10,20 +10,18 @@ scripts = db.query(Script).filter(
 ).all()
 
 keywords = [
-    "she ", "her ", "girl", "woman", "women", "female",
-    "boyfriend", "husband", "make men", "men happy",
-    "intimidate men", "dating", "relationship",
-    "his attention", "queen", "ladies", "lady",
-    "feminine", "wife", "married", "partner pays",
-    "real man", "good man", "man does", "man who",
-    "save me", "equal partner", "getting married",
+    " she ", " her ", "girlfriend", "woman", "women", "female",
+    "boyfriend", "make men", "men happy",
+    "intimidate men",
+    "his attention", "queen", "ladies", " lady ",
+    "feminine", " wife ", "partner pays",
+    "real man", "good man",
+    "equal partner", "getting married",
     "feel secure", "i hide my", "toxic dating",
-    "broke and single", "auntie", "sabrina", "jessica",
-    "she's", "her success", "she doesn", "she can",
-    "she want", "she need", "his woman", "his girl",
+    "broke and single", "auntie",
+    " she's ", "her success", "she doesn", " she can",
+    " she want", " she need", "his woman", "his girl",
     "don't intimidate", "i show my ambitions",
-    "my partner", "richer than", "build together",
-    "personal guide",
 ]
 
 found = []
