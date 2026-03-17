@@ -52,6 +52,8 @@ def _migrate_character_type():
         ("published_youtube", "ALTER TABLE scripts ADD COLUMN published_youtube DATETIME"),
         ("published_instagram", "ALTER TABLE scripts ADD COLUMN published_instagram DATETIME"),
         ("video_prompt", "ALTER TABLE scripts ADD COLUMN video_prompt TEXT DEFAULT ''"),
+        ("video1_prompt", "ALTER TABLE scripts ADD COLUMN video1_prompt TEXT DEFAULT ''"),
+        ("video2_prompt", "ALTER TABLE scripts ADD COLUMN video2_prompt TEXT DEFAULT ''"),
     ]:
         try:
             db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))

@@ -50,6 +50,8 @@ class Script(Base):
     published_youtube = Column(DateTime, nullable=True)
     published_instagram = Column(DateTime, nullable=True)
     video_prompt = Column(Text, default="")
+    video1_prompt = Column(Text, default="")
+    video2_prompt = Column(Text, default="")
     status = Column(String, default="extracted")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

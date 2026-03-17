@@ -103,6 +103,7 @@ End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but 
 ENDING
 ══════════════════════
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution. Energy is elevated but controlled.
+The LAST shot of Video 1 must be a CLOSE-UP from Camera A — this is the splice point where Video 2 will be joined.
 
 """
 
@@ -110,10 +111,8 @@ USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
 Take the CORE IDEA from the first half of the script. Distill to 25-35 words of dialogue — do NOT try to cover everything.
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
-Output:
-
-VIDEO 1:
-[directorial description, 25-35 words of dialogue in "quotes"]
+Output the directorial description directly. No labels, no headers.
+25-35 words of dialogue in "quotes". Start with the opening shot description.
 
 ---
 
@@ -148,17 +147,16 @@ Just: he gives advice → link in bio. That's it. This counts toward the 30-word
 ══════════════════════
 OPENING — VIDEO 2
 ══════════════════════
-Start from a NEUTRAL seated position. The character is calm, composed, ready to deliver the resolution.
-Do NOT reference Video 1's ending. This video must work as a standalone scene that cleanly cuts after Video 1."""
+Start on WIDE 3/4 from Camera B. The character is in a neutral seated position, calm and composed.
+Video 1 ended on a close-up — so this wide shot creates a clear, energetic cut when the two are joined.
+Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Take the CORE IDEA from the second half of the script. Distill to 25-35 words of dialogue (including CTA) — do NOT try to cover everything.
 3-4 camera changes. Calm delivery. End with quiet finality.
 
-Output:
-
-VIDEO 2:
-[directorial description, 25-35 words of dialogue in "quotes", ending with a nod]
+Output the directorial description directly. No labels, no headers.
+25-35 words of dialogue in "quotes", ending with a nod. Start with the opening shot description.
 
 ---
 
@@ -166,7 +164,15 @@ SCRIPT:
 {script}"""
 
 
-def generate_video_prompt(script_text: str) -> str:
+CAMERA_HEADER = """CAMERA SETUP:
+Camera A — Front-facing, slightly off-center. Close-ups and medium shots.
+Camera B — Side angle, ~30-45° offset. Wide 3/4 and alternate medium shots.
+Both cameras are FIXED on tripods. All transitions are HARD CUTS.
+"""
+
+
+def generate_video_prompt(script_text: str) -> dict:
+    """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     # Step 1: Generate Video 1 (Hook + Tension)
@@ -184,6 +190,12 @@ def generate_video_prompt(script_text: str) -> str:
     else:
         video1_text = video1_full
 
+    # Strip "VIDEO 1:" label if present
+    for prefix in ("VIDEO 1:", "VIDEO 1 —", "VIDEO 1:"):
+        if video1_text.upper().startswith(prefix.upper()):
+            video1_text = video1_text[len(prefix):].strip()
+            break
+
     # Step 2: Generate Video 2 (Resolution)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
@@ -193,10 +205,13 @@ def generate_video_prompt(script_text: str) -> str:
     )
     video2_text = response2.content[0].text.strip()
 
-    # Combine both — prepend camera setup header so readers know what Camera A/B mean
-    camera_header = """CAMERA SETUP:
-Camera A — Front-facing, slightly off-center. Close-ups and medium shots.
-Camera B — Side angle, ~30-45° offset. Wide 3/4 and alternate medium shots.
-Both cameras are FIXED on tripods. All transitions are HARD CUTS.
-"""
-    return f"{camera_header}\n{video1_text}\n\n{video2_text}"
+    # Strip "VIDEO 2:" label if present
+    for prefix in ("VIDEO 2:", "VIDEO 2 —", "VIDEO 2:"):
+        if video2_text.upper().startswith(prefix.upper()):
+            video2_text = video2_text[len(prefix):].strip()
+            break
+
+    return {
+        "video1": f"{CAMERA_HEADER}\n{video1_text}",
+        "video2": f"{CAMERA_HEADER}\n{video2_text}",
+    }

@@ -23,7 +23,7 @@ q = db.query(Script).filter(
     Script.assigned_to.isnot(None),
 )
 if not force and not rewrite:
-    q = q.filter((Script.video_prompt == "") | (Script.video_prompt.is_(None)))
+    q = q.filter((Script.video1_prompt == "") | (Script.video1_prompt.is_(None)))
 
 scripts = q.all()
 logger.info(f"Found {len(scripts)} scripts to process (force={force}, rewrite={rewrite})")
@@ -54,8 +54,10 @@ for s in scripts:
     if not text:
         continue
     try:
-        prompt = generate_video_prompt(text)
-        s.video_prompt = prompt
+        result = generate_video_prompt(text)
+        s.video1_prompt = result["video1"]
+        s.video2_prompt = result["video2"]
+        s.video_prompt = result["video1"] + "\n\n" + result["video2"]
         db.commit()
         count += 1
         logger.info(f"Done #{s.id} ({count}/{len(scripts)})")

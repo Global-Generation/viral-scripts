@@ -50,6 +50,8 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "published_youtube": script.published_youtube.isoformat() if script.published_youtube else None,
         "published_instagram": script.published_instagram.isoformat() if script.published_instagram else None,
         "video_prompt": script.video_prompt or "",
+        "video1_prompt": script.video1_prompt or "",
+        "video2_prompt": script.video2_prompt or "",
         "status": script.status,
     }
 
@@ -83,6 +85,8 @@ class ScriptUpdate(BaseModel):
     original_text: str = None
     modified_text: str = None
     video_prompt: str = None
+    video1_prompt: str = None
+    video2_prompt: str = None
 
 
 @router.put("/{script_id}")
@@ -96,6 +100,10 @@ def update_script(script_id: int, data: ScriptUpdate, db: Session = Depends(get_
         script.modified_text = data.modified_text
     if data.video_prompt is not None:
         script.video_prompt = data.video_prompt
+    if data.video1_prompt is not None:
+        script.video1_prompt = data.video1_prompt
+    if data.video2_prompt is not None:
+        script.video2_prompt = data.video2_prompt
     db.commit()
     return {"ok": True}
 
@@ -266,10 +274,12 @@ def generate_prompt(script_id: int, db: Session = Depends(get_db)):
     if not text:
         raise HTTPException(status_code=400, detail="No script text to generate prompt from")
 
-    prompt = generate_video_prompt(text)
-    script.video_prompt = prompt
+    result = generate_video_prompt(text)
+    script.video1_prompt = result["video1"]
+    script.video2_prompt = result["video2"]
+    script.video_prompt = result["video1"] + "\n\n" + result["video2"]  # backward compat
     db.commit()
-    return {"ok": True, "video_prompt": prompt}
+    return {"ok": True, "video1_prompt": result["video1"], "video2_prompt": result["video2"]}
 
 
 @router.post("/batch-generate-prompts")
@@ -278,7 +288,7 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
     scripts = db.query(Script).filter(
         Script.assigned_to != "",
         Script.assigned_to.isnot(None),
-        (Script.video_prompt == "") | (Script.video_prompt.is_(None)),
+        (Script.video1_prompt == "") | (Script.video1_prompt.is_(None)),
     ).all()
     count = 0
     errors = 0
@@ -287,8 +297,10 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
         if not text:
             continue
         try:
-            prompt = generate_video_prompt(text)
-            script.video_prompt = prompt
+            result = generate_video_prompt(text)
+            script.video1_prompt = result["video1"]
+            script.video2_prompt = result["video2"]
+            script.video_prompt = result["video1"] + "\n\n" + result["video2"]
             db.commit()
             count += 1
             logger.info(f"Generated prompt for script #{script.id}")

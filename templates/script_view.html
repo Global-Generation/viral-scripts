@@ -46,27 +46,45 @@
             <textarea id="modified-text" class="w-full input" rows="12" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Make Provocative' to generate..." data-i18n-placeholder="sv.make_prov_ph">{{ script.modified_text or '' }}</textarea>
         </div>
 
-        <!-- Video Prompt -->
+        <!-- Generate Prompts button -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-700">Video Prompts</h2>
+                <button id="generate-prompt-btn" class="btn-sm btn-primary" onclick="generatePrompt({{ script.id }})">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    Generate Prompts
+                </button>
+            </div>
+        </div>
+
+        <!-- Video 1 Prompt -->
         <div class="stat-card">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="text-sm font-semibold text-gray-700">
-                    <span data-i18n="sec.video_prompt">Video Prompt</span>
-                    <span id="prompt-ready-badge" class="status-badge status-completed ml-2" {% if not script.video_prompt %}style="display:none;"{% endif %}>Ready</span>
+                    Video 1 Prompt
+                    <span id="v1-ready-badge" class="status-badge status-completed ml-2" {% if not script.video1_prompt %}style="display:none;"{% endif %}>Ready</span>
                 </h2>
-                <div class="flex gap-2">
-                    {% if script.video_prompt %}
-                    <button class="btn-sm btn-secondary" onclick="copyText('video-prompt-text')">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        <span data-i18n="btn.copy">Copy</span>
-                    </button>
-                    {% endif %}
-                    <button id="generate-prompt-btn" class="btn-sm btn-primary" onclick="generatePrompt({{ script.id }})">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        <span data-i18n="btn.generate_prompt">Generate Prompt</span>
-                    </button>
-                </div>
+                <button class="btn-sm btn-secondary" onclick="copyText('video1-prompt-text')">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    Copy
+                </button>
             </div>
-            <textarea id="video-prompt-text" class="w-full input" rows="16" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompt' to create a 2-part video storyboard..." data-i18n-placeholder="sv.gen_prompt_ph">{{ script.video_prompt or '' }}</textarea>
+            <textarea id="video1-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video1_prompt or '' }}</textarea>
+        </div>
+
+        <!-- Video 2 Prompt -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold text-gray-700">
+                    Video 2 Prompt
+                    <span id="v2-ready-badge" class="status-badge status-completed ml-2" {% if not script.video2_prompt %}style="display:none;"{% endif %}>Ready</span>
+                </h2>
+                <button class="btn-sm btn-secondary" onclick="copyText('video2-prompt-text')">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    Copy
+                </button>
+            </div>
+            <textarea id="video2-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video2_prompt or '' }}</textarea>
         </div>
     </div>
 

@@ -110,9 +110,11 @@ async function rewriteScript(scriptId) {
 async function saveScript(scriptId) {
     const original = document.getElementById('original-text').value;
     const modified = document.getElementById('modified-text').value;
-    const promptEl = document.getElementById('video-prompt-text');
     const data = { original_text: original, modified_text: modified };
-    if (promptEl) data.video_prompt = promptEl.value;
+    const v1El = document.getElementById('video1-prompt-text');
+    const v2El = document.getElementById('video2-prompt-text');
+    if (v1El) data.video1_prompt = v1El.value;
+    if (v2El) data.video2_prompt = v2El.value;
     const result = await api('/api/scripts/' + scriptId, 'PUT', data);
     if (result && result.ok) {
         toast('Saved!', 'success');
@@ -209,26 +211,30 @@ async function togglePublish(scriptId, platform) {
     }
 }
 
-// === Generate video prompt ===
+// === Generate video prompts (split into Video 1 + Video 2) ===
 async function generatePrompt(scriptId) {
     const btn = document.getElementById('generate-prompt-btn');
-    const target = document.getElementById('video-prompt-text');
 
     btn.disabled = true;
-    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Generating...';
+    btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Generating...';
 
     const result = await api('/api/scripts/' + scriptId + '/generate-prompt', 'POST');
     if (result && result.ok) {
-        target.value = result.video_prompt;
-        toast('Video prompt generated!', 'success');
-        // Show the ready badge
-        const badge = document.getElementById('prompt-ready-badge');
-        if (badge) badge.style.display = 'inline-flex';
+        const v1 = document.getElementById('video1-prompt-text');
+        const v2 = document.getElementById('video2-prompt-text');
+        if (v1) v1.value = result.video1_prompt;
+        if (v2) v2.value = result.video2_prompt;
+        // Show ready badges
+        const b1 = document.getElementById('v1-ready-badge');
+        const b2 = document.getElementById('v2-ready-badge');
+        if (b1) b1.style.display = 'inline-flex';
+        if (b2) b2.style.display = 'inline-flex';
+        toast('Video prompts generated!', 'success');
     } else {
         toast('Prompt generation failed', 'error');
     }
     btn.disabled = false;
-    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Generate Prompt';
+    btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Generate Prompts';
 }
 
 // === Presets ===
