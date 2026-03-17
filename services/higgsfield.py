@@ -248,14 +248,15 @@ def check_soul_id_status(soul_id: str) -> dict:
 
 def generate_with_soul_id(soul_id: str, prompt: str,
                           aspect_ratio: str = "9:16",
-                          image_url: str = "") -> dict:
+                          image_url: str = "",
+                          soul_strength: float = 0.8) -> dict:
     """Generate image using trained Soul ID for face + optional image_url for composition."""
     _ensure_env()
     try:
         arguments = {
             "prompt": prompt,
             "custom_reference_id": soul_id,
-            "custom_reference_strength": 1.0,
+            "custom_reference_strength": soul_strength,
             "aspect_ratio": aspect_ratio,
             "quality": "2k",
         }

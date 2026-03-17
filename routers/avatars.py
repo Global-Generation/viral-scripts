@@ -210,9 +210,9 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         if data.mode == "outfits":
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             variant_prompt = (
+                f"IMPORTANT: the person is {outfit}. DO NOT use the original clothing. "
+                f"The outfit must be completely different from any reference. "
                 f"{UGC_PREFIX}"
-                f"{outfit}. "
-                f"Keep the same background and setting. Only change the clothes."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
