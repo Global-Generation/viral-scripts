@@ -93,14 +93,17 @@ class PresetQuery(Base):
 class Avatar(Base):
     __tablename__ = "avatars"
     id = Column(Integer, primary_key=True, index=True)
+    parent_id = Column(Integer, ForeignKey("avatars.id"), nullable=True)
     name = Column(String, nullable=False)
     description = Column(Text, default="")
     prompt = Column(Text, default="")
     image_url = Column(Text, default="")
     image_request_id = Column(String, default="")
     character_type = Column(String, default="")
+    variant_label = Column(String, default="")  # e.g. "outfit_1", "new_look_2"
     created_at = Column(DateTime, default=utcnow)
 
+    parent = relationship("Avatar", remote_side=[id], backref="variants")
     video_generations = relationship("VideoGeneration", back_populates="avatar")
 
 
@@ -122,6 +125,10 @@ class VideoGeneration(Base):
     sound_enabled = Column(Boolean, default=False)
     slow_motion = Column(Boolean, default=False)
     error_message = Column(Text, default="")
+    subtitle_text = Column(Text, default="")
+    subtitle_status = Column(String, default="")
+    subtitled_video_path = Column(String, default="")
+    subtitle_error = Column(Text, default="")
     created_at = Column(DateTime, default=utcnow)
 
     script = relationship("Script", backref="video_generations")

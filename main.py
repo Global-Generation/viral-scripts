@@ -38,6 +38,8 @@ def startup():
     init_db()
     _migrate_character_type()
     _migrate_cinema_studio()
+    _migrate_subtitle_fields()
+    _migrate_avatar_variants()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -93,6 +95,44 @@ def _migrate_cinema_studio():
     for t in tables_needed:
         if t not in existing:
             logging.info(f"Cinema Studio migration: table '{t}' created")
+    db.close()
+
+
+def _migrate_subtitle_fields():
+    """Add subtitle columns to video_generations if they don't exist."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    for col, sql in [
+        ("subtitle_text", "ALTER TABLE video_generations ADD COLUMN subtitle_text TEXT DEFAULT ''"),
+        ("subtitle_status", "ALTER TABLE video_generations ADD COLUMN subtitle_status VARCHAR DEFAULT ''"),
+        ("subtitled_video_path", "ALTER TABLE video_generations ADD COLUMN subtitled_video_path VARCHAR DEFAULT ''"),
+        ("subtitle_error", "ALTER TABLE video_generations ADD COLUMN subtitle_error TEXT DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM video_generations LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to video_generations")
+    db.close()
+
+
+def _migrate_avatar_variants():
+    """Add parent_id and variant_label columns to avatars if they don't exist."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    for col, sql in [
+        ("parent_id", "ALTER TABLE avatars ADD COLUMN parent_id INTEGER REFERENCES avatars(id)"),
+        ("variant_label", "ALTER TABLE avatars ADD COLUMN variant_label VARCHAR DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM avatars LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to avatars")
     db.close()
 
 

@@ -1,96 +1,379 @@
 {% extends "base.html" %}
-{% block title %}Avatar Gallery{% endblock %}
+{% block title %}Soul Cast — Avatar Gallery{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="avatars.title">Avatar Gallery</h1>
-    <p class="text-sm text-gray-500" data-i18n="avatars.subtitle">AI avatars for Cinema Studio video generation</p>
-</div>
+<style>
+/* Soul Cast layout — light theme, Higgsfield-inspired */
+.sc-layout { display: flex; gap: 0; margin: -16px -16px -16px -16px; min-height: calc(100vh - 56px); }
+@media (min-width: 1024px) { .sc-layout { margin: -32px -24px -32px -24px; min-height: 100vh; } }
 
-<div class="mb-4">
-    <button class="btn btn-primary" onclick="showCreateAvatarModal()">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-        Create Avatar
-    </button>
-</div>
+/* Left sidebar — actor list */
+.sc-sidebar {
+    width: 160px; min-width: 160px; background: #f8fafc; border-right: 1px solid #e2e8f0;
+    display: flex; flex-direction: column; overflow-y: auto; padding: 12px 10px;
+}
+.sc-sidebar-title { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 6px 10px; }
 
-<!-- Avatar Grid -->
-<div id="avatar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for avatar in avatars %}
-    <div class="stat-card avatar-card" id="avatar-card-{{ avatar.id }}">
-        <div class="avatar-image-container mb-3" style="width: 100%; aspect-ratio: 1; background: #f1f5f9; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-            {% if avatar.image_url %}
-            <img src="{{ avatar.image_url }}" alt="{{ avatar.name }}" style="width: 100%; height: 100%; object-fit: cover;">
-            {% else %}
-            <div id="avatar-img-{{ avatar.id }}" style="text-align: center; color: #94a3b8;">
-                {% if avatar.image_request_id %}
-                <svg class="animate-spin mx-auto mb-1" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                <span class="text-xs">Generating...</span>
+.sc-create-btn {
+    width: 100%; aspect-ratio: 1; border-radius: 12px; border: 2px dashed #d1d5db;
+    background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; cursor: pointer; transition: all 0.15s; margin-bottom: 10px; color: #94a3b8;
+}
+.sc-create-btn:hover { border-color: #e6435b; color: #e6435b; background: rgba(230,67,91,0.03); }
+.sc-create-btn svg { width: 24px; height: 24px; }
+.sc-create-btn span { font-size: 11px; font-weight: 600; }
+
+.sc-actor-item {
+    width: 100%; border-radius: 12px; overflow: hidden; cursor: pointer;
+    border: 2px solid transparent; transition: all 0.15s; margin-bottom: 8px; background: #fff;
+}
+.sc-actor-item:hover { border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.sc-actor-item.active { border-color: #e6435b; box-shadow: 0 2px 12px rgba(230,67,91,0.15); }
+
+.sc-actor-thumb { width: 100%; aspect-ratio: 1; background: #f1f5f9; overflow: hidden; position: relative; }
+.sc-actor-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.sc-actor-thumb .sc-no-img { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: #cbd5e1; }
+.sc-actor-name {
+    padding: 6px 8px; font-size: 11px; font-weight: 600; color: #374151;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+}
+
+/* Center — large preview */
+.sc-preview {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; background: #f1f5f9; position: relative; min-height: 400px;
+}
+.sc-preview-empty { text-align: center; color: #94a3b8; }
+.sc-preview-empty svg { margin: 0 auto 12px; opacity: 0.4; }
+
+.sc-preview-container {
+    position: relative; max-width: 380px; width: 100%; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12); background: #fff;
+}
+.sc-preview-img { width: 100%; aspect-ratio: 3/4; background: #e2e8f0; overflow: hidden; position: relative; }
+.sc-preview-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.sc-preview-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    padding: 40px 20px 16px; color: #fff;
+}
+.sc-preview-name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.sc-preview-desc { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+/* Preview action buttons */
+.sc-preview-actions {
+    display: flex; gap: 10px; justify-content: center; margin-top: 16px;
+}
+.sc-action-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid #e2e8f0;
+    background: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s; color: #64748b;
+}
+.sc-action-btn:hover { background: #f8fafc; border-color: #e6435b; color: #e6435b; }
+.sc-action-btn.active-action { background: #e6435b; color: #fff; border-color: #e6435b; }
+
+/* Bottom customize bar */
+.sc-bottom-bar {
+    display: flex; align-items: center; gap: 8px; margin-top: 16px;
+    width: 100%; max-width: 480px;
+}
+.sc-customize-input {
+    flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0;
+    background: #fff; font-size: 13px; outline: none; transition: border-color 0.15s;
+    font-family: inherit; color: #374151;
+}
+.sc-customize-input::placeholder { color: #94a3b8; }
+.sc-customize-input:focus { border-color: #e6435b; }
+.sc-edit-btn {
+    padding: 12px 24px; border-radius: 12px; border: none;
+    background: #e6435b; color: #fff; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.sc-edit-btn:hover { opacity: 0.9; }
+
+/* Right panel — prompt editor */
+.sc-right-panel {
+    width: 280px; min-width: 280px; background: #fff; border-left: 1px solid #e2e8f0;
+    padding: 20px; display: flex; flex-direction: column;
+}
+.sc-panel-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+.sc-panel-tab {
+    padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; transition: all 0.15s;
+}
+.sc-panel-tab:first-child { border-radius: 8px 0 0 8px; }
+.sc-panel-tab:last-child { border-radius: 0 8px 8px 0; }
+.sc-panel-tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+.sc-prompt-area {
+    flex: 1; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;
+    background: #f8fafc; font-size: 13px; line-height: 1.6; outline: none;
+    resize: none; font-family: inherit; color: #374151;
+}
+.sc-prompt-area::placeholder { color: #94a3b8; }
+.sc-prompt-area:focus { border-color: #e6435b; }
+
+.sc-panel-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.sc-panel-section { margin-bottom: 16px; }
+
+.sc-type-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.sc-type-chip {
+    padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; cursor: pointer; transition: all 0.15s;
+}
+.sc-type-chip:hover { border-color: #e6435b; color: #e6435b; }
+.sc-type-chip.active { background: rgba(230,67,91,0.1); color: #e6435b; border-color: #e6435b; }
+
+.sc-panel-actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.sc-gen-btn {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: #e6435b; color: #fff; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+}
+.sc-gen-btn:hover { opacity: 0.9; }
+.sc-gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sc-del-btn {
+    width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #fee2e2;
+    background: #fff; color: #ef4444; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+}
+.sc-del-btn:hover { background: #fef2f2; }
+
+/* Generating overlay */
+.sc-generating-overlay {
+    position: absolute; inset: 0; background: rgba(241,245,249,0.9);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; z-index: 5;
+}
+.sc-generating-overlay svg { animation: sc-spin 1s linear infinite; }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+
+/* Mobile responsive */
+@media (max-width: 1023px) {
+    .sc-layout { flex-direction: column; }
+    .sc-sidebar { width: 100%; min-width: unset; flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 10px; gap: 8px; }
+    .sc-sidebar-title { display: none; }
+    .sc-create-btn { width: 80px; min-width: 80px; aspect-ratio: 1; margin-bottom: 0; }
+    .sc-actor-item { width: 80px; min-width: 80px; margin-bottom: 0; }
+    .sc-right-panel { width: 100%; min-width: unset; border-left: none; border-top: 1px solid #e2e8f0; }
+    .sc-preview { min-height: 300px; }
+}
+
+/* Reset button */
+.sc-reset-btn { font-size: 11px; color: #94a3b8; cursor: pointer; background: none; border: none; font-weight: 500; }
+.sc-reset-btn:hover { color: #e6435b; }
+
+/* Variants strip */
+.sc-variants-strip {
+    display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; margin-top: 14px;
+    width: 100%; max-width: 480px; justify-content: center;
+}
+.sc-variant-thumb {
+    width: 48px; height: 48px; min-width: 48px; border-radius: 8px; overflow: hidden;
+    border: 2px solid transparent; cursor: pointer; transition: all 0.15s; background: #e2e8f0;
+}
+.sc-variant-thumb:hover { border-color: #94a3b8; }
+.sc-variant-thumb.active { border-color: #e6435b; box-shadow: 0 0 0 2px rgba(230,67,91,0.2); }
+.sc-variant-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.sc-variant-thumb .sc-vt-spinner { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.sc-variant-thumb .sc-vt-spinner svg { animation: sc-spin 1s linear infinite; }
+.sc-variant-label { font-size: 9px; color: #94a3b8; text-align: center; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 48px; }
+
+/* Variant generation buttons */
+.sc-variant-btn {
+    width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;
+    background: #f8fafc; color: #374151; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.sc-variant-btn:hover { background: #f1f5f9; border-color: #e6435b; color: #e6435b; }
+.sc-variant-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sc-variant-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+</style>
+
+<div class="sc-layout">
+    <!-- Left sidebar — actor list -->
+    <div class="sc-sidebar">
+        <div class="sc-sidebar-title">Actors</div>
+
+        <button class="sc-create-btn" onclick="showCreateAvatarModal()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            <span>Create new</span>
+        </button>
+
+        {% for avatar in avatars %}
+        <div class="sc-actor-item {% if loop.first %}active{% endif %}" id="actor-item-{{ avatar.id }}" onclick="selectActor({{ avatar.id }})" data-avatar='{{ {"id": avatar.id, "name": avatar.name, "description": avatar.description or "", "prompt": avatar.prompt or "", "image_url": avatar.image_url or "", "image_request_id": avatar.image_request_id or "", "character_type": avatar.character_type or ""} | tojson }}'>
+            <div class="sc-actor-thumb">
+                {% if avatar.image_url %}
+                <img src="{{ avatar.image_url }}" alt="{{ avatar.name }}">
                 {% else %}
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span class="text-xs block mt-1">No image</span>
+                <div class="sc-no-img">
+                    {% if avatar.image_request_id %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="animation: sc-spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    {% else %}
+                    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
-            {% endif %}
+            <div class="sc-actor-name">{{ avatar.name }}</div>
         </div>
-        <div class="flex items-start justify-between">
-            <div>
-                <h3 class="font-semibold text-gray-900 text-sm">{{ avatar.name }}</h3>
-                {% if avatar.character_type %}
-                <span class="status-badge {% if avatar.character_type == 'grandpa' %}status-completed{% elif avatar.character_type == 'techguy' %}status-running{% else %}status-queued{% endif %}" style="margin-top: 4px;">{{ avatar.character_type }}</span>
+        {% endfor %}
+    </div>
+
+    <!-- Center — large preview -->
+    <div class="sc-preview" id="sc-preview-area">
+        {% if avatars %}
+        {% set first = avatars[0] %}
+        <div class="sc-preview-container" id="sc-preview-card">
+            <div class="sc-preview-img" id="sc-preview-img-wrap">
+                {% if first.image_url %}
+                <img id="sc-preview-image" src="{{ first.image_url }}" alt="{{ first.name }}">
+                {% else %}
+                <div id="sc-preview-placeholder" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9;color:#cbd5e1;">
+                    {% if first.image_request_id %}
+                    <div class="sc-generating-overlay" id="sc-gen-overlay">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e6435b" stroke-width="2.5"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke-linecap="round"/></svg>
+                        <span style="font-size:12px;font-weight:600;color:#64748b;">Generating image...</span>
+                    </div>
+                    {% else %}
+                    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
-            <div class="flex gap-1">
-                {% if not avatar.image_url %}
-                <button class="btn-sm btn-primary" id="gen-btn-{{ avatar.id }}" onclick="generateAvatarImage({{ avatar.id }})">Generate</button>
-                {% endif %}
-                <button class="btn-sm btn-danger" onclick="deleteAvatar({{ avatar.id }})">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
+            <div class="sc-preview-info">
+                <div class="sc-preview-name" id="sc-preview-name">{{ first.name }}</div>
+                <div class="sc-preview-desc" id="sc-preview-desc">{{ first.description or 'AI actor for video generation' }}</div>
             </div>
         </div>
-        {% if avatar.description %}
-        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ avatar.description }}</p>
+
+        <!-- Action buttons under preview -->
+        <div class="sc-preview-actions">
+            <button class="sc-action-btn" title="Regenerate Image" id="sc-btn-regen" onclick="generateSelectedAvatar()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+            <button class="sc-action-btn" title="Edit Prompt" onclick="focusPrompt()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+            <button class="sc-action-btn active-action" title="Generate Video" onclick="goToVideoGeneration()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+            <button class="sc-action-btn" title="Save Changes" onclick="saveSelectedAvatar()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            </button>
+        </div>
+
+        <!-- Variants strip -->
+        <div class="sc-variants-strip" id="sc-variants-strip" style="display:none;"></div>
+
+        <!-- Bottom customize bar -->
+        <div class="sc-bottom-bar">
+            <input class="sc-customize-input" id="sc-quick-prompt" placeholder="Type to customize character..." onkeydown="if(event.key==='Enter')quickEdit()">
+            <button class="sc-edit-btn" onclick="quickEdit()">EDIT</button>
+        </div>
+        {% else %}
+        <div class="sc-preview-empty">
+            <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <p style="font-size:15px;font-weight:600;color:#64748b;">No actors yet</p>
+            <p style="font-size:12px;margin-top:4px;">Create your first AI actor to get started</p>
+        </div>
         {% endif %}
     </div>
-    {% endfor %}
 
-    {% if not avatars %}
-    <div class="stat-card col-span-full text-center py-8">
-        <p class="text-gray-400 text-sm">No avatars yet. Create one to get started.</p>
+    <!-- Right panel — prompt/settings -->
+    <div class="sc-right-panel" id="sc-right-panel">
+        {% if avatars %}
+        {% set first = avatars[0] %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="sc-panel-tabs">
+                <div class="sc-panel-tab active" onclick="switchTab(this,'details')">Details</div>
+                <div class="sc-panel-tab" onclick="switchTab(this,'prompt')">Prompt</div>
+            </div>
+            <button class="sc-reset-btn" onclick="resetActorForm()">Reset</button>
+        </div>
+
+        <!-- Details tab -->
+        <div id="tab-details" class="sc-tab-content">
+            <div class="sc-panel-section">
+                <div class="sc-panel-label">Name</div>
+                <input id="sc-edit-name" class="sc-customize-input" style="width:100%;margin-bottom:0;" value="{{ first.name }}">
+            </div>
+            <div class="sc-panel-section">
+                <div class="sc-panel-label">Type</div>
+                <div class="sc-type-chips" id="sc-type-chips">
+                    <div class="sc-type-chip {% if first.character_type == 'grandpa' %}active{% endif %}" data-type="grandpa" onclick="selectType(this)">Grandpa</div>
+                    <div class="sc-type-chip {% if first.character_type == 'techguy' %}active{% endif %}" data-type="techguy" onclick="selectType(this)">Tech Guy</div>
+                    <div class="sc-type-chip {% if first.character_type == 'cartoon' %}active{% endif %}" data-type="cartoon" onclick="selectType(this)">Cartoon</div>
+                </div>
+            </div>
+            <div class="sc-panel-section" style="flex:1;">
+                <div class="sc-panel-label">Description</div>
+                <textarea id="sc-edit-desc" class="sc-prompt-area" style="height:80px;" placeholder="Brief character description">{{ first.description or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Prompt tab -->
+        <div id="tab-prompt" class="sc-tab-content" style="display:none;">
+            <div class="sc-panel-section" style="flex:1;">
+                <div class="sc-panel-label">Image Generation Prompt</div>
+                <textarea id="sc-edit-prompt" class="sc-prompt-area" style="flex:1;min-height:200px;" placeholder="Enter a detailed prompt describing your AI actor (visual traits, style, mood, persona)">{{ first.prompt or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="sc-panel-actions">
+            <button class="sc-gen-btn" id="sc-gen-btn" onclick="generateSelectedAvatar()">
+                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                GENERATE IMAGE
+            </button>
+
+            <div style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:4px;">
+                <div class="sc-panel-label">Variations</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <button class="sc-variant-btn" id="sc-btn-outfits" onclick="generateVariants('outfits', 3)">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                        New Outfits (x3)
+                    </button>
+                    <button class="sc-variant-btn" id="sc-btn-newlook" onclick="generateVariants('new_look', 4)">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        New Look + Location (x4)
+                    </button>
+                </div>
+            </div>
+
+            <button class="sc-del-btn" onclick="deleteSelectedAvatar()">Delete Actor</button>
+        </div>
+        {% else %}
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;text-align:center;">
+            Select or create an actor to edit
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <!-- Create Avatar Modal -->
-<div id="create-avatar-modal" style="display:none;" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Create Avatar</h3>
-        <div class="space-y-3">
-            <div>
-                <label class="text-xs font-medium text-gray-600 block mb-1">Name</label>
-                <input id="avatar-name" class="input w-full" placeholder="e.g. Wall Street Grandpa">
-            </div>
-            <div>
-                <label class="text-xs font-medium text-gray-600 block mb-1">Character Type</label>
-                <select id="avatar-type" class="input w-full">
-                    <option value="grandpa">Grandpa</option>
-                    <option value="techguy">Tech Guy</option>
-                    <option value="cartoon">Cartoon</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-gray-600 block mb-1">Description</label>
-                <textarea id="avatar-desc" class="input w-full" rows="2" placeholder="Brief character description"></textarea>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-gray-600 block mb-1">Image Prompt</label>
-                <textarea id="avatar-prompt" class="input w-full" rows="3" placeholder="Detailed prompt for reference image generation. E.g.: An elderly gentleman in his 70s, silver hair, wearing a navy blue suit, sitting in a leather chair in a luxurious office..."></textarea>
+<div id="create-avatar-modal" class="fixed inset-0 bg-black/40 z-50 items-center justify-center" style="display:none;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:440px;margin:16px;box-shadow:0 24px 64px rgba(0,0,0,0.15);">
+        <h3 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:20px;">New Actor</h3>
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Name</label>
+            <input id="avatar-name" class="sc-customize-input" style="width:100%;" placeholder="e.g. Wall Street Grandpa">
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Character Type</label>
+            <div class="sc-type-chips">
+                <div class="sc-type-chip active" id="modal-type-grandpa" onclick="selectModalType('grandpa')">Grandpa</div>
+                <div class="sc-type-chip" id="modal-type-techguy" onclick="selectModalType('techguy')">Tech Guy</div>
+                <div class="sc-type-chip" id="modal-type-cartoon" onclick="selectModalType('cartoon')">Cartoon</div>
             </div>
         </div>
-        <div class="flex gap-2 mt-4">
-            <button class="btn btn-primary flex-1 justify-center" onclick="createAvatar()">Create</button>
-            <button class="btn btn-secondary flex-1 justify-center" onclick="hideCreateAvatarModal()">Cancel</button>
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Appearance Prompt</label>
+            <textarea id="avatar-prompt" class="sc-prompt-area" rows="4" placeholder="Describe the character's appearance in detail..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+            <button class="sc-gen-btn" style="flex:1;" onclick="createAvatar()">CREATE ACTOR</button>
+            <button style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;" onclick="hideCreateAvatarModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -98,35 +381,274 @@
 
 {% block scripts %}
 <script>
+let _selectedActorId = {{ avatars[0].id if avatars else 'null' }};
+let _modalType = 'grandpa';
+
 function showCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'flex'; }
 function hideCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'none'; }
 
+function selectModalType(type) {
+    _modalType = type;
+    document.querySelectorAll('[id^="modal-type-"]').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById('modal-type-' + type);
+    if (el) el.classList.add('active');
+}
+
+function selectType(el) {
+    document.querySelectorAll('#sc-type-chips .sc-type-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function switchTab(tabEl, tabName) {
+    document.querySelectorAll('.sc-panel-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    document.querySelectorAll('.sc-tab-content').forEach(c => c.style.display = 'none');
+    const target = document.getElementById('tab-' + tabName);
+    if (target) target.style.display = 'block';
+}
+
+function selectActor(id) {
+    _selectedActorId = id;
+    // Highlight in sidebar
+    document.querySelectorAll('.sc-actor-item').forEach(el => el.classList.remove('active'));
+    const item = document.getElementById('actor-item-' + id);
+    if (item) item.classList.add('active');
+
+    // Get actor data
+    const data = JSON.parse(item.dataset.avatar);
+
+    // Update preview
+    const imgWrap = document.getElementById('sc-preview-img-wrap');
+    if (data.image_url) {
+        imgWrap.innerHTML = '<img id="sc-preview-image" src="' + data.image_url + '" alt="' + data.name + '">';
+    } else if (data.image_request_id) {
+        imgWrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9;"><div class="sc-generating-overlay" id="sc-gen-overlay"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e6435b" stroke-width="2.5"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke-linecap="round"/></svg><span style="font-size:12px;font-weight:600;color:#64748b;">Generating image...</span></div></div>';
+        pollAvatarStatus(id);
+    } else {
+        imgWrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9;color:#cbd5e1;"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>';
+    }
+
+    document.getElementById('sc-preview-name').textContent = data.name;
+    document.getElementById('sc-preview-desc').textContent = data.description || 'AI actor for video generation';
+
+    // Update right panel
+    document.getElementById('sc-edit-name').value = data.name;
+    document.getElementById('sc-edit-desc').value = data.description || '';
+    document.getElementById('sc-edit-prompt').value = data.prompt || '';
+
+    document.querySelectorAll('#sc-type-chips .sc-type-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.type === data.character_type);
+    });
+
+    // Load variants for this actor
+    loadVariants(id);
+}
+
 async function createAvatar() {
     const name = document.getElementById('avatar-name').value.trim();
-    const character_type = document.getElementById('avatar-type').value;
-    const description = document.getElementById('avatar-desc').value.trim();
     const prompt = document.getElementById('avatar-prompt').value.trim();
     if (!name) { toast('Name is required', 'error'); return; }
 
-    const result = await api('/api/avatars', 'POST', { name, character_type, description, prompt });
+    const result = await api('/api/avatars', 'POST', { name, character_type: _modalType, description: prompt, prompt });
     if (result && result.ok) {
-        toast('Avatar created!', 'success');
+        toast('Actor created!', 'success');
+        location.reload();
+    } else {
+        toast('Failed: ' + (result?.detail || result?.error || 'Unknown error'), 'error');
+    }
+}
+
+async function generateSelectedAvatar() {
+    if (!_selectedActorId) { toast('Select an actor first', 'error'); return; }
+    const btn = document.getElementById('sc-gen-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+    // Save any prompt changes first
+    await saveSelectedAvatar(true);
+
+    const result = await api('/api/avatars/' + _selectedActorId + '/generate-image', 'POST');
+    if (result && result.ok && result.request_id) {
+        toast('Image generation started', 'info');
+        // Show generating state in preview
+        const imgWrap = document.getElementById('sc-preview-img-wrap');
+        imgWrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9;"><div class="sc-generating-overlay"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e6435b" stroke-width="2.5"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke-linecap="round"/></svg><span style="font-size:12px;font-weight:600;color:#64748b;">Generating image...</span></div></div>';
+        pollAvatarStatus(_selectedActorId);
+    } else {
+        toast('Generation failed: ' + (result?.detail || result?.error || 'Unknown error'), 'error');
+    }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>GENERATE IMAGE'; }
+}
+
+async function saveSelectedAvatar(silent) {
+    if (!_selectedActorId) return;
+    const name = document.getElementById('sc-edit-name').value.trim();
+    const desc = document.getElementById('sc-edit-desc').value.trim();
+    const prompt = document.getElementById('sc-edit-prompt').value.trim();
+    const activeType = document.querySelector('#sc-type-chips .sc-type-chip.active');
+    const character_type = activeType ? activeType.dataset.type : '';
+
+    const result = await api('/api/avatars/' + _selectedActorId, 'PUT', { name, description: desc, prompt: prompt || desc, character_type });
+    if (result && result.ok) {
+        if (!silent) toast('Saved!', 'success');
+        // Update sidebar item data
+        const item = document.getElementById('actor-item-' + _selectedActorId);
+        if (item) {
+            const data = JSON.parse(item.dataset.avatar);
+            data.name = name; data.description = desc; data.prompt = prompt || desc; data.character_type = character_type;
+            item.dataset.avatar = JSON.stringify(data);
+            item.querySelector('.sc-actor-name').textContent = name;
+        }
+        document.getElementById('sc-preview-name').textContent = name;
+        document.getElementById('sc-preview-desc').textContent = desc || 'AI actor for video generation';
+    } else if (!silent) {
+        toast('Save failed: ' + (result?.detail || 'Error'), 'error');
+    }
+}
+
+async function deleteSelectedAvatar() {
+    if (!_selectedActorId) return;
+    if (!confirm('Delete this actor?')) return;
+    const result = await api('/api/avatars/' + _selectedActorId, 'DELETE');
+    if (result && result.ok) {
+        toast('Actor deleted', 'success');
         location.reload();
     }
 }
 
-async function generateAvatarImage(avatarId) {
-    const btn = document.getElementById('gen-btn-' + avatarId);
-    if (btn) { btn.disabled = true; btn.textContent = 'Starting...'; }
+function focusPrompt() {
+    document.querySelectorAll('.sc-panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sc-panel-tab')[1].classList.add('active');
+    document.querySelectorAll('.sc-tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('tab-prompt').style.display = 'block';
+    document.getElementById('sc-edit-prompt').focus();
+}
 
-    const result = await api('/api/avatars/' + avatarId + '/generate-image', 'POST');
-    if (result && result.ok && result.request_id) {
-        toast('Image generation started', 'info');
-        pollAvatarStatus(avatarId);
+function resetActorForm() {
+    if (_selectedActorId) selectActor(_selectedActorId);
+}
+
+function goToVideoGeneration() {
+    toast('Select a script with video prompts to generate video with this actor', 'info');
+}
+
+async function quickEdit() {
+    const input = document.getElementById('sc-quick-prompt');
+    const text = input.value.trim();
+    if (!text || !_selectedActorId) return;
+
+    // Append to existing prompt
+    const promptArea = document.getElementById('sc-edit-prompt');
+    promptArea.value = (promptArea.value ? promptArea.value + '. ' : '') + text;
+    input.value = '';
+    await saveSelectedAvatar(true);
+    toast('Prompt updated', 'success');
+}
+
+// === Variants ===
+async function generateVariants(mode, count) {
+    if (!_selectedActorId) { toast('Select an actor first', 'error'); return; }
+    const btn = document.getElementById(mode === 'outfits' ? 'sc-btn-outfits' : 'sc-btn-newlook');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating ' + count + ' variants...'; }
+
+    // Save first
+    await saveSelectedAvatar(true);
+
+    const result = await api('/api/avatars/' + _selectedActorId + '/generate-variants', 'POST', { mode, count });
+    if (result && result.ok && result.variants) {
+        toast(count + ' variant(s) generation started!', 'info');
+        // Show variants strip
+        loadVariants(_selectedActorId);
+        // Poll each variant
+        result.variants.forEach(v => {
+            if (v.request_id) pollVariantStatus(v.id);
+        });
     } else {
-        toast('Generation failed: ' + (result?.error || 'Unknown error'), 'error');
-        if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
+        toast('Variant generation failed: ' + (result?.detail || result?.error || 'Unknown error'), 'error');
     }
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = mode === 'outfits'
+            ? '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> New Outfits (x3)'
+            : '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> New Look + Location (x4)';
+    }
+}
+
+async function loadVariants(actorId) {
+    const strip = document.getElementById('sc-variants-strip');
+    if (!strip) return;
+
+    const result = await api('/api/avatars/' + actorId + '/variants');
+    if (!result || !result.variants || result.variants.length === 0) {
+        strip.style.display = 'none';
+        return;
+    }
+
+    strip.style.display = 'flex';
+    let html = '';
+
+    // Parent as first thumb
+    const p = result.parent;
+    html += '<div style="text-align:center;">';
+    html += '<div class="sc-variant-thumb active" onclick="selectVariantImage(\'' + (p.image_url || '') + '\', this, ' + p.id + ')">';
+    if (p.image_url) {
+        html += '<img src="' + p.image_url + '" alt="Original">';
+    } else {
+        html += '<div class="sc-vt-spinner"><svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>';
+    }
+    html += '</div>';
+    html += '<div class="sc-variant-label">Original</div>';
+    html += '</div>';
+
+    // Variant thumbs
+    result.variants.forEach(v => {
+        html += '<div style="text-align:center;" id="variant-wrap-' + v.id + '">';
+        html += '<div class="sc-variant-thumb" id="variant-thumb-' + v.id + '" onclick="selectVariantImage(\'' + (v.image_url || '') + '\', this, ' + v.id + ')">';
+        if (v.image_url) {
+            html += '<img src="' + v.image_url + '" alt="' + v.variant_label + '">';
+        } else if (v.image_request_id) {
+            html += '<div class="sc-vt-spinner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#e6435b" stroke-width="2.5" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="#e6435b" stroke-width="2.5" stroke-linecap="round"/></svg></div>';
+        } else {
+            html += '<div class="sc-vt-spinner"><svg width="16" height="16" fill="none" stroke="#cbd5e1" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/></svg></div>';
+        }
+        html += '</div>';
+        html += '<div class="sc-variant-label">' + (v.variant_label || '').replace(/_/g, ' ') + '</div>';
+        html += '</div>';
+    });
+
+    strip.innerHTML = html;
+}
+
+function selectVariantImage(imageUrl, thumbEl, variantId) {
+    if (!imageUrl) return;
+    // Update preview
+    const imgWrap = document.getElementById('sc-preview-img-wrap');
+    imgWrap.innerHTML = '<img id="sc-preview-image" src="' + imageUrl + '" alt="">';
+    // Highlight active thumb
+    document.querySelectorAll('.sc-variant-thumb').forEach(t => t.classList.remove('active'));
+    if (thumbEl) thumbEl.classList.add('active');
+}
+
+function pollVariantStatus(variantId) {
+    const interval = setInterval(async () => {
+        const result = await api('/api/avatars/' + variantId + '/status');
+        if (!result) return;
+
+        if (result.status === 'completed' && result.image_url) {
+            clearInterval(interval);
+            const thumb = document.getElementById('variant-thumb-' + variantId);
+            if (thumb) {
+                thumb.innerHTML = '<img src="' + result.image_url + '" alt="">';
+                thumb.onclick = function() { selectVariantImage(result.image_url, thumb, variantId); };
+            }
+            toast('Variant ready!', 'success');
+        } else if (result.status === 'failed' || result.status === 'nsfw') {
+            clearInterval(interval);
+            const thumb = document.getElementById('variant-thumb-' + variantId);
+            if (thumb) {
+                thumb.innerHTML = '<div class="sc-vt-spinner" style="color:#ef4444;"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg></div>';
+            }
+        }
+    }, 3000);
 }
 
 function pollAvatarStatus(avatarId) {
@@ -136,40 +658,42 @@ function pollAvatarStatus(avatarId) {
 
         if (result.status === 'completed' && result.image_url) {
             clearInterval(interval);
-            const container = document.getElementById('avatar-img-' + avatarId);
-            if (container) {
-                container.parentElement.innerHTML = '<img src="' + result.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;">';
+            // Update preview if this is the selected actor
+            if (avatarId == _selectedActorId) {
+                const imgWrap = document.getElementById('sc-preview-img-wrap');
+                imgWrap.innerHTML = '<img id="sc-preview-image" src="' + result.image_url + '" alt="">';
             }
-            const btn = document.getElementById('gen-btn-' + avatarId);
-            if (btn) btn.remove();
-            toast('Avatar image ready!', 'success');
+            // Update sidebar thumb
+            const item = document.getElementById('actor-item-' + avatarId);
+            if (item) {
+                const thumb = item.querySelector('.sc-actor-thumb');
+                thumb.innerHTML = '<img src="' + result.image_url + '" alt="">';
+                const data = JSON.parse(item.dataset.avatar);
+                data.image_url = result.image_url;
+                item.dataset.avatar = JSON.stringify(data);
+            }
+            toast('Actor image ready!', 'success');
         } else if (result.status === 'failed' || result.status === 'nsfw') {
             clearInterval(interval);
             toast('Image generation failed: ' + (result.error || result.status), 'error');
-            const btn = document.getElementById('gen-btn-' + avatarId);
-            if (btn) { btn.disabled = false; btn.textContent = 'Retry'; }
+            if (avatarId == _selectedActorId) {
+                const imgWrap = document.getElementById('sc-preview-img-wrap');
+                imgWrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#f1f5f9;color:#ef4444;"><div style="text-align:center;"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span style="font-size:12px;font-weight:600;">Generation failed</span></div></div>';
+            }
         }
     }, 3000);
 }
 
-async function deleteAvatar(avatarId) {
-    if (!confirm('Delete this avatar?')) return;
-    const result = await api('/api/avatars/' + avatarId, 'DELETE');
-    if (result && result.ok) {
-        toast('Avatar deleted', 'success');
-        const card = document.getElementById('avatar-card-' + avatarId);
-        if (card) card.remove();
-    }
-}
-
-// Auto-poll for avatars that are still generating
+// Auto-poll for actors generating on load + load variants for first
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[id^="avatar-img-"]').forEach(el => {
-        if (el.querySelector('.animate-spin')) {
-            const avatarId = el.id.replace('avatar-img-', '');
-            pollAvatarStatus(avatarId);
+    document.querySelectorAll('.sc-actor-item').forEach(item => {
+        const data = JSON.parse(item.dataset.avatar);
+        if (data.image_request_id && !data.image_url) {
+            pollAvatarStatus(data.id);
         }
     });
+    // Load variants for initially selected actor
+    if (_selectedActorId) loadVariants(_selectedActorId);
 });
 </script>
 {% endblock %}

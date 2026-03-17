@@ -281,6 +281,9 @@ function updateVideoStatus(videoNumber, status) {
 }
 
 function pollVideoStatus(scriptId, generationId, videoNumber) {
+    // Store generation ID for subtitle button
+    window['_csV' + videoNumber + 'GenId'] = generationId;
+
     const interval = setInterval(async () => {
         const result = await api('/api/scripts/' + scriptId + '/video-status/' + generationId);
         if (!result) return;
@@ -296,6 +299,9 @@ function pollVideoStatus(scriptId, generationId, videoNumber) {
             if (video) video.src = result.video_url;
             if (download) download.href = result.video_url;
             toast('Video ' + videoNumber + ' ready!', 'success');
+
+            // Show subtitle button or start polling if auto-triggered
+            showSubtitleUI(scriptId, generationId, videoNumber, result.subtitle_status || '');
         } else if (result.status === 'failed' || result.status === 'nsfw') {
             clearInterval(interval);
             toast('Video ' + videoNumber + ' failed: ' + (result.error || result.status), 'error');
@@ -303,12 +309,14 @@ function pollVideoStatus(scriptId, generationId, videoNumber) {
     }, 3000);
 }
 
-// === Cinema Studio: Load Avatars dropdown ===
+// === Cinema Studio: Load Avatars dropdown + thumbnail strip ===
 async function loadAvatarsDropdown() {
     const select = document.getElementById('cs-avatar');
     if (!select) return;
     const data = await api('/api/avatars');
     if (!data || !Array.isArray(data)) return;
+
+    // Populate hidden select
     data.forEach(a => {
         if (a.image_url) {
             const opt = document.createElement('option');
@@ -317,6 +325,39 @@ async function loadAvatarsDropdown() {
             select.appendChild(opt);
         }
     });
+
+    // Build avatar thumbnail strip
+    const thumbs = document.getElementById('cs-avatar-thumbs');
+    if (!thumbs) return;
+    const avatarsWithImage = data.filter(a => a.image_url);
+    if (avatarsWithImage.length === 0) {
+        thumbs.innerHTML = '<span style="font-size:11px;color:#6b7280;">No actors with images. Go to Avatar Gallery to create one.</span>';
+        return;
+    }
+    thumbs.innerHTML = avatarsWithImage.map((a, i) => {
+        return '<div onclick="selectCSAvatar(' + a.id + ', this)" style="cursor:pointer;text-align:center;" class="cs-avatar-opt' + (i === 0 ? ' cs-av-active' : '') + '">' +
+            '<div style="width:42px;height:42px;border-radius:8px;overflow:hidden;border:2px solid ' + (i === 0 ? '#c8ff00' : 'rgba(255,255,255,0.1)') + ';transition:all 0.15s;">' +
+            '<img src="' + a.image_url + '" alt="' + a.name + '" style="width:100%;height:100%;object-fit:cover;">' +
+            '</div>' +
+            '<div style="font-size:9px;color:#9ca3af;margin-top:2px;max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.name + '</div>' +
+            '</div>';
+    }).join('');
+
+    // Auto-select first avatar
+    if (avatarsWithImage.length > 0) {
+        select.value = avatarsWithImage[0].id;
+    }
+}
+
+function selectCSAvatar(id, el) {
+    const select = document.getElementById('cs-avatar');
+    if (select) select.value = id;
+    // Update highlights
+    document.querySelectorAll('.cs-avatar-opt div:first-child').forEach(d => d.style.borderColor = 'rgba(255,255,255,0.1)');
+    if (el) {
+        const thumb = el.querySelector('div:first-child');
+        if (thumb) thumb.style.borderColor = '#c8ff00';
+    }
 }
 
 // === Cinema Studio: Load previous generations ===
@@ -329,9 +370,13 @@ async function loadVideoGenerations(scriptId) {
     container.style.display = 'block';
     list.innerHTML = data.map(g => {
         const statusClass = g.status === 'completed' ? 'status-completed' : g.status === 'failed' ? 'status-failed' : 'status-queued';
+        const subBadge = g.subtitle_status === 'completed' ? '<span class="status-badge status-completed ml-1">Subs</span>' :
+                         g.subtitle_status === 'processing' ? '<span class="status-badge status-running ml-1">Subs...</span>' :
+                         g.subtitle_status === 'failed' ? '<span class="status-badge status-failed ml-1">Subs failed</span>' : '';
+        const subDl = g.subtitle_status === 'completed' ? '<a href="/api/scripts/' + scriptId + '/download-subtitled/' + g.id + '" class="text-green-500 hover:underline mr-2">Subtitled</a>' : '';
         return '<div class="flex items-center justify-between text-xs p-2 bg-gray-50 rounded-lg">' +
-            '<div><span class="font-medium text-gray-700">Video ' + g.video_number + '</span> <span class="status-badge ' + statusClass + '">' + g.status + '</span></div>' +
-            '<div class="text-gray-400">' + (g.video_url ? '<a href="' + g.video_url + '" target="_blank" class="text-blue-500 hover:underline mr-2">Watch</a>' : '') + g.model_id.split('/').pop() + ' / ' + g.duration + 's</div>' +
+            '<div><span class="font-medium text-gray-700">Video ' + g.video_number + '</span> <span class="status-badge ' + statusClass + '">' + g.status + '</span>' + subBadge + '</div>' +
+            '<div class="text-gray-400">' + subDl + (g.video_url ? '<a href="' + g.video_url + '" target="_blank" class="text-blue-500 hover:underline mr-2">Watch</a>' : '') + g.model_id.split('/').pop() + ' / ' + g.duration + 's</div>' +
             '</div>';
     }).join('');
 }
@@ -355,4 +400,89 @@ async function deletePreset(presetId) {
         if (el) el.remove();
         toast('Preset deleted', 'success');
     }
+}
+
+// === Subtitles ===
+
+function showSubtitleUI(scriptId, generationId, videoNumber, subtitleStatus) {
+    const subBtn = document.getElementById('cs-v' + videoNumber + '-sub-btn');
+    const subStatus = document.getElementById('cs-v' + videoNumber + '-sub-status');
+
+    if (subtitleStatus === 'processing') {
+        if (subBtn) subBtn.style.display = 'none';
+        if (subStatus) {
+            subStatus.style.display = 'inline-flex';
+            subStatus.innerHTML = '<span class="status-badge status-running">Subtitles processing...</span>';
+        }
+        pollSubtitleStatus(scriptId, generationId, videoNumber);
+    } else if (subtitleStatus === 'completed') {
+        if (subBtn) subBtn.style.display = 'none';
+        _showSubtitledPlayer(scriptId, generationId, videoNumber);
+    } else {
+        // Show "Add Subtitles" button
+        if (subBtn) subBtn.style.display = 'inline-flex';
+    }
+}
+
+async function addSubtitles(scriptId, generationId, videoNumber) {
+    if (!generationId) { toast('No video generation to subtitle', 'error'); return; }
+
+    const btn = document.getElementById('cs-v' + videoNumber + '-sub-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Processing...'; }
+
+    const result = await api('/api/scripts/' + scriptId + '/add-subtitles/' + generationId, 'POST');
+    if (result && result.ok) {
+        toast('Subtitle generation started!', 'info');
+        if (btn) btn.style.display = 'none';
+        const subStatus = document.getElementById('cs-v' + videoNumber + '-sub-status');
+        if (subStatus) {
+            subStatus.style.display = 'inline-flex';
+            subStatus.innerHTML = '<span class="status-badge status-running">Subtitles processing...</span>';
+        }
+        pollSubtitleStatus(scriptId, generationId, videoNumber);
+    } else {
+        toast('Subtitle generation failed: ' + (result?.detail || 'Unknown error'), 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>Add Subtitles'; }
+    }
+}
+
+function pollSubtitleStatus(scriptId, generationId, videoNumber) {
+    const interval = setInterval(async () => {
+        const result = await api('/api/scripts/' + scriptId + '/subtitle-status/' + generationId);
+        if (!result) return;
+
+        if (result.subtitle_status === 'completed') {
+            clearInterval(interval);
+            const subStatus = document.getElementById('cs-v' + videoNumber + '-sub-status');
+            if (subStatus) {
+                subStatus.innerHTML = '<span class="status-badge status-completed">Subtitles ready</span>';
+            }
+            _showSubtitledPlayer(scriptId, generationId, videoNumber);
+            toast('Subtitles ready for Video ' + videoNumber + '!', 'success');
+        } else if (result.subtitle_status === 'failed') {
+            clearInterval(interval);
+            const subStatus = document.getElementById('cs-v' + videoNumber + '-sub-status');
+            if (subStatus) {
+                subStatus.innerHTML = '<span class="status-badge status-failed">Subtitles failed</span>';
+            }
+            // Re-show button for retry
+            const btn = document.getElementById('cs-v' + videoNumber + '-sub-btn');
+            if (btn) {
+                btn.style.display = 'inline-flex';
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>Retry Subtitles';
+            }
+            toast('Subtitles failed: ' + (result.subtitle_error || 'Unknown error'), 'error');
+        }
+    }, 3000);
+}
+
+function _showSubtitledPlayer(scriptId, generationId, videoNumber) {
+    const downloadUrl = '/api/scripts/' + scriptId + '/download-subtitled/' + generationId;
+    const subPlayer = document.getElementById('cs-v' + videoNumber + '-sub-player');
+    const subVideo = document.getElementById('cs-v' + videoNumber + '-sub-video');
+    const subDownload = document.getElementById('cs-v' + videoNumber + '-sub-download');
+    if (subPlayer) subPlayer.style.display = 'block';
+    if (subVideo) subVideo.src = downloadUrl;
+    if (subDownload) subDownload.href = downloadUrl;
 }

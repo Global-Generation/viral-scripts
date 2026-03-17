@@ -87,87 +87,166 @@
             <textarea id="video2-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video2_prompt or '' }}</textarea>
         </div>
 
-        <!-- Cinema Studio -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">
-                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                Cinema Studio
-            </h2>
+        <!-- Director Panel (Cinema Studio) -->
+        <div style="background: #1a1d21; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+            <!-- Header -->
+            <div style="padding: 14px 18px 0; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" fill="none" stroke="#c8ff00" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+                <span style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.01em;">Director Panel</span>
+            </div>
 
-            <!-- Avatar Selection -->
-            <div class="mb-3">
-                <label class="text-xs font-medium text-gray-500 block mb-1">Avatar</label>
-                <select id="cs-avatar" class="input w-full" style="font-size: 13px;">
-                    <option value="">Select avatar...</option>
+            <!-- Avatar Selection — thumbnail row -->
+            <div style="padding: 12px 18px; display: flex; align-items: center; gap: 10px; overflow-x: auto;">
+                <div id="cs-avatar-thumbs" style="display: flex; gap: 6px; flex: 1; overflow-x: auto;"></div>
+                <select id="cs-avatar" style="display:none;"><option value="">Select avatar...</option></select>
+            </div>
+
+            <!-- Settings row -->
+            <div style="padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Movement</label>
+                    <select id="cs-camera" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
+                        <option value="">Auto</option>
+                        <optgroup label="Dolly">
+                            <option value="dolly_in">Dolly In</option>
+                            <option value="dolly_out">Dolly Out</option>
+                            <option value="dolly_left">Dolly Left</option>
+                            <option value="dolly_right">Dolly Right</option>
+                            <option value="super_dolly_in">Super Dolly In</option>
+                            <option value="super_dolly_out">Super Dolly Out</option>
+                            <option value="double_dolly">Double Dolly</option>
+                            <option value="dolly_zoom_in">Dolly Zoom In</option>
+                            <option value="dolly_zoom_out">Dolly Zoom Out</option>
+                        </optgroup>
+                        <optgroup label="Pan / Tilt">
+                            <option value="pan_left">Pan Left</option>
+                            <option value="pan_right">Pan Right</option>
+                            <option value="tilt_up">Tilt Up</option>
+                            <option value="tilt_down">Tilt Down</option>
+                            <option value="whip_pan">Whip Pan</option>
+                            <option value="dutch_angle">Dutch Angle</option>
+                        </optgroup>
+                        <optgroup label="Orbit / Rotation">
+                            <option value="arc_left">Arc Left</option>
+                            <option value="arc_right">Arc Right</option>
+                            <option value="360_orbit">360 Orbit</option>
+                            <option value="lazy_susan">Lazy Susan</option>
+                            <option value="3d_rotation">3D Rotation</option>
+                            <option value="bullet_time">Bullet Time</option>
+                        </optgroup>
+                        <optgroup label="Crane / Jib">
+                            <option value="crane_up">Crane Up</option>
+                            <option value="crane_down">Crane Down</option>
+                            <option value="crane_over_the_head">Crane Over Head</option>
+                            <option value="jib_up">Jib Up</option>
+                            <option value="jib_down">Jib Down</option>
+                        </optgroup>
+                        <optgroup label="Zoom">
+                            <option value="zoom_in">Zoom In</option>
+                            <option value="zoom_out">Zoom Out</option>
+                            <option value="rapid_zoom_in">Rapid Zoom In</option>
+                            <option value="rapid_zoom_out">Rapid Zoom Out</option>
+                            <option value="crash_zoom_in">Crash Zoom In</option>
+                            <option value="crash_zoom_out">Crash Zoom Out</option>
+                            <option value="yoyo_zoom">YoYo Zoom</option>
+                            <option value="eating_zoom">Eating Zoom</option>
+                        </optgroup>
+                        <optgroup label="Special">
+                            <option value="fpv_drone">FPV Drone</option>
+                            <option value="aerial_pullback">Aerial Pullback</option>
+                            <option value="handheld">Handheld</option>
+                            <option value="hero_cam">Hero Cam</option>
+                            <option value="snorricam">Snorricam</option>
+                            <option value="robo_arm">Robo Arm</option>
+                            <option value="hyperlapse">Hyperlapse</option>
+                            <option value="head_tracking">Head Tracking</option>
+                            <option value="wiggle">Wiggle</option>
+                            <option value="static">Static</option>
+                        </optgroup>
+                        <optgroup label="Through / Transition">
+                            <option value="through_object_in">Through Object In</option>
+                            <option value="through_object_out">Through Object Out</option>
+                            <option value="flying_cam_transition">Flying Cam</option>
+                        </optgroup>
+                        <optgroup label="Cinematic">
+                            <option value="glam">Glam</option>
+                            <option value="eyes_in">Eyes In</option>
+                            <option value="mouth_in">Mouth In</option>
+                            <option value="focus_change">Focus Change</option>
+                            <option value="fisheye">Fisheye</option>
+                            <option value="low_shutter">Low Shutter</option>
+                            <option value="overhead">Overhead</option>
+                            <option value="object_pov">Object POV</option>
+                            <option value="bts">BTS</option>
+                        </optgroup>
+                        <optgroup label="Vehicle">
+                            <option value="car_chasing">Car Chasing</option>
+                            <option value="car_grip">Car Grip</option>
+                            <option value="road_rush">Road Rush</option>
+                            <option value="buckle_up">Buckle Up</option>
+                        </optgroup>
+                        <optgroup label="Timelapse">
+                            <option value="timelapse_glam">Timelapse Glam</option>
+                            <option value="timelapse_human">Timelapse Human</option>
+                            <option value="timelapse_landscape">Timelapse Landscape</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Speed Ramp</label>
+                    <select id="cs-speed-ramp" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
+                        <option value="auto">Auto</option>
+                        <option value="none">None (constant)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Duration</label>
+                    <select id="cs-duration" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
+                        <option value="5">5s</option>
+                        <option value="10" selected>10s</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bottom bar — pill toggles -->
+            <div style="padding: 10px 18px; background: #15171a; display: flex; align-items: center; gap: 6px; overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.04);">
+                <!-- Model pill -->
+                <select id="cs-model" style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; color: #e5e7eb; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
+                    <option value="higgsfield-ai/dop/standard">DoP Standard</option>
+                    <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
+                    <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
                 </select>
-            </div>
 
-            <!-- Settings Grid -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="text-xs font-medium text-gray-500 block mb-1">Model</label>
-                    <select id="cs-model" class="input w-full" style="font-size: 12px;">
-                        <option value="higgsfield-ai/dop/standard">DoP Standard</option>
-                        <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
-                        <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-medium text-gray-500 block mb-1">Duration</label>
-                    <select id="cs-duration" class="input w-full" style="font-size: 12px;">
-                        <option value="5">5 seconds</option>
-                        <option value="10">10 seconds</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-medium text-gray-500 block mb-1">Aspect Ratio</label>
-                    <select id="cs-ratio" class="input w-full" style="font-size: 12px;">
-                        <option value="9:16">9:16 Vertical</option>
-                        <option value="16:9">16:9 Widescreen</option>
-                        <option value="21:9">21:9 Cinematic</option>
-                        <option value="1:1">1:1 Square</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-medium text-gray-500 block mb-1">Camera Movement</label>
-                    <select id="cs-camera" class="input w-full" style="font-size: 12px;">
-                        <option value="">None (static)</option>
-                        <option value="dolly_forward">Dolly Forward</option>
-                        <option value="dolly_backward">Dolly Backward</option>
-                        <option value="pan_left">Pan Left</option>
-                        <option value="pan_right">Pan Right</option>
-                        <option value="tilt_up">Tilt Up</option>
-                        <option value="tilt_down">Tilt Down</option>
-                        <option value="orbit_left">Orbit Left</option>
-                        <option value="orbit_right">Orbit Right</option>
-                        <option value="zoom_in">Zoom In</option>
-                        <option value="zoom_out">Zoom Out</option>
-                        <option value="fpv_drone">FPV Drone</option>
-                        <option value="crane_up">Crane Up</option>
-                        <option value="crane_down">Crane Down</option>
-                    </select>
-                </div>
-            </div>
+                <!-- Aspect ratio pill -->
+                <select id="cs-ratio" style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; color: #e5e7eb; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
+                    <option value="9:16">9:16</option>
+                    <option value="16:9">16:9</option>
+                    <option value="21:9">21:9</option>
+                    <option value="1:1">1:1</option>
+                </select>
 
-            <!-- Toggles -->
-            <div class="flex gap-4 mb-4">
-                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" id="cs-sound" class="rounded"> AI Sound
+                <!-- Sound toggle pill -->
+                <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; cursor: pointer; white-space: nowrap;">
+                    <svg width="12" height="12" fill="none" stroke="#e5e7eb" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#c8ff00;cursor:pointer;" checked>
+                    <span style="font-size: 11px; font-weight: 600; color: #e5e7eb;">Sound</span>
                 </label>
-                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" id="cs-slowmo" class="rounded"> Slow Motion
-                </label>
-            </div>
 
-            <!-- Generate Buttons -->
-            <div class="flex gap-2 mb-4">
-                <button id="cs-gen-v1" class="btn btn-primary flex-1 justify-center" onclick="generateVideo({{ script.id }}, 1)">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                    Generate Video 1
+                <!-- Slow motion toggle -->
+                <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" id="cs-slowmo" style="width:14px;height:14px;accent-color:#c8ff00;cursor:pointer;">
+                    <span style="font-size: 11px; font-weight: 600; color: #e5e7eb;">Slow Mo</span>
+                </label>
+
+                <!-- Spacer -->
+                <div style="flex:1;"></div>
+
+                <!-- Generate buttons -->
+                <button id="cs-gen-v1" onclick="generateVideo({{ script.id }}, 1)" style="padding: 6px 18px; border-radius: 8px; border: none; background: #c8ff00; color: #0f1113; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+                    GENERATE V1
                 </button>
-                <button id="cs-gen-v2" class="btn btn-secondary flex-1 justify-center" onclick="generateVideo({{ script.id }}, 2)">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                    Generate Video 2
+                <button id="cs-gen-v2" onclick="generateVideo({{ script.id }}, 2)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid rgba(200,255,0,0.3); background: transparent; color: #c8ff00; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+                    GENERATE V2
                 </button>
             </div>
 
@@ -179,10 +258,26 @@
                 </div>
                 <div id="cs-v1-player" style="display:none;">
                     <video id="cs-v1-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <a id="cs-v1-download" href="#" download class="btn-sm btn-secondary mt-2 inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download
-                    </a>
+                    <div class="flex gap-2 mt-2 items-center">
+                        <a id="cs-v1-download" href="#" download class="btn-sm btn-secondary inline-flex">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download
+                        </a>
+                        <span id="cs-v1-sub-status" style="display:none;"></span>
+                        <button id="cs-v1-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV1GenId, 1)">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            Add Subtitles
+                        </button>
+                    </div>
+                    <!-- Subtitled video player -->
+                    <div id="cs-v1-sub-player" style="display:none;" class="mt-3">
+                        <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
+                        <video id="cs-v1-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                        <a id="cs-v1-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download with Subtitles
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -194,10 +289,26 @@
                 </div>
                 <div id="cs-v2-player" style="display:none;">
                     <video id="cs-v2-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <a id="cs-v2-download" href="#" download class="btn-sm btn-secondary mt-2 inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download
-                    </a>
+                    <div class="flex gap-2 mt-2 items-center">
+                        <a id="cs-v2-download" href="#" download class="btn-sm btn-secondary inline-flex">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download
+                        </a>
+                        <span id="cs-v2-sub-status" style="display:none;"></span>
+                        <button id="cs-v2-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV2GenId, 2)">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            Add Subtitles
+                        </button>
+                    </div>
+                    <!-- Subtitled video player -->
+                    <div id="cs-v2-sub-player" style="display:none;" class="mt-3">
+                        <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
+                        <video id="cs-v2-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                        <a id="cs-v2-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download with Subtitles
+                        </a>
+                    </div>
                 </div>
             </div>
 
