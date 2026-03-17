@@ -237,23 +237,24 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
     variants_created = []
 
     # Step 1: Build all variant prompts and save to DB
+    # NOTE: Soul ID preserves the face. Prompts must NOT re-describe the person's
+    # appearance — that conflicts with Soul ID and distorts the face. Only describe
+    # what should CHANGE (outfit, location) and tell it to keep everything else.
     variant_records = []
     for i in range(count):
-        person_desc = base_prompt
-
         if data.mode == "outfits":
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             variant_prompt = (
                 f"{PORTRAIT_BASE}"
-                f"{person_desc}, {outfit}. "
-                f"Same background and setting as reference image. Only the clothes and pose are different."
+                f"Same person from reference image, {outfit}. "
+                f"Keep the same face, background, and setting. Only change the clothes."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
                 f"{PORTRAIT_BASE}"
-                f"{person_desc}. Same outfit as reference image. "
+                f"Same person from reference image, same outfit and clothes. "
                 f"New setting: {location}."
             )
             label = f"location_{i+1}"
@@ -262,7 +263,7 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
                 f"{PORTRAIT_BASE}"
-                f"{person_desc}, {outfit}. "
+                f"Same person from reference image, {outfit}. "
                 f"Setting: {location}."
             )
             label = f"new_look_{i+1}"
@@ -367,8 +368,8 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
 
     variant_prompt = (
         f"{PORTRAIT_BASE}"
-        f"{base_prompt}. "
-        f"Same background, outfit, and pose as reference image. "
+        f"Same person from reference image. "
+        f"Keep the same face, background, outfit, and pose. "
         f"Only apply this change: {data.prompt}"
     )
 
