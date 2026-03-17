@@ -177,6 +177,17 @@
 .sc-variant-thumb .sc-vt-spinner svg { animation: sc-spin 1s linear infinite; }
 .sc-variant-label { font-size: 7px; color: #94a3b8; text-align: center; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 44px; }
 
+/* Delete button on variant thumb */
+.sc-variant-wrap { position: relative; text-align: center; }
+.sc-variant-del {
+    position: absolute; top: -4px; right: -4px; z-index: 2;
+    width: 16px; height: 16px; border-radius: 50%; border: none;
+    background: #ef4444; color: #fff; font-size: 10px; line-height: 16px;
+    text-align: center; cursor: pointer; padding: 0;
+    opacity: 0; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center;
+}
+.sc-variant-wrap:hover .sc-variant-del { opacity: 1; }
+
 /* Variant generation buttons */
 .sc-variant-btn {
     width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;
@@ -282,9 +293,29 @@
     <div class="sc-right-panel" id="sc-right-panel">
         {% if avatars %}
         {% set first = avatars[0] %}
-        <input type="hidden" id="sc-edit-name" value="{{ first.name }}">
-        <input type="hidden" id="sc-edit-desc" value="{{ first.description or '' }}">
-        <input type="hidden" id="sc-edit-prompt" value="{{ first.prompt or '' }}">
+        <!-- Name -->
+        <div class="sc-panel-section">
+            <div class="sc-panel-label">Name</div>
+            <input id="sc-edit-name" class="sc-customize-input" style="width:100%;padding:8px 12px;" value="{{ first.name }}">
+        </div>
+
+        <!-- Description -->
+        <div class="sc-panel-section">
+            <div class="sc-panel-label">Description</div>
+            <textarea id="sc-edit-desc" class="sc-prompt-area" rows="2" style="font-size:12px;">{{ first.description or '' }}</textarea>
+        </div>
+
+        <!-- Save name/desc -->
+        <button class="sc-variant-btn" style="margin-bottom:12px;" onclick="saveSelectedAvatar()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+            Save
+        </button>
+
+        <!-- Original Prompt (read-only) -->
+        <div class="sc-panel-section">
+            <div class="sc-panel-label">Original Prompt</div>
+            <textarea id="sc-edit-prompt" class="sc-prompt-area" rows="3" style="font-size:11px;background:#f1f5f9;color:#64748b;" readonly>{{ first.prompt or '' }}</textarea>
+        </div>
 
         <div class="sc-panel-actions">
             <button class="sc-variant-btn" onclick="downloadCurrentImage()">
@@ -594,9 +625,13 @@ async function loadVariants(actorId) {
     strip.style.display = 'flex';
     let html = '';
 
+    // Store variant data for prompt display
+    _variantData = {};
+
     // Parent as first thumb
     const p = result.parent;
-    html += '<div style="text-align:center;">';
+    _variantData[p.id] = p;
+    html += '<div class="sc-variant-wrap">';
     html += '<div class="sc-variant-thumb active" onclick="selectVariantImage(\'' + (p.image_url || '') + '\', this, ' + p.id + ')">';
     if (p.image_url) {
         html += '<img src="' + p.image_url + '" alt="Original">';
@@ -607,9 +642,11 @@ async function loadVariants(actorId) {
     html += '<div class="sc-variant-label">Original</div>';
     html += '</div>';
 
-    // Variant thumbs
+    // Variant thumbs with delete button
     result.variants.forEach(v => {
-        html += '<div style="text-align:center;" id="variant-wrap-' + v.id + '">';
+        _variantData[v.id] = v;
+        html += '<div class="sc-variant-wrap" id="variant-wrap-' + v.id + '">';
+        html += '<button class="sc-variant-del" onclick="event.stopPropagation();deleteVariant(' + v.id + ')" title="Delete">&times;</button>';
         html += '<div class="sc-variant-thumb" id="variant-thumb-' + v.id + '" onclick="selectVariantImage(\'' + (v.image_url || '') + '\', this, ' + v.id + ')">';
         if (v.image_url) {
             html += '<img src="' + v.image_url + '" alt="' + v.variant_label + '">';
@@ -626,6 +663,8 @@ async function loadVariants(actorId) {
     strip.innerHTML = html;
 }
 
+let _variantData = {};
+
 function selectVariantImage(imageUrl, thumbEl, variantId) {
     if (!imageUrl) return;
     // Update preview
@@ -634,6 +673,30 @@ function selectVariantImage(imageUrl, thumbEl, variantId) {
     // Highlight active thumb
     document.querySelectorAll('.sc-variant-thumb').forEach(t => t.classList.remove('active'));
     if (thumbEl) thumbEl.classList.add('active');
+    // Show variant prompt in right panel
+    const v = _variantData[variantId];
+    if (v) {
+        const promptEl = document.getElementById('sc-edit-prompt');
+        if (promptEl) promptEl.value = v.prompt || '';
+        document.getElementById('sc-preview-name').textContent = v.name || '';
+        document.getElementById('sc-preview-desc').textContent = v.description || '';
+    }
+}
+
+async function deleteVariant(variantId) {
+    const result = await api('/api/avatars/' + variantId, 'DELETE');
+    if (result && result.ok) {
+        const wrap = document.getElementById('variant-wrap-' + variantId);
+        if (wrap) wrap.remove();
+        toast('Variant deleted', 'success');
+        // If no variants left, hide strip
+        const strip = document.getElementById('sc-variants-strip');
+        if (strip && strip.querySelectorAll('.sc-variant-wrap').length <= 1) {
+            strip.style.display = 'none';
+        }
+    } else {
+        toast('Delete failed', 'error');
+    }
 }
 
 function pollVariantStatus(variantId) {
