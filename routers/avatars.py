@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Avatar
 from services.higgsfield import (
-    generate_avatar_image, generate_variant_image, check_status,
+    generate_avatar_image, check_status,
     create_soul_id, check_soul_id_status, generate_with_soul_id,
 )
 

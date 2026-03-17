@@ -1,5 +1,6 @@
 import os
 import logging
+import httpx
 import higgsfield_client
 from database import SessionLocal
 from models import ApiUsage
@@ -22,6 +23,7 @@ VIDEO_MODELS = [
 ]
 
 IMAGE_MODEL = "higgsfield-ai/soul/standard"
+IMAGE_CHARACTER_MODEL = "higgsfield-ai/soul/character"
 
 
 def _ensure_env():
@@ -53,7 +55,7 @@ def _log_usage(platform: str, model_id: str, request_type: str,
         db.close()
 
 
-def generate_avatar_image(prompt: str, aspect_ratio: str = "1:1") -> dict:
+def generate_avatar_image(prompt: str, aspect_ratio: str = "9:16") -> dict:
     """Generate a reference image for an avatar via text-to-image."""
     _ensure_env()
     try:
@@ -62,6 +64,7 @@ def generate_avatar_image(prompt: str, aspect_ratio: str = "1:1") -> dict:
             arguments={
                 "prompt": prompt,
                 "aspect_ratio": aspect_ratio,
+                "quality": "2k",
             }
         )
         request_id = controller.request_id if hasattr(controller, "request_id") else ""
@@ -73,6 +76,30 @@ def generate_avatar_image(prompt: str, aspect_ratio: str = "1:1") -> dict:
         return {"request_id": "", "status": "failed", "error": str(e)}
 
 
+def generate_variant_image(source_image_url: str, prompt: str,
+                           strength: float = 0.3,
+                           aspect_ratio: str = "9:16") -> dict:
+    """Generate a variant image using character mode (preserves face identity from source)."""
+    _ensure_env()
+    try:
+        controller = higgsfield_client.submit(
+            IMAGE_CHARACTER_MODEL,
+            arguments={
+                "image_url": source_image_url,
+                "prompt": prompt,
+                "strength": strength,
+                "aspect_ratio": aspect_ratio,
+            }
+        )
+        request_id = controller.request_id if hasattr(controller, "request_id") else ""
+        _log_usage("higgsfield", IMAGE_CHARACTER_MODEL, "image", request_id=str(request_id), status="queued")
+        return {"request_id": str(request_id), "status": "queued"}
+    except Exception as e:
+        logger.error(f"Character image generation failed: {e}")
+        _log_usage("higgsfield", IMAGE_CHARACTER_MODEL, "image", status="failed")
+        return {"request_id": "", "status": "failed", "error": str(e)}
+
+
 def generate_video(image_url: str, prompt: str, duration: int = 5,
                    aspect_ratio: str = "9:16", camera_movement: str = "",
                    sound: bool = False, slow_motion: bool = False,
@@ -81,7 +108,7 @@ def generate_video(image_url: str, prompt: str, duration: int = 5,
     _ensure_env()
     try:
         arguments = {
-            "image": image_url,
+            "image_url": image_url,
             "prompt": prompt,
             "duration": duration,
             "aspect_ratio": aspect_ratio,
@@ -148,3 +175,89 @@ def cancel_request(request_id: str) -> bool:
     except Exception as e:
         logger.error(f"Cancel failed for {request_id}: {e}")
         return False
+
+
+# === Soul ID (Custom References) ===
+
+PLATFORM_URL = "https://platform.higgsfield.ai"
+
+
+def _get_auth_header() -> dict:
+    """Get authorization header for direct API calls."""
+    _ensure_env()
+    hf_key = os.environ.get("HF_KEY", "")
+    return {"Authorization": f"Key {hf_key}"}
+
+
+def create_soul_id(name: str, image_urls: list[str]) -> dict:
+    """Train a Soul ID from reference images. Returns soul_id or error."""
+    try:
+        headers = _get_auth_header()
+        headers["Content-Type"] = "application/json"
+        payload = {
+            "name": name,
+            "input_images": [
+                {"type": "image_url", "image_url": url} for url in image_urls
+            ]
+        }
+        resp = httpx.post(
+            f"{PLATFORM_URL}/v1/custom-references",
+            json=payload,
+            headers=headers,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        soul_id = data.get("id", "")
+        logger.info(f"Soul ID training started: {soul_id}")
+        _log_usage("higgsfield", "soul-id", "train", request_id=str(soul_id), status="training")
+        return {"soul_id": str(soul_id), "status": "training"}
+    except Exception as e:
+        logger.error(f"Soul ID creation failed: {e}")
+        return {"soul_id": "", "status": "failed", "error": str(e)}
+
+
+def check_soul_id_status(soul_id: str) -> dict:
+    """Check Soul ID training status. Returns status: training/ready/failed."""
+    try:
+        headers = _get_auth_header()
+        resp = httpx.get(
+            f"{PLATFORM_URL}/v1/custom-references/{soul_id}",
+            headers=headers,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        status = data.get("status", "").upper()
+        if status == "COMPLETED":
+            return {"status": "ready"}
+        elif status in ("FAILED", "ERROR"):
+            return {"status": "failed", "error": data.get("error", "")}
+        else:  # NOT_READY, QUEUED, IN_PROGRESS
+            return {"status": "training"}
+    except Exception as e:
+        logger.error(f"Soul ID status check failed: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+def generate_with_soul_id(soul_id: str, prompt: str,
+                          aspect_ratio: str = "9:16") -> dict:
+    """Generate image using trained Soul ID for perfect face preservation."""
+    _ensure_env()
+    try:
+        controller = higgsfield_client.submit(
+            IMAGE_MODEL,
+            arguments={
+                "prompt": prompt,
+                "custom_reference_id": soul_id,
+                "custom_reference_strength": 1.0,
+                "aspect_ratio": aspect_ratio,
+                "quality": "2k",
+            }
+        )
+        request_id = controller.request_id if hasattr(controller, "request_id") else ""
+        _log_usage("higgsfield", IMAGE_MODEL, "image-soul", request_id=str(request_id), status="queued")
+        return {"request_id": str(request_id), "status": "queued"}
+    except Exception as e:
+        logger.error(f"Soul ID generation failed: {e}")
+        return {"request_id": "", "status": "failed", "error": str(e)}
