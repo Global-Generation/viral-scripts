@@ -30,26 +30,26 @@ CAMERA
 Three framing types. Alternate STRICTLY. Same framing twice in a row = FORBIDDEN.
 
 CLOSE-UP:
-Face fills the entire frame. Camera at eye level.
-Background blurred or barely visible. Only face, neck, top of shoulders visible.
+Front-facing. Face fills most of the frame — from shoulders up.
+Direct eye contact with camera. Background visible but secondary.
 
 MEDIUM SHOT:
-Upper body — from waist/table to head.
-Hand gesticulation visible, object in hands, body posture. Background readable.
+Front-facing. From chest/upper body to head.
+Hands visible, gesticulating. Character looks directly at camera. Room visible behind.
 
-SIDE VIEW:
-Camera shifted to the side — lateral angle approximately 30-45°.
-Entire setting visible: furniture, walls, decor + character in context.
-Character occupies ~40% of frame.
+THREE-QUARTER VIEW:
+Camera at 30-45° angle from front — NOT a 90° side profile.
+Both eyes still visible. Character sits in chair, full upper body + room/setting visible.
+Character may look slightly off-camera or toward camera. Wider framing — shows furniture, walls, decor.
 
 ══════════════════════
 CAMERA CUTS (CRITICAL — NO SMOOTH MOVEMENTS!)
 ══════════════════════
-Three angles — close-up (front), medium shot (front), side view (30-45° offset).
+Three angles — close-up (front), medium shot (front), three-quarter view (30-45° angle, NOT side profile).
 All cameras are FIXED on tripods. COMPLETELY STATIC. Zero movement within any shot.
 All transitions are HARD CUTS — instant switch from one static angle to another static angle.
 
-Every transition = just "JUMP CUT TO close-up." or "JUMP CUT TO side view." — PERIOD. That's it.
+Every transition = just "JUMP CUT TO close-up." or "JUMP CUT TO three-quarter view." — PERIOD. That's it.
 Do NOT add descriptions after the cut. Just "JUMP CUT TO [angle]." on its own line.
 The dialogue goes on the NEXT line after the cut.
 NEVER use these words FOR THE CAMERA: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer.
@@ -60,9 +60,9 @@ HOOK — FIRST 2 SECONDS
 ══════════════════════
 The opening should feel natural and confident, NOT screaming or panicking.
 Options (vary between scripts):
-- Start on close-up, then JUMP CUT TO side view
-- Start on side view, then JUMP CUT TO close-up
-- Start on medium shot, mid-gesture, then CUT TO side view
+- Start on close-up, then JUMP CUT TO three-quarter view
+- Start on three-quarter view, then JUMP CUT TO close-up
+- Start on medium shot, mid-gesture, then CUT TO three-quarter view
 First CUT = quick angle switch. But the CHARACTER stays calm.
 
 ══════════════════════
@@ -85,7 +85,7 @@ DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite
 DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
-JUMP CUT TO side view.
+JUMP CUT TO three-quarter view.
 
 "Dialogue goes here."
 
@@ -165,7 +165,7 @@ Just: he gives advice → link in bio. That's it. This counts toward the word li
 OPENING — VIDEO 2
 ══════════════════════
 Start on SIDE VIEW. The character is in a neutral seated position, calm and composed.
-Video 1 ended on a close-up — so this side view creates a clear cut when the two are joined.
+Video 1 ended on a close-up — so this three-quarter view creates a clear cut when the two are joined.
 Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
@@ -188,7 +188,7 @@ FULL SCRIPT:
 
 
 CAMERA_HEADER = """CAMERA SETUP:
-Three angles — close-up (front), medium shot (front), side view (30-45° offset).
+Three angles — close-up (front), medium shot (front), three-quarter view (30-45° angle, NOT side profile).
 All cameras are FIXED on tripods. COMPLETELY STATIC — zero camera movement.
 All transitions are INSTANT JUMP CUTS. No smooth transitions, no panning, no zooming, no tracking.
 Each shot is a frozen static frame from a different fixed camera angle.
