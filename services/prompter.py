@@ -139,11 +139,14 @@ One key insight, then close. Direct gaze, slight nod. Done.
 Keep dialogue MINIMAL — most of the scene is body language and camera work.
 
 ══════════════════════
-CTA / PRODUCT PLACEMENT (MANDATORY!)
+CTA (MANDATORY — EXACT PATTERN!)
 ══════════════════════
-Near the END, weave in a CTA — ONE short phrase, ~8 words max.
-Something like: "Your AI assistant has it — link in bio."
-NOT a separate block. Part of the final sentence. This CTA counts toward the 30-word limit.
+The LAST thing he says is a simple CTA. Use ONLY one of these patterns:
+- "I share more tips like this — link in bio."
+- "More advice on my page — link in bio."
+- "Follow for more — link in bio."
+NEVER invent creative CTAs. NEVER say "comment [word]". NEVER mention apps, products, or tools.
+Just: he gives advice → link in bio. That's it. This counts toward the 30-word limit.
 
 ══════════════════════
 STARTING STATE (CRITICAL!)
