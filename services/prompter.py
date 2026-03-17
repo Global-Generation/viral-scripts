@@ -82,7 +82,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
+DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
@@ -126,7 +126,7 @@ USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
 Use ONLY the first ~40-50% of the script as dialogue. STOP at the midpoint — leave the rest for Video 2.
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 Video 2 must have roughly the SAME amount of dialogue as Video 1 — so do NOT use more than half the script here.
-3-4 camera changes. Calm confident tone — no yelling or panic.
+2-3 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
 30-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
@@ -171,7 +171,7 @@ Do NOT reference the first half of the story — just deliver the resolution."""
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
 Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-50 words of dialogue (including CTA).
-3-4 camera changes. Calm delivery. End with quiet finality.
+2-3 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
 30-50 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
