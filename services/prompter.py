@@ -139,7 +139,7 @@ At the end of your output, write: [DIALOGUE WORD COUNT: XX]
 
 ---
 
-SCRIPT ({word_count} words total — use only the first ~{half_words} words):
+YOUR HALF OF THE SCRIPT ({word_count} words — use ALL of these as dialogue, nothing else):
 {script}"""
 
 # ── STEP 2: Video 2 (RESOLUTION — payoff) ──
@@ -196,7 +196,7 @@ VIDEO 1 ALREADY GENERATED (DO NOT REPEAT ANY OF THIS):
 
 ---
 
-FULL SCRIPT:
+YOUR HALF OF THE SCRIPT (use ONLY these words as dialogue):
 {script}"""
 
 
@@ -237,24 +237,34 @@ def _strip_label(text: str, video_num: int) -> str:
 def generate_video_prompt(script_text: str) -> dict:
     """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt (2 equal-length parts)."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    word_count = len(script_text.split())
-    half_words = word_count // 2
+    words = script_text.split()
+    word_count = len(words)
+    half = word_count // 2
 
-    # Step 1: Generate Video 1 (Hook + Development — first ~50%)
+    # Pre-split script into 2 halves — Claude only sees its half
+    first_half = " ".join(words[:half])
+    second_half = " ".join(words[half:])
+    half_words = half
+
+    # Step 1: Generate Video 1 (Hook + Development — first half ONLY)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
         system=SYSTEM_VIDEO1,
-        messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text, word_count=word_count, half_words=half_words)}]
+        messages=[{"role": "user", "content": USER_VIDEO1.format(
+            script=first_half, word_count=len(words[:half]), half_words=half_words
+        )}]
     )
     video1_text = _strip_label(response1.content[0].text.strip(), 1)
 
-    # Step 2: Generate Video 2 (Conclusion + CTA — remaining ~50%)
+    # Step 2: Generate Video 2 (Conclusion + CTA — second half ONLY)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
         system=SYSTEM_VIDEO2,
-        messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text, video1=video1_text)}]
+        messages=[{"role": "user", "content": USER_VIDEO2.format(
+            script=second_half, video1=video1_text
+        )}]
     )
     video2_text = _strip_label(response2.content[0].text.strip(), 2)
 
