@@ -13,6 +13,7 @@
 <!-- Tabs -->
 <div style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0;">
     <button class="sv-tab sv-tab-active" data-tab="scenario" onclick="switchTab('scenario', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #1e293b; border-bottom: 2px solid #3b82f6; margin-bottom: -2px; transition: all 0.15s;">Scenario</button>
+    <button class="sv-tab" data-tab="video" onclick="switchTab('video', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Video</button>
     <button class="sv-tab" data-tab="publication" onclick="switchTab('publication', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Publication</button>
 </div>
 
@@ -198,7 +199,87 @@
     </div>
 </div>
 
-<!-- ==================== TAB 2: PUBLICATION ==================== -->
+<!-- ==================== TAB 2: VIDEO ==================== -->
+<div id="tab-video" class="sv-tab-content" style="display: none;">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Upload Videos -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Upload Videos</h2>
+            <p class="text-xs text-gray-400 mb-4">Upload Video 1 and Video 2. They will be auto-concatenated and subtitles will be added.</p>
+
+            <div class="space-y-3">
+                <div>
+                    <label style="font-size: 11px; font-weight: 600; color: #374151; display: block; margin-bottom: 4px;">Video 1 (first half)</label>
+                    <input type="file" id="upload-video1" accept="video/mp4,video/*" style="font-size: 12px; width: 100%; padding: 8px; border: 2px dashed #e2e8f0; border-radius: 8px; cursor: pointer;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 600; color: #374151; display: block; margin-bottom: 4px;">Video 2 (second half)</label>
+                    <input type="file" id="upload-video2" accept="video/mp4,video/*" style="font-size: 12px; width: 100%; padding: 8px; border: 2px dashed #e2e8f0; border-radius: 8px; cursor: pointer;">
+                </div>
+            </div>
+
+            <button id="upload-concat-btn" onclick="uploadAndConcat({{ script.id }})" class="btn btn-primary w-full justify-center mt-4" style="font-size: 13px; font-weight: 700;">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                Upload & Concat + Subtitles
+            </button>
+
+            <div id="upload-status" style="display: none; margin-top: 12px; padding: 10px; background: #f0f9ff; border-radius: 8px;">
+                <div class="flex items-center gap-2">
+                    <svg class="animate-spin w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                    <span id="upload-status-text" style="font-size: 12px; color: #3b82f6; font-weight: 600;">Processing...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Video -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Final Video</h2>
+
+            {% if script.final_subtitled_path %}
+            <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final?subtitled=true" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+            </div>
+            <div class="flex gap-2">
+                <a href="/api/scripts/{{ script.id }}/download-final?subtitled=true" download class="btn btn-primary flex-1 justify-center" style="font-size: 12px;">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download (with subs)
+                </a>
+                <a href="/api/scripts/{{ script.id }}/download-final" download class="btn btn-secondary flex-1 justify-center" style="font-size: 12px;">
+                    Download (no subs)
+                </a>
+            </div>
+            <span class="status-badge status-completed mt-2" style="font-size: 10px;">Subtitles Ready</span>
+
+            {% elif script.final_video_path %}
+            <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+            </div>
+            <a href="/api/scripts/{{ script.id }}/download-final" download class="btn btn-secondary w-full justify-center" style="font-size: 12px;">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download
+            </a>
+            <div id="sub-processing-badge" class="mt-2">
+                <span class="status-badge status-running" style="font-size: 10px;">Subtitles processing...</span>
+            </div>
+
+            {% else %}
+            <div style="text-align: center; padding: 48px 20px; color: #9ca3af; border: 2px dashed #e2e8f0; border-radius: 10px;">
+                <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 10px;"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <p style="font-size: 13px; font-weight: 600; color: #6b7280;">No video yet</p>
+                <p style="font-size: 12px; margin-top: 4px;">Upload Video 1 + Video 2 to generate final video with subtitles</p>
+            </div>
+            {% endif %}
+
+            <div id="final-video-container" style="display: none; margin-top: 12px;">
+                <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                    <video id="new-final-video" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB 3: PUBLICATION ==================== -->
 <div id="tab-publication" class="sv-tab-content" style="display: none;">
     <!-- Generate Metadata button -->
     <div class="stat-card mb-4">
@@ -380,6 +461,67 @@ async function generateMetadata(scriptId) {
     document.getElementById('pub-youtube-desc').value = m.youtube?.description || '';
     document.getElementById('pub-youtube-tags').value = m.youtube?.tags || '';
     toast('Metadata generated!', 'success');
+}
+
+// === Upload & Concat ===
+async function uploadAndConcat(scriptId) {
+    const v1 = document.getElementById('upload-video1').files[0];
+    const v2 = document.getElementById('upload-video2').files[0];
+    if (!v1 || !v2) {
+        toast('Select both Video 1 and Video 2 files', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('upload-concat-btn');
+    const status = document.getElementById('upload-status');
+    const statusText = document.getElementById('upload-status-text');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Uploading...';
+    status.style.display = 'block';
+    statusText.textContent = 'Uploading videos...';
+
+    const formData = new FormData();
+    formData.append('video1', v1);
+    formData.append('video2', v2);
+
+    try {
+        const res = await fetch(`/api/scripts/${scriptId}/upload-videos`, {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await res.json();
+        if (result.ok) {
+            statusText.textContent = 'Concatenated! Adding subtitles...';
+            toast('Videos concatenated! Subtitles processing...', 'success');
+            // Poll for subtitles
+            pollFinalStatus(scriptId);
+        } else {
+            toast('Upload failed: ' + (result.detail || 'error'), 'error');
+            status.style.display = 'none';
+        }
+    } catch (e) {
+        toast('Upload error: ' + e.message, 'error');
+        status.style.display = 'none';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Upload & Concat + Subtitles';
+}
+
+async function pollFinalStatus(scriptId) {
+    const statusText = document.getElementById('upload-status-text');
+    const interval = setInterval(async () => {
+        const result = await api(`/api/scripts/${scriptId}/final-video-status`);
+        if (!result) return;
+        if (result.has_subtitled) {
+            clearInterval(interval);
+            statusText.textContent = 'Done! Subtitles ready.';
+            toast('Subtitles added! Reloading...', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else if (result.has_final) {
+            statusText.textContent = 'Adding subtitles...';
+        }
+    }, 3000);
 }
 
 // === Copy platform metadata ===

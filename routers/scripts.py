@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -761,6 +761,57 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
         media_type="video/mp4",
         filename=f"script_{script_id}_final{'_subtitled' if subtitled else ''}.mp4",
     )
+
+
+@router.post("/{script_id}/upload-videos")
+async def upload_videos(
+    script_id: int,
+    video1: UploadFile = File(...),
+    video2: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """Upload 2 video files, concatenate them, and auto-add subtitles."""
+    from services.video_utils import concat_videos
+
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
+    os.makedirs(downloads_dir, exist_ok=True)
+
+    v1_path = os.path.join(downloads_dir, f"upload_v1_{script_id}.mp4")
+    v2_path = os.path.join(downloads_dir, f"upload_v2_{script_id}.mp4")
+    output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
+
+    try:
+        # Save uploaded files
+        with open(v1_path, "wb") as f:
+            content = await video1.read()
+            f.write(content)
+        with open(v2_path, "wb") as f:
+            content = await video2.read()
+            f.write(content)
+
+        # Concatenate
+        concat_videos([v1_path, v2_path], output_path)
+        script.final_video_path = output_path
+        script.final_subtitled_path = ""  # reset
+        db.commit()
+
+        # Auto-trigger subtitle generation
+        _executor.submit(_add_final_subtitles_safe, script_id)
+
+        return {"ok": True, "status": "processing", "message": "Videos concatenated. Subtitles processing..."}
+    except Exception as e:
+        logger.error(f"Upload + concat failed for script {script_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        for p in [v1_path, v2_path]:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
 
 
 @router.post("/{script_id}/generate-metadata")
