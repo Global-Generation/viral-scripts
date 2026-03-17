@@ -977,7 +977,21 @@ function selectCamera(value, el) {
     if (el) el.classList.add('cam-active');
 }
 
-// === Multi-shot Auto: generate all 3 steps automatically ===
+// === Multi-cam presets for AUTO mode ===
+const MULTICAM_PRESETS = [
+    ['zoom_in', 'pan_left', 'crane_up'],
+    ['dolly_forward', 'orbit_right', 'zoom_out'],
+    ['', 'zoom_in', 'orbit_left'],
+    ['crane_down', 'pan_right', 'fpv_drone'],
+    ['static', 'dolly_forward', 'pan_left'],
+    ['zoom_out', 'crane_up', 'orbit_right'],
+];
+
+function getRandomMulticam() {
+    return MULTICAM_PRESETS[Math.floor(Math.random() * MULTICAM_PRESETS.length)];
+}
+
+// === Multi-shot Auto: generate all 3 steps with multi-cam ===
 async function multiShotAuto(scriptId) {
     const settings = getSettings();
     if (!settings.avatar_id) { toast('Select an avatar first', 'error'); return; }
@@ -990,8 +1004,16 @@ async function multiShotAuto(scriptId) {
     if (autoBtn) { autoBtn.disabled = true; autoBtn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1 inline" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>AUTO...'; }
     if (genBtn) genBtn.disabled = true;
 
+    const cameras = getRandomMulticam();
     try {
         for (let s = 1; s <= 3; s++) {
+            // Set camera for this step (multi-cam)
+            document.getElementById('cs-camera').value = cameras[s - 1];
+            // Highlight the matching camera tile
+            document.querySelectorAll('.cam-opt').forEach(o => {
+                const val = o.getAttribute('onclick')?.match(/selectCamera\('([^']*)'/)?.[1] ?? null;
+                o.classList.toggle('cam-active', val === cameras[s - 1]);
+            });
             await generateStep(scriptId);
             await waitForVariantsComplete(s);
             await autoSelectFirstCompleted(scriptId, s);
