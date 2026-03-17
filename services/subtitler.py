@@ -4,7 +4,6 @@ import logging
 import subprocess
 import urllib.request
 import numpy as np
-import stable_whisper
 from PIL import Image, ImageDraw, ImageFont
 from moviepy import VideoFileClip
 
@@ -25,6 +24,7 @@ def _get_whisper_model():
     if _whisper_model is None:
         model_name = os.getenv("WHISPER_MODEL", "base")
         logger.info(f"Loading stable-ts Whisper model: {model_name}")
+        import stable_whisper
         _whisper_model = stable_whisper.load_model(model_name)
     return _whisper_model
 
