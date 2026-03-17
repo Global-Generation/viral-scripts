@@ -12,15 +12,16 @@ CHARACTER & LOCATION
 - The character is ALWAYS MALE. Use masculine pronouns (he/him/his). Remove any female names, references, or pronouns from the original script
 - If the original script mentions a female name (e.g. "Sabrina", "Jessica") — DROP IT completely or replace with a neutral phrase. NEVER keep female names or say "she/her"
 - Appearance, clothing, setting, frame format — ALL from the reference photo and generator settings. Do NOT describe in text
-- Character sits in one location. Does not stand up or walk
-- Natural gesticulation: object in hands, fingers, palms, lean
+- Character sits in one location. Does not stand up or walk. Body stays STILL — no leaning forward/back, no shifting posture, no turning
+- Gesticulation is MINIMAL and only with hands: small finger movements, open palms, counting on fingers. The body and head do NOT move
 - Face ALWAYS in frame
 - No B-roll. No numbers/text on screen. No location changes
+- Frame is VERTICAL 9:16 — always cropped to portrait orientation
 
-GESTICULATION BY EMOTION:
+GESTICULATION BY EMOTION (hands only, body stays still):
 - Authority → finger/object toward camera, palm on table
 - Sarcasm → counts on fingers, raises eyebrow
-- Empathy → open palms, lean forward
+- Empathy → open palms
 - Impact → pause, direct gaze, nod
 
 ══════════════════════
@@ -45,12 +46,13 @@ Character occupies ~40% of frame.
 CAMERA CUTS (CRITICAL — NO SMOOTH MOVEMENTS!)
 ══════════════════════
 Three angles — close-up (front), medium shot (front), side view (30-45° offset).
-All cameras are FIXED on tripods. The camera NEVER moves, orbits, tracks, drifts, or pushes in.
-All transitions are HARD CUTS — instant switch from one angle to another.
+All cameras are FIXED on tripods. COMPLETELY STATIC. Zero movement within any shot.
+All transitions are HARD CUTS — instant switch from one static angle to another static angle.
 
 Every transition = CUT. Describe which angle we CUT TO.
 Say "CUT TO close-up" or "CUT TO side view" — NOT "camera pushes in" or "camera orbits."
-NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc.
+NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer, shift closer, lean forward, lean back, shift posture.
+Each angle is a FROZEN STATIC FRAME. The camera does NOT move. The character does NOT move their body — only hands and face.
 
 ══════════════════════
 HOOK — FIRST 2 SECONDS
@@ -79,7 +81,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 60-100 words of dialogue PER VIDEO. 3-4 camera changes per video.
+DIALOGUE LIMIT: 50-80 words of dialogue PER VIDEO. Both videos should have roughly EQUAL amounts of dialogue. 3-4 camera changes per video.
 Text chunks between camera changes: 2-3 sentences each."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -99,17 +101,18 @@ End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but 
 ══════════════════════
 ENDING
 ══════════════════════
-Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution. Energy is elevated but controlled.
+Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution.
 The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where Video 2 will be joined.
+MANDATORY: The video ends with a SHORT PAUSE (1-2 seconds of silence). Character finishes speaking, holds eye contact with camera, slight pause. This pause is the cliffhanger moment before Video 2.
 
 """
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Take the CORE IDEA from the first half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase or invent new lines. 60-100 words of dialogue.
+Take the CORE IDEA from the first half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase or invent new lines. 50-80 words of dialogue.
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-60-100 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+50-80 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
@@ -150,11 +153,11 @@ Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT lines from the script as dialogue — do NOT paraphrase. 60-100 words of dialogue (including CTA).
+Use EXACT lines from the script as dialogue — do NOT paraphrase. 50-80 words of dialogue (including CTA).
 3-4 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
-60-100 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
+50-80 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
 
 ---
 
