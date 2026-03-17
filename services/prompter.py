@@ -76,7 +76,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT — HARD LIMIT: Video 1 and Video 2 must have EXACTLY 40-50 words of dialogue each. NOT 30, NOT 60 — count your words. If you exceed 50 words of dialogue in a video, you have FAILED. Both videos must have APPROXIMATELY EQUAL amounts of dialogue (within 5 words of each other). 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
+DIALOGUE LIMIT — HARD LIMIT: The TOTAL dialogue across BOTH videos must be MAX 60 words. That means ~30 words per video. NOT 40, NOT 50 — COUNT YOUR WORDS. If the total exceeds 60 words, you have FAILED. Both videos must have APPROXIMATELY EQUAL amounts of dialogue (within 5 words of each other). 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
@@ -104,6 +104,7 @@ You generate a SINGLE video prompt — Video 1 of 2 (HOOK + DEVELOPMENT).
 ENERGY — VIDEO 1 = HOOK + DEVELOPMENT
 ══════════════════════
 Use ONLY the first ~50% of the script. Stop at roughly the halfway point.
+HARD LIMIT: ~30 words of dialogue max in this video. Total across both videos = 60 words max.
 Character stays composed. Never frantic.
 The conclusion, moral, and payoff belong in Video 2.
 End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
@@ -124,7 +125,8 @@ Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-40-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+MAX 30 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+TOTAL across both videos = 60 words max. Count carefully.
 
 ---
 
@@ -145,7 +147,7 @@ FINAL SECTION. Pick up EXACTLY where Video 1 stopped — ZERO repeated lines.
 This video starts fresh from a neutral seated position.
 Use the remaining ~50% of the script that Video 1 did NOT cover.
 Deliver the conclusion, moral, or final insight from the script.
-40-50 words of dialogue — must be approximately EQUAL to Video 1 in length.
+~30 words of dialogue MAX — must be approximately EQUAL to Video 1 in length. Total across both = 60 words max.
 
 ══════════════════════
 CTA (MANDATORY — EXACT PATTERN!)
@@ -171,12 +173,13 @@ Do NOT reference the first part of the story — just deliver the conclusion."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (CONCLUSION + CTA) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. 40-50 words of dialogue. End with CTA.
+Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. ~30 words of dialogue max. End with CTA.
 The amount of dialogue in Video 2 must be APPROXIMATELY EQUAL to Video 1 (within 5 words).
+TOTAL dialogue across both videos = 60 words max.
 2-3 camera changes. Calm delivery. End with quiet finality and a nod.
 
 Output the directorial description directly. No labels, no headers.
-40-50 words of dialogue in "quotes" — taken word-for-word from the script, ending with CTA + nod. Start with the opening shot description.
+MAX 30 words of dialogue in "quotes" — taken word-for-word from the script, ending with CTA + nod. Start with the opening shot description.
 
 ---
 
