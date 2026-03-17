@@ -83,7 +83,15 @@ Character, location, frame format, resolution — all from reference photo. Do N
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
 DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
-Between camera changes: dialogue in quotes + ONE short action if needed (e.g. "He nods."). Do NOT describe emotions, expressions, atmosphere, or body language in detail. Less narration, more dialogue.
+Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
+
+CUT TO side view.
+
+"Dialogue goes here."
+
+CUT TO close-up.
+
+"Next dialogue line."
 SPLITTING RULE (CRITICAL — MUST BE PROPORTIONAL):
 1. Count ALL words in the script
 2. Video 1 dialogue = first ~40-50% of the script's words. Video 2 dialogue = remaining ~50-60% (including conclusion + CTA)
