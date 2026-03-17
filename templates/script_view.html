@@ -322,13 +322,14 @@
                 <select id="cs-duration" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
                     <option value="5">5s</option>
                     <option value="10" selected>10s</option>
+                    <option value="12">12s (DoP)</option>
                 </select>
             </div>
         </div>
 
         <!-- Bottom bar -->
         <div style="padding: 10px 18px; background: #f1f5f9; display: flex; align-items: center; gap: 8px; overflow-x: auto; border-top: 1px solid #e2e8f0;">
-            <span style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 0.05em; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">KLING v2.1 PRO</span>
+            <span id="cs-model-label" style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 0.05em; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">KLING v2.1 PRO</span>
             <span style="font-size: 10px; font-weight: 600; color: #6b7280; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">9:16</span>
             <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
                 <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;" checked>
@@ -608,10 +609,13 @@ function switchTab(tabName, btn) {
 
 // === Pipeline: Get settings from Director Panel ===
 function getSettings() {
+    const duration = parseInt(document.getElementById('cs-duration').value);
+    // Kling v2.1 Pro: 5s/10s only. DoP Standard: 5s/10s/12s.
+    const model = duration === 12 ? 'higgsfield-ai/dop/standard' : 'kling-video/v2.1/pro/image-to-video';
     return {
         avatar_id: parseInt(document.getElementById('cs-avatar').value) || null,
-        model_id: 'kling-video/v2.1/pro/image-to-video',
-        duration: parseInt(document.getElementById('cs-duration').value),
+        model_id: model,
+        duration: duration,
         aspect_ratio: '9:16',
         camera_movement: document.getElementById('cs-camera').value,
         sound: document.getElementById('cs-sound').checked,
@@ -957,6 +961,14 @@ async function restorePipeline() {
         showFinalVideo(SCRIPT_ID, fs.has_subtitled);
     }
 }
+
+// === Update model label when duration changes ===
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'cs-duration') {
+        const label = document.getElementById('cs-model-label');
+        if (label) label.textContent = parseInt(e.target.value) === 12 ? 'DoP STANDARD' : 'KLING v2.1 PRO';
+    }
+});
 
 // === Select camera movement ===
 function selectCamera(value, el) {
