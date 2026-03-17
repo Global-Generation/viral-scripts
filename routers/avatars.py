@@ -197,10 +197,11 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
     ]
 
     # Strength per mode: lower = more preservation, higher = more change
+    # IMPORTANT: keep values low! 0.4+ destroys face/background entirely
     STRENGTH_BY_MODE = {
-        "outfits": 0.4,
-        "location": 0.55,
-        "new_look": 0.55,
+        "outfits": 0.15,
+        "location": 0.25,
+        "new_look": 0.3,
     }
 
     count = min(data.count, 4)
@@ -213,23 +214,26 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         if data.mode == "outfits":
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             variant_prompt = (
-                f"Same person, same background. {outfit}. "
-                f"Only the clothes are different."
+                f"Photorealistic portrait of the same person in the same room and setting. "
+                f"Keep identical face, age, hair, glasses, pose, and background. "
+                f"Only change: {outfit}."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"Same person, same outfit. "
-                f"New setting: {location}."
+                f"Photorealistic portrait of the same person wearing the same clothes. "
+                f"Keep identical face, age, hair, glasses, and outfit. "
+                f"Change the background to: {location}."
             )
             label = f"location_{i+1}"
         else:  # new_look
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"Same person, {outfit}. "
-                f"Setting: {location}."
+                f"Photorealistic portrait of the same person. "
+                f"Keep identical face, age, hair, and glasses. "
+                f"New outfit: {outfit}. New setting: {location}."
             )
             label = f"new_look_{i+1}"
 
@@ -294,7 +298,11 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     ).count()
     label = f"custom_{existing_custom + 1}"
 
-    variant_prompt = f"Same person. Only apply this change: {data.prompt}"
+    variant_prompt = (
+        f"Photorealistic portrait of the same person in the same room and setting. "
+        f"Keep identical face, age, hair, glasses, pose, outfit, and background. "
+        f"Only apply this small change: {data.prompt}"
+    )
 
     variant = Avatar(
         parent_id=parent.id,
@@ -309,13 +317,13 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     db.refresh(variant)
 
     result = generate_variant_image(
-        source_image_url=parent.image_url, prompt=variant_prompt, strength=0.35
+        source_image_url=parent.image_url, prompt=variant_prompt, strength=0.12
     )
     if not result.get("request_id"):
         import time
         time.sleep(2)
         result = generate_variant_image(
-            source_image_url=parent.image_url, prompt=variant_prompt, strength=0.35
+            source_image_url=parent.image_url, prompt=variant_prompt, strength=0.12
         )
 
     if result.get("request_id"):
