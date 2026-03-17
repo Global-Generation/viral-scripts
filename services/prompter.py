@@ -200,14 +200,6 @@ YOUR HALF OF THE SCRIPT (use ONLY these words as dialogue):
 {script}"""
 
 
-CAMERA_HEADER = """CAMERA SETUP:
-Three angles — close-up (front), medium shot (front), three-quarter view (30-45° angle, NOT side profile).
-All cameras are FIXED on tripods. COMPLETELY STATIC — zero camera movement.
-All transitions are INSTANT JUMP CUTS. No smooth transitions, no panning, no zooming, no tracking.
-Each shot is a frozen static frame from a different fixed camera angle.
-"""
-
-
 def _log_usage(request_type: str, status: str = "completed"):
     try:
         from database import SessionLocal
@@ -271,7 +263,7 @@ def generate_video_prompt(script_text: str) -> dict:
     _log_usage("prompt")
     _log_usage("prompt")
     return {
-        "video1": f"{CAMERA_HEADER}\n{video1_text}",
-        "video2": f"{CAMERA_HEADER}\n{video2_text}",
+        "video1": video1_text,
+        "video2": video2_text,
         "video3": "",
     }
