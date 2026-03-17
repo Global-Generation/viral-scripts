@@ -222,13 +222,17 @@ async function generatePrompt(scriptId) {
     if (result && result.ok) {
         const v1 = document.getElementById('video1-prompt-text');
         const v2 = document.getElementById('video2-prompt-text');
+        const v3 = document.getElementById('video3-prompt-text');
         if (v1) v1.value = result.video1_prompt;
         if (v2) v2.value = result.video2_prompt;
+        if (v3) v3.value = result.video3_prompt || '';
         // Show ready badges
         const b1 = document.getElementById('v1-ready-badge');
         const b2 = document.getElementById('v2-ready-badge');
+        const b3 = document.getElementById('v3-ready-badge');
         if (b1) b1.style.display = 'inline-flex';
         if (b2) b2.style.display = 'inline-flex';
+        if (b3 && result.video3_prompt) b3.style.display = 'inline-flex';
         toast('Video prompts generated!', 'success');
     } else {
         toast('Prompt generation failed', 'error');

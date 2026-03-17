@@ -1,7 +1,9 @@
 import logging
+import os
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
@@ -12,6 +14,8 @@ from services.rewriter import rewrite_provocative
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
 from services.prompter import generate_video_prompt
+from services.subtitle_extractor import extract_dialogue
+from services.subtitler import add_subtitles
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
@@ -53,6 +57,7 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
         "video_prompt": script.video_prompt or "",
         "video1_prompt": script.video1_prompt or "",
         "video2_prompt": script.video2_prompt or "",
+        "video3_prompt": script.video3_prompt or "",
         "status": script.status,
     }
 
@@ -88,6 +93,7 @@ class ScriptUpdate(BaseModel):
     video_prompt: str = None
     video1_prompt: str = None
     video2_prompt: str = None
+    video3_prompt: str = None
 
 
 @router.put("/{script_id}")
@@ -105,6 +111,8 @@ def update_script(script_id: int, data: ScriptUpdate, db: Session = Depends(get_
         script.video1_prompt = data.video1_prompt
     if data.video2_prompt is not None:
         script.video2_prompt = data.video2_prompt
+    if data.video3_prompt is not None:
+        script.video3_prompt = data.video3_prompt
     db.commit()
     return {"ok": True}
 
@@ -278,9 +286,10 @@ def generate_prompt(script_id: int, db: Session = Depends(get_db)):
     result = generate_video_prompt(text)
     script.video1_prompt = result["video1"]
     script.video2_prompt = result["video2"]
-    script.video_prompt = result["video1"] + "\n\n" + result["video2"]  # backward compat
+    script.video3_prompt = result["video3"]
+    script.video_prompt = result["video1"] + "\n\n" + result["video2"] + "\n\n" + result["video3"]
     db.commit()
-    return {"ok": True, "video1_prompt": result["video1"], "video2_prompt": result["video2"]}
+    return {"ok": True, "video1_prompt": result["video1"], "video2_prompt": result["video2"], "video3_prompt": result["video3"]}
 
 
 @router.post("/batch-generate-prompts")
@@ -301,7 +310,8 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
             result = generate_video_prompt(text)
             script.video1_prompt = result["video1"]
             script.video2_prompt = result["video2"]
-            script.video_prompt = result["video1"] + "\n\n" + result["video2"]
+            script.video3_prompt = result["video3"]
+            script.video_prompt = result["video1"] + "\n\n" + result["video2"] + "\n\n" + result["video3"]
             db.commit()
             count += 1
             logger.info(f"Generated prompt for script #{script.id}")
@@ -332,8 +342,10 @@ def generate_video_endpoint(script_id: int, data: GenerateVideoRequest, db: Sess
     prompt_text = ""
     if data.video_number == 1:
         prompt_text = script.video1_prompt or ""
-    else:
+    elif data.video_number == 2:
         prompt_text = script.video2_prompt or ""
+    else:
+        prompt_text = script.video3_prompt or ""
     if not prompt_text:
         raise HTTPException(status_code=400, detail=f"No video{data.video_number}_prompt available. Generate prompts first.")
 
@@ -390,7 +402,11 @@ def video_status(script_id: int, generation_id: int, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Generation not found")
 
     if gen.status == "completed" and gen.video_url:
-        return {"status": "completed", "video_url": gen.video_url}
+        return {
+            "status": "completed",
+            "video_url": gen.video_url,
+            "subtitle_status": gen.subtitle_status or "",
+        }
 
     if gen.status in ("failed", "nsfw", "cancelled"):
         return {"status": gen.status, "error": gen.error_message}
@@ -403,7 +419,16 @@ def video_status(script_id: int, generation_id: int, db: Session = Depends(get_d
         gen.status = "completed"
         gen.video_url = result.get("url", "")
         db.commit()
-        return {"status": "completed", "video_url": gen.video_url}
+        # Auto-trigger subtitle generation for videos with sound
+        if gen.video_url and gen.sound_enabled and not gen.subtitle_status:
+            gen.subtitle_status = "processing"
+            db.commit()
+            _executor.submit(_add_subtitles_safe, gen.id)
+        return {
+            "status": "completed",
+            "video_url": gen.video_url,
+            "subtitle_status": gen.subtitle_status or "",
+        }
     elif result["status"] in ("failed", "nsfw"):
         gen.status = result["status"]
         gen.error_message = result.get("error", "")
@@ -429,6 +454,8 @@ def list_video_generations(script_id: int, db: Session = Depends(get_db)):
             "video_url": g.video_url or "",
             "duration": g.duration,
             "aspect_ratio": g.aspect_ratio,
+            "sound_enabled": g.sound_enabled,
+            "subtitle_status": g.subtitle_status or "",
             "created_at": g.created_at.isoformat() if g.created_at else None,
         }
         for g in gens
@@ -442,3 +469,59 @@ def delete_script(script_id: int, db: Session = Depends(get_db)):
         db.delete(script)
         db.commit()
     return {"ok": True}
+
+
+# === Subtitle endpoints ===
+
+def _add_subtitles_safe(generation_id: int):
+    """Wrapper for background subtitle generation."""
+    try:
+        add_subtitles(generation_id)
+    except Exception as e:
+        logger.error(f"Subtitle generation failed for gen {generation_id}: {e}")
+
+
+@router.post("/{script_id}/add-subtitles/{generation_id}")
+def add_subtitles_endpoint(script_id: int, generation_id: int, db: Session = Depends(get_db)):
+    gen = db.query(VideoGeneration).get(generation_id)
+    if not gen or gen.script_id != script_id:
+        raise HTTPException(status_code=404, detail="Generation not found")
+    if gen.status != "completed" or not gen.video_url:
+        raise HTTPException(status_code=400, detail="Video not ready yet")
+    if gen.subtitle_status == "processing":
+        return {"ok": True, "status": "processing", "message": "Already processing"}
+    if gen.subtitle_status == "completed":
+        return {"ok": True, "status": "completed", "message": "Subtitles already generated"}
+
+    gen.subtitle_status = "processing"
+    db.commit()
+    _executor.submit(_add_subtitles_safe, gen.id)
+    return {"ok": True, "status": "processing"}
+
+
+@router.get("/{script_id}/subtitle-status/{generation_id}")
+def subtitle_status(script_id: int, generation_id: int, db: Session = Depends(get_db)):
+    gen = db.query(VideoGeneration).get(generation_id)
+    if not gen or gen.script_id != script_id:
+        raise HTTPException(status_code=404, detail="Generation not found")
+    resp = {
+        "subtitle_status": gen.subtitle_status or "",
+        "subtitle_error": gen.subtitle_error or "",
+    }
+    if gen.subtitle_status == "completed" and gen.subtitled_video_path:
+        resp["download_url"] = f"/api/scripts/{script_id}/download-subtitled/{generation_id}"
+    return resp
+
+
+@router.get("/{script_id}/download-subtitled/{generation_id}")
+def download_subtitled(script_id: int, generation_id: int, db: Session = Depends(get_db)):
+    gen = db.query(VideoGeneration).get(generation_id)
+    if not gen or gen.script_id != script_id:
+        raise HTTPException(status_code=404, detail="Generation not found")
+    if not gen.subtitled_video_path or not os.path.exists(gen.subtitled_video_path):
+        raise HTTPException(status_code=404, detail="Subtitled video not found")
+    return FileResponse(
+        gen.subtitled_video_path,
+        media_type="video/mp4",
+        filename=f"script_{script_id}_gen_{generation_id}_subtitled.mp4",
+    )

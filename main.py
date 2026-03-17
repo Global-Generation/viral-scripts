@@ -40,6 +40,7 @@ def startup():
     _migrate_cinema_studio()
     _migrate_subtitle_fields()
     _migrate_avatar_variants()
+    _migrate_video3_prompt()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -133,6 +134,20 @@ def _migrate_avatar_variants():
             db.execute(text(sql))
             db.commit()
             logging.info(f"Migrated: added {col} column to avatars")
+    db.close()
+
+
+def _migrate_video3_prompt():
+    """Add video3_prompt column to scripts if it doesn't exist."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT video3_prompt FROM scripts LIMIT 1"))
+    except Exception:
+        db.rollback()
+        db.execute(text("ALTER TABLE scripts ADD COLUMN video3_prompt TEXT DEFAULT ''"))
+        db.commit()
+        logging.info("Migrated: added video3_prompt column to scripts")
     db.close()
 
 

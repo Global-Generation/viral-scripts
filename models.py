@@ -52,6 +52,7 @@ class Script(Base):
     video_prompt = Column(Text, default="")
     video1_prompt = Column(Text, default="")
     video2_prompt = Column(Text, default="")
+    video3_prompt = Column(Text, default="")
     status = Column(String, default="extracted")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
@@ -101,6 +102,8 @@ class Avatar(Base):
     image_request_id = Column(String, default="")
     character_type = Column(String, default="")
     variant_label = Column(String, default="")  # e.g. "outfit_1", "new_look_2"
+    soul_id = Column(String, default="")  # Higgsfield Soul ID for face-locked generation
+    soul_id_status = Column(String, default="")  # training, ready, failed
     created_at = Column(DateTime, default=utcnow)
 
     parent = relationship("Avatar", remote_side=[id], backref="variants")
