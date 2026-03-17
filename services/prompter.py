@@ -112,7 +112,7 @@ ENDING
 ══════════════════════
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution.
 The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where Video 2 will be joined.
-MANDATORY: The video ends with a SHORT PAUSE (1-2 seconds of silence). Character finishes speaking, holds eye contact with camera, slight pause. This pause is the cliffhanger moment before Video 2.
+End with a brief beat — just a quick pause after the last line. No long silence.
 
 """
 
