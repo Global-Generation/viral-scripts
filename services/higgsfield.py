@@ -113,6 +113,7 @@ def generate_video(image_url: str, prompt: str, duration: int = 5,
             "prompt": prompt,
             "duration": duration,
             "aspect_ratio": aspect_ratio,
+            "resolution": "1080p",
         }
         if camera_movement:
             arguments["camera_movement"] = camera_movement
