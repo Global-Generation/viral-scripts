@@ -109,11 +109,12 @@ The conclusion, moral, and payoff belong in later videos.
 End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
 
 ══════════════════════
-ENDING
+ENDING (MANDATORY!)
 ══════════════════════
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open.
 The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where Video 2 will be joined.
-End with a brief beat — just a quick pause after the last line. No long silence.
+The VERY LAST LINE of Video 1 must ALWAYS be: He pauses.
+This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions.
 
 """
 
@@ -147,11 +148,12 @@ Use exact lines from the script as dialogue. Use the next ~30-50 words that Vide
 Do NOT include the CTA — that belongs in Video 3.
 
 ══════════════════════
-ENDING
+ENDING (MANDATORY!)
 ══════════════════════
 Video 2 ends on a COMPLETE SENTENCE. The topic is still open — viewer wants to hear the conclusion.
 The LAST shot of Video 2 must be a CLOSE-UP — this is the splice point where Video 3 will be joined.
-End with a brief beat — just a quick pause after the last line. No long silence.
+The VERY LAST LINE of Video 2 must ALWAYS be: He pauses.
+This is NON-NEGOTIABLE. Every Video 2 ends with "He pauses." — no exceptions.
 
 ══════════════════════
 OPENING — VIDEO 2
