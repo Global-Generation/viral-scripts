@@ -95,9 +95,8 @@ You generate a SINGLE video prompt — Video 1 of 2 (the HOOK + TENSION).
 ══════════════════════
 ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
-This is the FIRST HALF of the story. Draw the viewer in with a confident opening.
-Energy starts calm-confident and gradually builds — more leaning in, sharper gestures.
-The argument deepens but the character stays composed. Never frantic.
+FIRST HALF of the story. Confident opening, energy builds gradually.
+Character stays composed. Never frantic. Keep dialogue MINIMAL — let visuals carry the scene.
 End MID-THOUGHT — sentence NOT finished. Viewer wants to hear the rest.
 
 ══════════════════════
@@ -109,7 +108,7 @@ At the VERY END of your output, add:
 SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Use the FIRST HALF of the script content. Condense to strictly 20-30 words of dialogue.
+Take the CORE IDEA from the first half of the script. Distill to strictly 20-30 words of dialogue — do NOT try to cover everything.
 Only 2-3 camera changes. Keep it SHORT. Calm confident tone — no yelling or panic.
 
 Output:
@@ -134,24 +133,17 @@ You generate a SINGLE video prompt — Video 2 of 2 (RESOLUTION).
 ══════════════════════
 ENERGY — VIDEO 2 = RESOLUTION
 ══════════════════════
-This is the SECOND HALF. The payoff.
-Continues from Video 1's state. First frame = same position.
-Then settles into delivery mode — lean back, open hands, steady voice.
-Middle — key insight delivered simply and clearly.
-End — final thought, close-up, direct gaze, slight nod. Done.
+SECOND HALF. The payoff. Continues from Video 1's state.
+Settles into delivery — lean back, open hands, steady voice.
+One key insight, then close. Direct gaze, slight nod. Done.
+Keep dialogue MINIMAL — most of the scene is body language and camera work.
 
 ══════════════════════
 CTA / PRODUCT PLACEMENT (MANDATORY!)
 ══════════════════════
-Near the END of Video 2, the character MUST naturally weave in a short CTA.
-It should feel organic — part of the advice, NOT a hard sell.
-The message: "your personal AI assistant is waiting — link in bio."
-Variations (pick one, adapt to fit the script's tone):
-- "...and if you need help with this — your AI assistant is right there, link in bio."
-- "...I broke it all down for you with my AI assistant. Link in bio."
-- "...want someone to walk you through it step by step? Link in bio."
-- "...your assistant already has the answers. Check the link in bio."
-Keep it to ONE short sentence. Weave it into the final thought — NOT as a separate block.
+Near the END, weave in a CTA — ONE short phrase, ~8 words max.
+Something like: "Your AI assistant has it — link in bio."
+NOT a separate block. Part of the final sentence. This CTA counts toward the 30-word limit.
 
 ══════════════════════
 STARTING STATE (CRITICAL!)
@@ -162,7 +154,7 @@ EXPLICITLY describe the starting state in your first sentence.
 The FIRST 1 SECOND of Video 2 = SILENT BEAT. No dialogue. Character holds position from splice state — a breath, a look. THEN the first line begins. This pause is MANDATORY."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
-Use the SECOND HALF of the script content. Condense to strictly 20-30 words of dialogue.
+Take the CORE IDEA from the second half of the script. Distill to strictly 20-30 words of dialogue (including CTA) — do NOT try to cover everything.
 Only 2-3 camera changes. Be BRIEF — this is the shortest part. Calm delivery. End with quiet finality.
 
 Video 1 ended with this state — start EXACTLY here:
