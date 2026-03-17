@@ -76,7 +76,16 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT — HARD LIMIT: The TOTAL dialogue across BOTH videos must be MAX 60 words. That means ~30 words per video. NOT 40, NOT 50 — COUNT YOUR WORDS. If the total exceeds 60 words, you have FAILED. Both videos must have APPROXIMATELY EQUAL amounts of dialogue (within 5 words of each other). 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
+
+⚠️⚠️⚠️ ABSOLUTE WORD LIMIT — READ THIS THREE TIMES ⚠️⚠️⚠️
+THIS VIDEO gets EXACTLY 25-30 words of dialogue. NOT 40. NOT 50. NOT 60.
+BEFORE you write, COUNT the dialogue words in the original script, divide by 2, and use ONLY that many.
+After writing, COUNT every word inside "quotes". If you have more than 30 dialogue words, DELETE lines until you're at 25-30.
+VERIFICATION STEP: List the count at the end like this: [DIALOGUE WORD COUNT: XX]
+If XX > 30, you have FAILED. Go back and cut.
+⚠️⚠️⚠️ END WORD LIMIT ⚠️⚠️⚠️
+
+2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
@@ -120,13 +129,13 @@ This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions. 
 """
 
 USER_VIDEO1 = """Generate Video 1 of 2 (HOOK + DEVELOPMENT) from this script.
-Use ONLY the first ~50% of the script as dialogue ({half_words} words). STOP at the halfway point — leave the rest for Video 2.
+Use ONLY the first ~50% of the script as dialogue. STOP at the halfway point — leave the rest for Video 2.
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes. Calm confident tone — no yelling or panic.
 
-Output the directorial description directly. No labels, no headers.
-MAX 30 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
-TOTAL across both videos = 60 words max. Count carefully.
+CRITICAL: EXACTLY 25-30 words of dialogue total in this video. Count every word inside "quotes".
+If you write more than 30 words of dialogue, DELETE lines. This is a 5-second video — very little dialogue fits.
+At the end of your output, write: [DIALOGUE WORD COUNT: XX]
 
 ---
 
@@ -173,13 +182,12 @@ Do NOT reference the first part of the story — just deliver the conclusion."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (CONCLUSION + CTA) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. ~30 words of dialogue max. End with CTA.
-The amount of dialogue in Video 2 must be APPROXIMATELY EQUAL to Video 1 (within 5 words).
-TOTAL dialogue across both videos = 60 words max.
+Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. End with CTA.
 2-3 camera changes. Calm delivery. End with quiet finality and a nod.
 
-Output the directorial description directly. No labels, no headers.
-MAX 30 words of dialogue in "quotes" — taken word-for-word from the script, ending with CTA + nod. Start with the opening shot description.
+CRITICAL: EXACTLY 25-30 words of dialogue total in this video — SAME amount as Video 1. Count every word inside "quotes".
+CTA counts toward the word limit. If you write more than 30 words of dialogue, DELETE lines.
+At the end of your output, write: [DIALOGUE WORD COUNT: XX]
 
 ---
 
@@ -213,13 +221,16 @@ def _log_usage(request_type: str, status: str = "completed"):
 
 
 def _strip_label(text: str, video_num: int) -> str:
-    """Strip 'VIDEO N:' label if AI accidentally adds it."""
+    """Strip 'VIDEO N:' label and word count tag if AI adds them."""
     for prefix in (f"VIDEO {video_num}:", f"VIDEO {video_num} —", f"VIDEO {video_num}:"):
         if text.upper().startswith(prefix.upper()):
             text = text[len(prefix):].strip()
             break
     if "SPLICE STATE:" in text:
         text = text.split("SPLICE STATE:", 1)[0].strip()
+    # Strip [DIALOGUE WORD COUNT: XX] tag
+    import re
+    text = re.sub(r'\[DIALOGUE WORD COUNT:\s*\d+\]', '', text).strip()
     return text
 
 
