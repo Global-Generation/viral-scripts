@@ -27,20 +27,14 @@ GESTICULATION BY EMOTION:
 ══════════════════════
 CAMERA
 ══════════════════════
-Three framing types. Alternate STRICTLY. Same framing twice in a row = FORBIDDEN.
+Three framing types. ALL THREE must appear in every video. NEVER repeat the same angle twice in a row.
 
-CLOSE-UP:
-Front-facing. Face fills most of the frame — from shoulders up.
-Direct eye contact with camera. Background visible but secondary.
+1. MEDIUM SHOT — front-facing, chest to head, hands visible gesticulating, room behind. Good opening shot.
+2. THREE-QUARTER VIEW — camera at 30-45° from front (NOT side profile), wider framing, full upper body + room/furniture visible.
+3. CLOSE-UP — front-facing, face fills frame from shoulders up, direct eye contact. Best for impact moments.
 
-MEDIUM SHOT:
-Front-facing. From chest/upper body to head.
-Hands visible, gesticulating. Character looks directly at camera. Room visible behind.
-
-THREE-QUARTER VIEW:
-Camera at 30-45° angle from front — NOT a 90° side profile.
-Both eyes still visible. Character sits in chair, full upper body + room/setting visible.
-Character may look slightly off-camera or toward camera. Wider framing — shows furniture, walls, decor.
+Recommended sequence: medium → three-quarter → close-up, or three-quarter → medium → close-up.
+Do NOT start with close-up — it's too abrupt. Save close-up for the strongest line or the ending.
 
 ══════════════════════
 CAMERA CUTS (CRITICAL — NO SMOOTH MOVEMENTS!)
