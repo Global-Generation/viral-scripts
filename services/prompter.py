@@ -114,7 +114,7 @@ ENDING (MANDATORY!)
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open.
 The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where Video 2 will be joined.
 The VERY LAST LINE of Video 1 must ALWAYS be: He pauses.
-This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions.
+This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions. No long silence.
 
 """
 
@@ -153,7 +153,7 @@ ENDING (MANDATORY!)
 Video 2 ends on a COMPLETE SENTENCE. The topic is still open — viewer wants to hear the conclusion.
 The LAST shot of Video 2 must be a CLOSE-UP — this is the splice point where Video 3 will be joined.
 The VERY LAST LINE of Video 2 must ALWAYS be: He pauses.
-This is NON-NEGOTIABLE. Every Video 2 ends with "He pauses." — no exceptions.
+This is NON-NEGOTIABLE. Every Video 2 ends with "He pauses." — no exceptions. No long silence.
 
 ══════════════════════
 OPENING — VIDEO 2
