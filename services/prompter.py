@@ -104,8 +104,7 @@ ENDING
 ══════════════════════
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution. Energy is elevated but controlled.
 
-At the VERY END of your output, add:
-SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
+"""
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
 Take the CORE IDEA from the first half of the script. Distill to 25-35 words of dialogue — do NOT try to cover everything.
@@ -115,8 +114,6 @@ Output:
 
 VIDEO 1:
 [directorial description, 25-35 words of dialogue in "quotes"]
-
-SPLICE STATE: [final frame state]
 
 ---
 
@@ -133,7 +130,7 @@ You generate a SINGLE video prompt — Video 2 of 2 (RESOLUTION).
 ══════════════════════
 ENERGY — VIDEO 2 = RESOLUTION
 ══════════════════════
-SECOND HALF. The payoff. Continues from Video 1's state.
+SECOND HALF. The payoff. This video is SELF-CONTAINED — it starts fresh from a neutral seated position.
 Settles into delivery — lean back, open hands, steady voice.
 One key insight, then close. Direct gaze, slight nod. Done.
 Keep dialogue MINIMAL — most of the scene is body language and camera work.
@@ -149,19 +146,14 @@ NEVER invent creative CTAs. NEVER say "comment [word]". NEVER mention apps, prod
 Just: he gives advice → link in bio. That's it. This counts toward the 30-word limit.
 
 ══════════════════════
-STARTING STATE (CRITICAL!)
+OPENING — VIDEO 2
 ══════════════════════
-You will receive a SPLICE STATE from Video 1.
-Your Video 2 MUST START from EXACTLY that state.
-EXPLICITLY describe the starting state in your first sentence.
-The FIRST 1 SECOND of Video 2 = SILENT BEAT. No dialogue. Character holds position from splice state — a breath, a look. THEN the first line begins. This pause is MANDATORY."""
+Start from a NEUTRAL seated position. The character is calm, composed, ready to deliver the resolution.
+Do NOT reference Video 1's ending. This video must work as a standalone scene that cleanly cuts after Video 1."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Take the CORE IDEA from the second half of the script. Distill to 25-35 words of dialogue (including CTA) — do NOT try to cover everything.
 3-4 camera changes. Calm delivery. End with quiet finality.
-
-Video 1 ended with this state — start EXACTLY here:
-{splice_state}
 
 Output:
 
@@ -186,22 +178,18 @@ def generate_video_prompt(script_text: str) -> str:
     )
     video1_full = response1.content[0].text.strip()
 
-    # Extract splice state
+    # Strip any accidental SPLICE STATE the model may still output
     if "SPLICE STATE:" in video1_full:
-        parts = video1_full.split("SPLICE STATE:", 1)
-        video1_text = parts[0].strip()
-        splice1 = parts[1].strip()
+        video1_text = video1_full.split("SPLICE STATE:", 1)[0].strip()
     else:
         video1_text = video1_full
-        splice1 = "Close-up from Camera A, leaning forward, high energy, intense gaze into camera, mid-sentence"
-        logger.warning("No SPLICE STATE in Video 1, using default")
 
     # Step 2: Generate Video 2 (Resolution)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=600,
         system=SYSTEM_VIDEO2,
-        messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text, splice_state=splice1)}]
+        messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text)}]
     )
     video2_text = response2.content[0].text.strip()
 
