@@ -7,6 +7,18 @@ logger = logging.getLogger(__name__)
 
 DOWNLOADS_DIR = os.getenv("DOWNLOADS_DIR", "./downloads")
 
+_HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
+
+
+def _download(url: str, path: str) -> str:
+    """Download a URL with proper headers to avoid CDN 403."""
+    os.makedirs(os.path.dirname(path) or DOWNLOADS_DIR, exist_ok=True)
+    req = urllib.request.Request(url, headers=_HEADERS)
+    with urllib.request.urlopen(req, timeout=120) as resp, open(path, "wb") as f:
+        while chunk := resp.read(1024 * 64):
+            f.write(chunk)
+    return path
+
 
 def extract_last_frame(video_url: str, output_path: str = "") -> str:
     """Download video and extract the last frame as a PNG image.
@@ -20,7 +32,7 @@ def extract_last_frame(video_url: str, output_path: str = "") -> str:
     tmp_video = os.path.join(DOWNLOADS_DIR, f"tmp_endframe_{os.urandom(4).hex()}.mp4")
     try:
         logger.info(f"Downloading video for end frame extraction: {video_url[:80]}")
-        urllib.request.urlretrieve(video_url, tmp_video)
+        _download(video_url, tmp_video)
 
         # Get total number of frames
         probe = subprocess.run(
@@ -96,6 +108,4 @@ def concat_videos(video_paths: list[str], output_path: str) -> str:
 
 def download_video(url: str, output_path: str) -> str:
     """Download a video from URL to local path."""
-    os.makedirs(os.path.dirname(output_path) or DOWNLOADS_DIR, exist_ok=True)
-    urllib.request.urlretrieve(url, output_path)
-    return output_path
+    return _download(url, output_path)
