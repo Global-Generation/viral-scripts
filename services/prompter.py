@@ -83,7 +83,11 @@ Format — continuous text as a directorial scene description. No lists, no time
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
 DIALOGUE LIMIT: 50-80 words of dialogue PER VIDEO. 3-4 camera changes per video.
 Text chunks between camera changes: 2-3 sentences each.
-SPLITTING RULE: Count the dialogue lines in the script. Split them roughly 50/50 between Video 1 and Video 2. Video 1 gets the FIRST half of the lines, Video 2 gets the SECOND half. Do NOT put the conclusion/moral/payoff in Video 1 — that belongs in Video 2."""
+SPLITTING RULE (CRITICAL — MUST BE PROPORTIONAL):
+1. Count ALL words in the script
+2. Video 1 dialogue = first ~40-50% of the script's words. Video 2 dialogue = remaining ~50-60% (including conclusion + CTA)
+3. Both videos MUST have similar word counts in dialogue. If Video 1 has 60 words, Video 2 must also have ~60 words
+4. If the script has 10 lines, Video 1 gets lines 1-5, Video 2 gets lines 6-10. NOT 1-8 and 9-10!"""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
 
@@ -95,9 +99,9 @@ You generate a SINGLE video prompt — Video 1 of 2 (the HOOK + TENSION).
 ══════════════════════
 ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
-FIRST HALF of the script lines ONLY. Confident opening, energy builds gradually.
+First ~40-50% of the script ONLY. Stop at the MIDPOINT — not at 70%, not at 80%.
 Character stays composed. Never frantic.
-Do NOT include the conclusion, moral, or payoff — that goes in Video 2.
+The conclusion, moral, and payoff belong in Video 2.
 End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
 
 ══════════════════════
@@ -110,8 +114,9 @@ MANDATORY: The video ends with a SHORT PAUSE (1-2 seconds of silence). Character
 """
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Use the FIRST HALF of the script's lines as dialogue — do NOT paraphrase or invent new lines. 50-80 words of dialogue.
-Do NOT include the conclusion, moral, or payoff — leave that for Video 2. Stop BEFORE the script's resolution.
+Use ONLY the first ~40-50% of the script as dialogue. STOP at the midpoint — leave the rest for Video 2.
+Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
+Video 2 must have roughly the SAME amount of dialogue as Video 1 — so do NOT use more than half the script here.
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
@@ -119,7 +124,7 @@ Output the directorial description directly. No labels, no headers.
 
 ---
 
-SCRIPT:
+SCRIPT ({word_count} words total — use only the first ~{half_words} words):
 {script}"""
 
 # ── STEP 2: Video 2 (RESOLUTION — payoff) ──
@@ -194,13 +199,15 @@ def _log_usage(request_type: str, status: str = "completed"):
 def generate_video_prompt(script_text: str) -> dict:
     """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    word_count = len(script_text.split())
+    half_words = word_count // 2
 
     # Step 1: Generate Video 1 (Hook + Tension)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=1000,
         system=SYSTEM_VIDEO1,
-        messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text)}]
+        messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text, word_count=word_count, half_words=half_words)}]
     )
     video1_full = response1.content[0].text.strip()
 
