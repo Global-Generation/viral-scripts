@@ -117,14 +117,6 @@
 .sc-panel-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
 .sc-panel-section { margin-bottom: 16px; }
 
-.sc-type-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.sc-type-chip {
-    padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; cursor: pointer; transition: all 0.15s;
-}
-.sc-type-chip:hover { border-color: #e6435b; color: #e6435b; }
-.sc-type-chip.active { background: rgba(230,67,91,0.1); color: #e6435b; border-color: #e6435b; }
-
 .sc-panel-actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .sc-gen-btn {
     width: 100%; padding: 12px; border-radius: 10px; border: none;
@@ -299,14 +291,6 @@
                 <div class="sc-panel-label">Name</div>
                 <input id="sc-edit-name" class="sc-customize-input" style="width:100%;margin-bottom:0;" value="{{ first.name }}">
             </div>
-            <div class="sc-panel-section">
-                <div class="sc-panel-label">Type</div>
-                <div class="sc-type-chips" id="sc-type-chips">
-                    <div class="sc-type-chip {% if first.character_type == 'grandpa' %}active{% endif %}" data-type="grandpa" onclick="selectType(this)">Grandpa</div>
-                    <div class="sc-type-chip {% if first.character_type == 'techguy' %}active{% endif %}" data-type="techguy" onclick="selectType(this)">Tech Guy</div>
-                    <div class="sc-type-chip {% if first.character_type == 'cartoon' %}active{% endif %}" data-type="cartoon" onclick="selectType(this)">Cartoon</div>
-                </div>
-            </div>
             <div class="sc-panel-section" style="flex:1;">
                 <div class="sc-panel-label">Description</div>
                 <textarea id="sc-edit-desc" class="sc-prompt-area" style="height:80px;" placeholder="Brief character description">{{ first.description or '' }}</textarea>
@@ -360,14 +344,6 @@
             <input id="avatar-name" class="sc-customize-input" style="width:100%;" placeholder="e.g. Wall Street Grandpa">
         </div>
         <div style="margin-bottom:14px;">
-            <label style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Character Type</label>
-            <div class="sc-type-chips">
-                <div class="sc-type-chip active" id="modal-type-grandpa" onclick="selectModalType('grandpa')">Grandpa</div>
-                <div class="sc-type-chip" id="modal-type-techguy" onclick="selectModalType('techguy')">Tech Guy</div>
-                <div class="sc-type-chip" id="modal-type-cartoon" onclick="selectModalType('cartoon')">Cartoon</div>
-            </div>
-        </div>
-        <div style="margin-bottom:14px;">
             <label style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Appearance Prompt</label>
             <textarea id="avatar-prompt" class="sc-prompt-area" rows="4" placeholder="Describe the character's appearance in detail..."></textarea>
         </div>
@@ -382,22 +358,9 @@
 {% block scripts %}
 <script>
 let _selectedActorId = {{ avatars[0].id if avatars else 'null' }};
-let _modalType = 'grandpa';
 
 function showCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'flex'; }
 function hideCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'none'; }
-
-function selectModalType(type) {
-    _modalType = type;
-    document.querySelectorAll('[id^="modal-type-"]').forEach(el => el.classList.remove('active'));
-    const el = document.getElementById('modal-type-' + type);
-    if (el) el.classList.add('active');
-}
-
-function selectType(el) {
-    document.querySelectorAll('#sc-type-chips .sc-type-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-}
 
 function switchTab(tabEl, tabName) {
     document.querySelectorAll('.sc-panel-tab').forEach(t => t.classList.remove('active'));
@@ -436,10 +399,6 @@ function selectActor(id) {
     document.getElementById('sc-edit-desc').value = data.description || '';
     document.getElementById('sc-edit-prompt').value = data.prompt || '';
 
-    document.querySelectorAll('#sc-type-chips .sc-type-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.type === data.character_type);
-    });
-
     // Load variants for this actor
     loadVariants(id);
 }
@@ -449,7 +408,7 @@ async function createAvatar() {
     const prompt = document.getElementById('avatar-prompt').value.trim();
     if (!name) { toast('Name is required', 'error'); return; }
 
-    const result = await api('/api/avatars', 'POST', { name, character_type: _modalType, description: prompt, prompt });
+    const result = await api('/api/avatars', 'POST', { name, description: prompt, prompt });
     if (result && result.ok) {
         toast('Actor created!', 'success');
         location.reload();
@@ -484,17 +443,15 @@ async function saveSelectedAvatar(silent) {
     const name = document.getElementById('sc-edit-name').value.trim();
     const desc = document.getElementById('sc-edit-desc').value.trim();
     const prompt = document.getElementById('sc-edit-prompt').value.trim();
-    const activeType = document.querySelector('#sc-type-chips .sc-type-chip.active');
-    const character_type = activeType ? activeType.dataset.type : '';
 
-    const result = await api('/api/avatars/' + _selectedActorId, 'PUT', { name, description: desc, prompt: prompt || desc, character_type });
+    const result = await api('/api/avatars/' + _selectedActorId, 'PUT', { name, description: desc, prompt: prompt || desc });
     if (result && result.ok) {
         if (!silent) toast('Saved!', 'success');
         // Update sidebar item data
         const item = document.getElementById('actor-item-' + _selectedActorId);
         if (item) {
             const data = JSON.parse(item.dataset.avatar);
-            data.name = name; data.description = desc; data.prompt = prompt || desc; data.character_type = character_type;
+            data.name = name; data.description = desc; data.prompt = prompt || desc;
             item.dataset.avatar = JSON.stringify(data);
             item.querySelector('.sc-actor-name').textContent = name;
         }
