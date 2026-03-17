@@ -261,21 +261,6 @@
                     </div>
                 </div>
 
-                <!-- Action buttons under preview -->
-                <div class="sc-preview-actions">
-                    <button class="sc-action-btn" title="Regenerate Image" id="sc-btn-regen" onclick="generateSelectedAvatar()">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    </button>
-                    <button class="sc-action-btn" title="Edit Prompt" onclick="focusPrompt()">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
-                    <button class="sc-action-btn active-action" title="Generate Video" onclick="goToVideoGeneration()">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    </button>
-                    <button class="sc-action-btn" title="Save Changes" onclick="saveSelectedAvatar()">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -297,38 +282,14 @@
     <div class="sc-right-panel" id="sc-right-panel">
         {% if avatars %}
         {% set first = avatars[0] %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div class="sc-panel-tabs">
-                <div class="sc-panel-tab active" onclick="switchTab(this,'details')">Details</div>
-                <div class="sc-panel-tab" onclick="switchTab(this,'prompt')">Prompt</div>
-            </div>
-            <button class="sc-reset-btn" onclick="resetActorForm()">Reset</button>
-        </div>
-
-        <!-- Details tab -->
-        <div id="tab-details" class="sc-tab-content">
-            <div class="sc-panel-section">
-                <div class="sc-panel-label">Name</div>
-                <input id="sc-edit-name" class="sc-customize-input" style="width:100%;margin-bottom:0;" value="{{ first.name }}">
-            </div>
-            <div class="sc-panel-section">
-                <div class="sc-panel-label">Description</div>
-                <textarea id="sc-edit-desc" class="sc-prompt-area" style="height:56px;flex:none;" placeholder="Brief character description">{{ first.description or '' }}</textarea>
-            </div>
-        </div>
-
-        <!-- Prompt tab -->
-        <div id="tab-prompt" class="sc-tab-content" style="display:none;">
-            <div class="sc-panel-section">
-                <div class="sc-panel-label">Image Generation Prompt</div>
-                <textarea id="sc-edit-prompt" class="sc-prompt-area" style="height:160px;flex:none;" placeholder="Enter a detailed prompt describing your AI actor (visual traits, style, mood, persona)">{{ first.prompt or '' }}</textarea>
-            </div>
-        </div>
+        <input type="hidden" id="sc-edit-name" value="{{ first.name }}">
+        <input type="hidden" id="sc-edit-desc" value="{{ first.description or '' }}">
+        <input type="hidden" id="sc-edit-prompt" value="{{ first.prompt or '' }}">
 
         <div class="sc-panel-actions">
-            <button class="sc-gen-btn" id="sc-gen-btn" onclick="generateSelectedAvatar()">
-                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                GENERATE IMAGE
+            <button class="sc-variant-btn" onclick="downloadCurrentImage()">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download Image
             </button>
 
             <div style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:4px;">
@@ -502,20 +463,24 @@ async function deleteSelectedAvatar() {
     }
 }
 
-function focusPrompt() {
-    document.querySelectorAll('.sc-panel-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.sc-panel-tab')[1].classList.add('active');
-    document.querySelectorAll('.sc-tab-content').forEach(c => c.style.display = 'none');
-    document.getElementById('tab-prompt').style.display = 'block';
-    document.getElementById('sc-edit-prompt').focus();
-}
-
-function resetActorForm() {
-    if (_selectedActorId) selectActor(_selectedActorId);
-}
-
-function goToVideoGeneration() {
-    toast('Select a script with video prompts to generate video with this actor', 'info');
+async function downloadCurrentImage() {
+    const img = document.getElementById('sc-preview-image');
+    if (!img || !img.src) { toast('No image to download', 'error'); return; }
+    try {
+        const resp = await fetch(img.src);
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = document.getElementById('sc-preview-name')?.textContent || 'avatar';
+        a.download = name.replace(/\s+/g, '_') + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch(e) {
+        toast('Download failed', 'error');
+    }
 }
 
 async function quickEdit() {
