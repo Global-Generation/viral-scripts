@@ -49,9 +49,9 @@ Three angles — close-up (front), medium shot (front), side view (30-45° offse
 All cameras are FIXED on tripods. COMPLETELY STATIC. Zero movement within any shot.
 All transitions are HARD CUTS — instant switch from one static angle to another static angle.
 
-Every transition = just "CUT TO close-up." or "CUT TO side view." — PERIOD. That's it.
-Do NOT add descriptions after the cut. NO "CUT TO close-up, his expression focused as he..." — just "CUT TO close-up."
-The dialogue and minimal action go on the NEXT line after the cut, not on the same line.
+Every transition = just "JUMP CUT TO close-up." or "JUMP CUT TO side view." — PERIOD. That's it.
+Do NOT add descriptions after the cut. Just "JUMP CUT TO [angle]." on its own line.
+The dialogue goes on the NEXT line after the cut.
 NEVER use these words FOR THE CAMERA: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer.
 Each angle is a FROZEN STATIC FRAME — the CAMERA does not move within a shot. The CHARACTER can move freely (gestures, lean, nod, turn).
 
@@ -60,8 +60,8 @@ HOOK — FIRST 2 SECONDS
 ══════════════════════
 The opening should feel natural and confident, NOT screaming or panicking.
 Options (vary between scripts):
-- Start on close-up, then CUT TO side view
-- Start on side view, then CUT TO close-up
+- Start on close-up, then JUMP CUT TO side view
+- Start on side view, then JUMP CUT TO close-up
 - Start on medium shot, mid-gesture, then CUT TO side view
 First CUT = quick angle switch. But the CHARACTER stays calm.
 
@@ -85,11 +85,11 @@ DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite
 DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
-CUT TO side view.
+JUMP CUT TO side view.
 
 "Dialogue goes here."
 
-CUT TO close-up.
+JUMP CUT TO close-up.
 
 "Next dialogue line."
 SPLITTING RULE (CRITICAL — MUST BE PROPORTIONAL):
@@ -189,7 +189,9 @@ FULL SCRIPT:
 
 CAMERA_HEADER = """CAMERA SETUP:
 Three angles — close-up (front), medium shot (front), side view (30-45° offset).
-All cameras are FIXED on tripods. All transitions are HARD CUTS.
+All cameras are FIXED on tripods. COMPLETELY STATIC — zero camera movement.
+All transitions are INSTANT JUMP CUTS. No smooth transitions, no panning, no zooming, no tracking.
+Each shot is a frozen static frame from a different fixed camera angle.
 """
 
 
