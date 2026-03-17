@@ -47,10 +47,19 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             gen_counts[s.id] = len(gens)
             completed_counts[s.id] = len([g for g in gens if g.status == "completed"])
 
+        # Get final video URLs per script
+        final_videos = {}
+        for s in scripts:
+            if s.final_subtitled_path:
+                final_videos[s.id] = f"/api/scripts/{s.id}/download-final?subtitled=true"
+            elif s.final_video_path:
+                final_videos[s.id] = f"/api/scripts/{s.id}/download-final"
+
         schedule[creator] = {
             "scripts": scripts,
             "gen_counts": gen_counts,
             "completed_counts": completed_counts,
+            "final_videos": final_videos,
         }
 
     return templates.TemplateResponse(

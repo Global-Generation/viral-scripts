@@ -42,10 +42,17 @@
                 <tbody>
                     {% for script in data.scripts %}
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50">
-                        <td class="td" style="max-width: 200px;">
-                            <a href="/scripts/{{ script.id }}" class="text-xs text-blue-500 hover:underline truncate block">
-                                {{ script.video.title[:50] if script.video else ('Script #' ~ script.id) }}
-                            </a>
+                        <td class="td" style="max-width: 220px;">
+                            <div class="flex items-center gap-1">
+                                {% if data.final_videos.get(script.id) %}
+                                <button onclick="playFinalVideo('{{ data.final_videos[script.id] }}')" style="background: none; border: none; cursor: pointer; padding: 2px; flex-shrink: 0;" title="Play final video">
+                                    <svg width="14" height="14" fill="#3b82f6" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </button>
+                                {% endif %}
+                                <a href="/scripts/{{ script.id }}" class="text-xs text-blue-500 hover:underline truncate block">
+                                    {{ script.video.title[:50] if script.video else ('Script #' ~ script.id) }}
+                                </a>
+                            </div>
                         </td>
                         <td class="td">
                             {% if script.viral_score >= 70 %}
@@ -206,4 +213,35 @@
     <p class="text-gray-400 text-sm">No videos generated yet. Go to a script page and use Cinema Studio to generate videos.</p>
 </div>
 {% endif %}
+
+<!-- Video Player Modal -->
+<div id="video-modal" onclick="if(event.target===this)closeVideoModal()" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+    <div style="position:relative; max-width:400px; width:90%; max-height:90vh;">
+        <button onclick="closeVideoModal()" style="position:absolute; top:-36px; right:0; background:none; border:none; color:#fff; font-size:24px; cursor:pointer; z-index:10;">&times;</button>
+        <video id="modal-video" controls style="width:100%; max-height:85vh; border-radius:12px; background:#000;"></video>
+        <div style="margin-top:8px; text-align:center;">
+            <a id="modal-download" href="#" download style="color:#3b82f6; font-size:12px; font-weight:600; text-decoration:none;">Download</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function playFinalVideo(url) {
+    const modal = document.getElementById('video-modal');
+    const video = document.getElementById('modal-video');
+    const dl = document.getElementById('modal-download');
+    video.src = url;
+    dl.href = url;
+    modal.style.display = 'flex';
+    video.play();
+}
+function closeVideoModal() {
+    const modal = document.getElementById('video-modal');
+    const video = document.getElementById('modal-video');
+    video.pause();
+    video.src = '';
+    modal.style.display = 'none';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVideoModal(); });
+</script>
 {% endblock %}

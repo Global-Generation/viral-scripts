@@ -14,7 +14,6 @@
 <div style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0;">
     <button class="sv-tab sv-tab-active" data-tab="scenario" onclick="switchTab('scenario', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #1e293b; border-bottom: 2px solid #3b82f6; margin-bottom: -2px; transition: all 0.15s;">Scenario</button>
     <button class="sv-tab" data-tab="video" onclick="switchTab('video', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Video</button>
-    <button class="sv-tab" data-tab="subtitles" onclick="switchTab('subtitles', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Subtitles</button>
     <button class="sv-tab" data-tab="publication" onclick="switchTab('publication', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Publication</button>
 </div>
 
@@ -239,17 +238,17 @@
     </div>
 </div>
 
-<!-- ==================== TAB 2: VIDEO ==================== -->
+<!-- ==================== TAB 2: VIDEO PIPELINE ==================== -->
 <div id="tab-video" class="sv-tab-content" style="display: none;">
-    <!-- Director Panel (Cinema Studio) — Light Theme -->
-    <div style="background: #ffffff; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <!-- Director Panel Settings -->
+    <div style="background: #ffffff; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;">
         <!-- Header -->
         <div style="padding: 14px 18px 0; display: flex; align-items: center; gap: 8px;">
             <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
-            <span style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: -0.01em;">Director Panel</span>
+            <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Director Panel</span>
         </div>
 
-        <!-- Avatar Selection — thumbnail row -->
+        <!-- Avatar Selection -->
         <div style="padding: 12px 18px; display: flex; align-items: center; gap: 10px; overflow-x: auto;">
             <div id="cs-avatar-thumbs" style="display: flex; gap: 6px; flex: 1; overflow-x: auto;"></div>
             <select id="cs-avatar" style="display:none;"><option value="">Select avatar...</option></select>
@@ -261,89 +260,23 @@
                 <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Movement</label>
                 <select id="cs-camera" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
                     <option value="">Auto</option>
-                    <optgroup label="Dolly">
-                        <option value="dolly_in">Dolly In</option>
-                        <option value="dolly_out">Dolly Out</option>
-                        <option value="dolly_left">Dolly Left</option>
-                        <option value="dolly_right">Dolly Right</option>
-                        <option value="super_dolly_in">Super Dolly In</option>
-                        <option value="super_dolly_out">Super Dolly Out</option>
-                        <option value="double_dolly">Double Dolly</option>
-                        <option value="dolly_zoom_in">Dolly Zoom In</option>
-                        <option value="dolly_zoom_out">Dolly Zoom Out</option>
-                    </optgroup>
-                    <optgroup label="Pan / Tilt">
-                        <option value="pan_left">Pan Left</option>
-                        <option value="pan_right">Pan Right</option>
-                        <option value="tilt_up">Tilt Up</option>
-                        <option value="tilt_down">Tilt Down</option>
-                        <option value="whip_pan">Whip Pan</option>
-                        <option value="dutch_angle">Dutch Angle</option>
-                    </optgroup>
-                    <optgroup label="Orbit / Rotation">
-                        <option value="arc_left">Arc Left</option>
-                        <option value="arc_right">Arc Right</option>
-                        <option value="360_orbit">360 Orbit</option>
-                        <option value="lazy_susan">Lazy Susan</option>
-                        <option value="3d_rotation">3D Rotation</option>
-                        <option value="bullet_time">Bullet Time</option>
-                    </optgroup>
-                    <optgroup label="Crane / Jib">
-                        <option value="crane_up">Crane Up</option>
-                        <option value="crane_down">Crane Down</option>
-                        <option value="crane_over_the_head">Crane Over Head</option>
-                        <option value="jib_up">Jib Up</option>
-                        <option value="jib_down">Jib Down</option>
-                    </optgroup>
-                    <optgroup label="Zoom">
-                        <option value="zoom_in">Zoom In</option>
-                        <option value="zoom_out">Zoom Out</option>
-                        <option value="rapid_zoom_in">Rapid Zoom In</option>
-                        <option value="rapid_zoom_out">Rapid Zoom Out</option>
-                        <option value="crash_zoom_in">Crash Zoom In</option>
-                        <option value="crash_zoom_out">Crash Zoom Out</option>
-                        <option value="yoyo_zoom">YoYo Zoom</option>
-                        <option value="eating_zoom">Eating Zoom</option>
-                    </optgroup>
-                    <optgroup label="Special">
-                        <option value="fpv_drone">FPV Drone</option>
-                        <option value="aerial_pullback">Aerial Pullback</option>
-                        <option value="handheld">Handheld</option>
-                        <option value="hero_cam">Hero Cam</option>
-                        <option value="snorricam">Snorricam</option>
-                        <option value="robo_arm">Robo Arm</option>
-                        <option value="hyperlapse">Hyperlapse</option>
-                        <option value="head_tracking">Head Tracking</option>
-                        <option value="wiggle">Wiggle</option>
-                        <option value="static">Static</option>
-                    </optgroup>
-                    <optgroup label="Through / Transition">
-                        <option value="through_object_in">Through Object In</option>
-                        <option value="through_object_out">Through Object Out</option>
-                        <option value="flying_cam_transition">Flying Cam</option>
-                    </optgroup>
-                    <optgroup label="Cinematic">
-                        <option value="glam">Glam</option>
-                        <option value="eyes_in">Eyes In</option>
-                        <option value="mouth_in">Mouth In</option>
-                        <option value="focus_change">Focus Change</option>
-                        <option value="fisheye">Fisheye</option>
-                        <option value="low_shutter">Low Shutter</option>
-                        <option value="overhead">Overhead</option>
-                        <option value="object_pov">Object POV</option>
-                        <option value="bts">BTS</option>
-                    </optgroup>
-                    <optgroup label="Vehicle">
-                        <option value="car_chasing">Car Chasing</option>
-                        <option value="car_grip">Car Grip</option>
-                        <option value="road_rush">Road Rush</option>
-                        <option value="buckle_up">Buckle Up</option>
-                    </optgroup>
-                    <optgroup label="Timelapse">
-                        <option value="timelapse_glam">Timelapse Glam</option>
-                        <option value="timelapse_human">Timelapse Human</option>
-                        <option value="timelapse_landscape">Timelapse Landscape</option>
-                    </optgroup>
+                    <option value="static">Static</option>
+                    <option value="handheld">Handheld</option>
+                    <option value="zoom_in">Zoom In</option>
+                    <option value="zoom_out">Zoom Out</option>
+                    <option value="pan_left">Pan Left</option>
+                    <option value="pan_right">Pan Right</option>
+                    <option value="orbit_left">Orbit Left</option>
+                    <option value="orbit_right">Orbit Right</option>
+                    <option value="crane_up">Crane Up</option>
+                    <option value="crane_down">Crane Down</option>
+                    <option value="fpv_drone">FPV Drone</option>
+                    <option value="dolly_in">Dolly In</option>
+                    <option value="dolly_out">Dolly Out</option>
+                    <option value="tilt_up">Tilt Up</option>
+                    <option value="tilt_down">Tilt Down</option>
+                    <option value="arc_left">Arc Left</option>
+                    <option value="arc_right">Arc Right</option>
                 </select>
             </div>
             <div>
@@ -358,184 +291,153 @@
                 <select id="cs-duration" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
                     <option value="5">5s</option>
                     <option value="10" selected>10s</option>
+                    <option value="12">12s</option>
                 </select>
             </div>
         </div>
 
-        <!-- Bottom bar — pill toggles -->
+        <!-- Bottom bar — pills -->
         <div style="padding: 10px 18px; background: #f1f5f9; display: flex; align-items: center; gap: 6px; overflow-x: auto; border-top: 1px solid #e2e8f0;">
-            <!-- Model pill -->
             <select id="cs-model" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
                 <option value="higgsfield-ai/dop/standard">DoP Standard</option>
                 <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
                 <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
             </select>
-
-            <!-- Aspect ratio pill -->
             <select id="cs-ratio" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
                 <option value="9:16">9:16</option>
                 <option value="16:9">16:9</option>
-                <option value="21:9">21:9</option>
                 <option value="1:1">1:1</option>
             </select>
-
-            <!-- Sound toggle pill -->
             <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
-                <svg width="12" height="12" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
                 <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;" checked>
                 <span style="font-size: 11px; font-weight: 600; color: #374151;">Sound</span>
             </label>
-
-            <!-- Slow motion toggle -->
             <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
                 <input type="checkbox" id="cs-slowmo" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;">
                 <span style="font-size: 11px; font-weight: 600; color: #374151;">Slow Mo</span>
             </label>
-
-            <!-- Spacer -->
             <div style="flex:1;"></div>
-
-            <!-- Generate buttons -->
-            <button id="cs-gen-v1" onclick="generateVideo({{ script.id }}, 1)" style="padding: 6px 18px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-                GENERATE V1
-            </button>
-            <button id="cs-gen-v2" onclick="generateVideo({{ script.id }}, 2)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid #3b82f6; background: transparent; color: #3b82f6; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-                GENERATE V2
-            </button>
-            <button id="cs-gen-v3" onclick="generateVideo({{ script.id }}, 3)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid #3b82f6; background: transparent; color: #3b82f6; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-                GENERATE V3
+            <button id="cs-generate-btn" onclick="generateStep({{ script.id }})" style="padding: 8px 28px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.02em;">
+                GENERATE
             </button>
         </div>
+    </div>
 
-        <!-- Video 1 Status & Preview -->
-        <div id="cs-v1-area" style="display:none; padding: 12px 18px;" class="mb-3">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-medium text-gray-600">Video 1</span>
-                <span id="cs-v1-status" class="status-badge status-queued">queued</span>
-            </div>
-            <div id="cs-v1-player" style="display:none;">
-                <video id="cs-v1-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                <div class="flex gap-2 mt-2 items-center">
-                    <a id="cs-v1-download" href="#" download class="btn-sm btn-secondary inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download
-                    </a>
-                    <span id="cs-v1-sub-status" style="display:none;"></span>
-                    <button id="cs-v1-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV1GenId, 1)">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                        Add Subtitles
-                    </button>
+    <!-- Pipeline Steps -->
+    <div id="pipeline-steps" class="space-y-4">
+        <!-- Step 1: V1 -->
+        <div id="step-1" class="stat-card" style="display: none;">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; color: #fff; font-size: 11px; font-weight: 800;">1</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Video 1</span>
+                    <span id="step-1-status" class="status-badge status-queued" style="display:none;">generating</span>
                 </div>
-                <!-- Subtitled video player -->
-                <div id="cs-v1-sub-player" style="display:none;" class="mt-3">
-                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
-                    <video id="cs-v1-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <a id="cs-v1-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span id="step-1-endframe-badge" style="display:none; font-size: 10px; color: #16a34a; font-weight: 600;">End Frame Extracted</span>
+            </div>
+            <div id="step-1-variants" class="grid grid-cols-2 gap-3"></div>
+            <div id="step-1-actions" style="display:none; margin-top: 12px;">
+                <button id="step-1-continue" onclick="generateStep({{ script.id }})" class="btn btn-primary" style="font-size: 12px; font-weight: 700;" disabled>
+                    Continue to V2 &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: V2 -->
+        <div id="step-2" class="stat-card" style="display: none;">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #8b5cf6; color: #fff; font-size: 11px; font-weight: 800;">2</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Video 2</span>
+                    <span id="step-2-status" class="status-badge status-queued" style="display:none;">generating</span>
+                </div>
+                <span id="step-2-source" style="font-size: 10px; color: #9ca3af;">Using end frame from V1</span>
+            </div>
+            <div id="step-2-variants" class="grid grid-cols-2 gap-3"></div>
+            <div id="step-2-actions" style="display:none; margin-top: 12px;">
+                <button id="step-2-continue" onclick="generateStep({{ script.id }})" class="btn btn-primary" style="font-size: 12px; font-weight: 700;" disabled>
+                    Continue to V3 &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: V3 -->
+        <div id="step-3" class="stat-card" style="display: none;">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: #fff; font-size: 11px; font-weight: 800;">3</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Video 3</span>
+                    <span id="step-3-status" class="status-badge status-queued" style="display:none;">generating</span>
+                </div>
+                <span id="step-3-source" style="font-size: 10px; color: #9ca3af;">Using end frame from V2</span>
+            </div>
+            <div id="step-3-variants" class="grid grid-cols-2 gap-3"></div>
+            <div id="step-3-actions" style="display:none; margin-top: 12px;">
+                <button id="step-3-finalize" onclick="concatAndSubtitle({{ script.id }})" class="btn btn-primary" style="font-size: 12px; font-weight: 700;" disabled>
+                    Finalize &rarr; Concat + Subtitles
+                </button>
+            </div>
+        </div>
+
+        <!-- Final: Concat + Subtitles result -->
+        <div id="step-final" class="stat-card" style="display: none;">
+            <div class="flex items-center gap-2 mb-3">
+                <svg width="20" height="20" fill="none" stroke="#16a34a" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span style="font-size: 14px; font-weight: 800; color: #1e293b;">Final Video</span>
+                <span id="final-sub-status" class="status-badge" style="display:none;"></span>
+            </div>
+            <div id="final-video-area" style="display:none;">
+                <video id="final-video-player" controls class="w-full rounded-lg" style="max-height: 500px; background: #000;"></video>
+                <div class="flex gap-2 mt-3">
+                    <a id="final-download" href="#" download class="btn btn-primary inline-flex" style="font-size: 12px;">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Final Video
+                    </a>
+                    <a id="final-sub-download" href="#" download class="btn btn-secondary inline-flex" style="font-size: 12px; display:none;">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Download with Subtitles
                     </a>
                 </div>
             </div>
-        </div>
-
-        <!-- Video 2 Status & Preview -->
-        <div id="cs-v2-area" style="display:none; padding: 12px 18px;">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-medium text-gray-600">Video 2</span>
-                <span id="cs-v2-status" class="status-badge status-queued">queued</span>
+            <div id="final-processing" style="text-align: center; padding: 20px; color: #9ca3af;">
+                <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin: 0 auto 8px;"><circle cx="12" cy="12" r="10" stroke="#e2e8f0" stroke-width="3"/><path d="M12 2a10 10 0 0110 10" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/></svg>
+                <p style="font-size: 12px; font-weight: 600;">Concatenating videos + generating subtitles...</p>
             </div>
-            <div id="cs-v2-player" style="display:none;">
-                <video id="cs-v2-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                <div class="flex gap-2 mt-2 items-center">
-                    <a id="cs-v2-download" href="#" download class="btn-sm btn-secondary inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download
-                    </a>
-                    <span id="cs-v2-sub-status" style="display:none;"></span>
-                    <button id="cs-v2-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV2GenId, 2)">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                        Add Subtitles
-                    </button>
-                </div>
-                <!-- Subtitled video player -->
-                <div id="cs-v2-sub-player" style="display:none;" class="mt-3">
-                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
-                    <video id="cs-v2-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <a id="cs-v2-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download with Subtitles
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Video 3 Status & Preview -->
-        <div id="cs-v3-area" style="display:none; padding: 12px 18px;">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-medium text-gray-600">Video 3</span>
-                <span id="cs-v3-status" class="status-badge status-queued">queued</span>
-            </div>
-            <div id="cs-v3-player" style="display:none;">
-                <video id="cs-v3-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                <div class="flex gap-2 mt-2 items-center">
-                    <a id="cs-v3-download" href="#" download class="btn-sm btn-secondary inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download
-                    </a>
-                    <span id="cs-v3-sub-status" style="display:none;"></span>
-                    <button id="cs-v3-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV3GenId, 3)">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                        Add Subtitles
-                    </button>
-                </div>
-                <!-- Subtitled video player -->
-                <div id="cs-v3-sub-player" style="display:none;" class="mt-3">
-                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
-                    <video id="cs-v3-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <a id="cs-v3-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download with Subtitles
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Previous Generations -->
-        <div id="cs-history" style="display:none; padding: 12px 18px;" class="mt-4 border-t border-gray-200 pt-3">
-            <h3 class="text-xs font-medium text-gray-400 uppercase mb-2">Previous Generations</h3>
-            <div id="cs-history-list" class="space-y-2"></div>
         </div>
     </div>
 </div>
 
-<!-- ==================== TAB 3: SUBTITLES ==================== -->
-<div id="tab-subtitles" class="sv-tab-content" style="display: none;">
-    <div style="background: #ffffff; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
-        <!-- Header -->
-        <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: between; gap: 8px;">
-            <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-            <span style="font-size: 13px; font-weight: 700; color: #1e293b;">TikTok Subtitles</span>
-            <span style="font-size: 11px; color: #9ca3af; margin-left: 8px;">Word-by-word highlight, Futura Bold, pop animation, 72fps</span>
-        </div>
-
-        <!-- Subtitle cards loaded dynamically -->
-        <div id="sub-tab-content" style="padding: 16px 20px;">
-            <div id="sub-tab-empty" style="text-align: center; padding: 40px 20px; color: #9ca3af;">
-                <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px;"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <p style="font-size: 13px; font-weight: 600;">No videos generated yet</p>
-                <p style="font-size: 12px; margin-top: 4px;">Generate videos in the Video tab first, then come here to add subtitles</p>
-            </div>
-            <div id="sub-tab-list" class="space-y-4" style="display: none;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ==================== TAB 4: PUBLICATION ==================== -->
+<!-- ==================== TAB 3: PUBLICATION ==================== -->
 <div id="tab-publication" class="sv-tab-content" style="display: none;">
+    <!-- Generate Metadata button -->
+    <div class="stat-card mb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-semibold text-gray-700">Auto-Generate Metadata</h2>
+                <p class="text-xs text-gray-400 mt-1">Claude Sonnet generates optimized title, description & tags per platform</p>
+            </div>
+            <button id="gen-metadata-btn" onclick="generateMetadata({{ script.id }})" class="btn btn-primary" style="font-size: 12px; font-weight: 700;">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Generate Metadata
+            </button>
+        </div>
+    </div>
+
+    <!-- Download Final Video -->
+    <div class="stat-card mb-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-700">Final Video</h2>
+            <div class="flex gap-2">
+                <a id="pub-download-final" href="/api/scripts/{{ script.id }}/download-final" download class="btn-sm btn-secondary inline-flex" style="font-size: 11px;">Download Video</a>
+                <a id="pub-download-sub" href="/api/scripts/{{ script.id }}/download-final?subtitled=true" download class="btn-sm btn-primary inline-flex" style="font-size: 11px;">Download with Subtitles</a>
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Publication Dates -->
         <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.publication">Publication</h2>
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Publication Dates</h2>
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-gray-600 font-medium">TikTok</span>
@@ -573,21 +475,81 @@
             </div>
         </div>
 
-        <!-- Metadata (TBD) -->
+        <!-- Placeholder for metadata loaded via JS -->
         <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3">Post Details</h2>
-            <div class="space-y-3">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Quick Stats</h2>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between"><span class="text-gray-400">Viral Score</span><span class="text-gray-700 font-bold">{{ script.viral_score or '—' }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Assigned To</span><span class="text-gray-700 font-bold" style="text-transform: capitalize;">{{ script.assigned_to or '—' }}</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Character</span><span class="text-gray-700 font-bold" style="text-transform: capitalize;">{{ script.character_type or '—' }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-platform metadata -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+        <!-- TikTok -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h3 style="font-size: 13px; font-weight: 700; color: #000;">TikTok</h3>
+                <button class="btn-sm btn-secondary" style="font-size: 9px;" onclick="copyPlatformMeta('tiktok')">Copy All</button>
+            </div>
+            <div class="space-y-2">
                 <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Title</label>
-                    <input type="text" id="pub-title" class="w-full input" style="font-size: 13px;" placeholder="Video title..." value="">
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Title</label>
+                    <input type="text" id="pub-tiktok-title" class="w-full input" style="font-size: 12px;" placeholder="Auto-generate..." value="{{ script.pub_title_tiktok or '' }}">
                 </div>
                 <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Description</label>
-                    <textarea id="pub-description" class="w-full input" rows="4" style="font-size: 13px;" placeholder="Video description..."></textarea>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Description</label>
+                    <textarea id="pub-tiktok-desc" class="w-full input" rows="3" style="font-size: 12px;" placeholder="Auto-generate...">{{ script.pub_desc_tiktok or '' }}</textarea>
                 </div>
                 <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Tags</label>
-                    <input type="text" id="pub-tags" class="w-full input" style="font-size: 13px;" placeholder="#viral #finance #ai" value="">
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Tags</label>
+                    <textarea id="pub-tiktok-tags" class="w-full input" rows="2" style="font-size: 11px;" placeholder="#hashtags...">{{ script.pub_tags_tiktok or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instagram -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h3 style="font-size: 13px; font-weight: 700; color: #E1306C;">Instagram</h3>
+                <button class="btn-sm btn-secondary" style="font-size: 9px;" onclick="copyPlatformMeta('instagram')">Copy All</button>
+            </div>
+            <div class="space-y-2">
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Title</label>
+                    <input type="text" id="pub-instagram-title" class="w-full input" style="font-size: 12px;" placeholder="Auto-generate..." value="{{ script.pub_title_instagram or '' }}">
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Description</label>
+                    <textarea id="pub-instagram-desc" class="w-full input" rows="3" style="font-size: 12px;" placeholder="Auto-generate...">{{ script.pub_desc_instagram or '' }}</textarea>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Tags</label>
+                    <textarea id="pub-instagram-tags" class="w-full input" rows="2" style="font-size: 11px;" placeholder="#hashtags...">{{ script.pub_tags_instagram or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- YouTube -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h3 style="font-size: 13px; font-weight: 700; color: #FF0000;">YouTube</h3>
+                <button class="btn-sm btn-secondary" style="font-size: 9px;" onclick="copyPlatformMeta('youtube')">Copy All</button>
+            </div>
+            <div class="space-y-2">
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Title</label>
+                    <input type="text" id="pub-youtube-title" class="w-full input" style="font-size: 12px;" placeholder="Auto-generate..." value="{{ script.pub_title_youtube or '' }}">
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Description</label>
+                    <textarea id="pub-youtube-desc" class="w-full input" rows="3" style="font-size: 12px;" placeholder="Auto-generate...">{{ script.pub_desc_youtube or '' }}</textarea>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; display: block; margin-bottom: 3px;">Tags</label>
+                    <textarea id="pub-youtube-tags" class="w-full input" rows="2" style="font-size: 11px;" placeholder="tags...">{{ script.pub_tags_youtube or '' }}</textarea>
                 </div>
             </div>
         </div>
@@ -598,119 +560,382 @@
 
 {% block scripts %}
 <script>
+const SCRIPT_ID = {{ script.id }};
+let _pipelineStep = 0; // current step: 0=not started, 1=V1, 2=V2, 3=V3
+let _endFrameUrls = {}; // {1: url, 2: url}
+let _pollers = {};
+
 // === Tab switching ===
 function switchTab(tabName, btn) {
-    // Hide all tabs
     document.querySelectorAll('.sv-tab-content').forEach(el => el.style.display = 'none');
-    // Deactivate all tab buttons
     document.querySelectorAll('.sv-tab').forEach(el => {
         el.style.color = '#9ca3af';
         el.style.borderBottomColor = 'transparent';
     });
-    // Show selected tab
     const tab = document.getElementById('tab-' + tabName);
     if (tab) tab.style.display = '';
-    // Activate button
     if (btn) {
         btn.style.color = '#1e293b';
         btn.style.borderBottomColor = '#3b82f6';
     }
-    // Reload subtitle tab when switching to it
-    if (tabName === 'subtitles') {
-        loadSubtitleTab({{ script.id }});
-    }
+    if (tabName === 'video') restorePipeline();
 }
 
-// === Subtitles Tab ===
-async function loadSubtitleTab(scriptId) {
-    const data = await api('/api/scripts/' + scriptId + '/video-generations');
-    const emptyEl = document.getElementById('sub-tab-empty');
-    const listEl = document.getElementById('sub-tab-list');
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        if (emptyEl) emptyEl.style.display = '';
-        if (listEl) listEl.style.display = 'none';
+// === Pipeline: Get settings from Director Panel ===
+function getSettings() {
+    return {
+        avatar_id: parseInt(document.getElementById('cs-avatar').value) || null,
+        model_id: document.getElementById('cs-model').value,
+        duration: parseInt(document.getElementById('cs-duration').value),
+        aspect_ratio: document.getElementById('cs-ratio').value,
+        camera_movement: document.getElementById('cs-camera').value,
+        sound: document.getElementById('cs-sound').checked,
+        slow_motion: document.getElementById('cs-slowmo').checked,
+        speed_ramp: document.getElementById('cs-speed-ramp').value,
+    };
+}
+
+// === Pipeline: Generate Step (2 variants) ===
+async function generateStep(scriptId) {
+    _pipelineStep++;
+    if (_pipelineStep > 3) { toast('All 3 steps done!', 'info'); return; }
+    const step = _pipelineStep;
+    const settings = getSettings();
+    if (!settings.avatar_id) { toast('Select an avatar first', 'error'); _pipelineStep--; return; }
+
+    const stepEl = document.getElementById('step-' + step);
+    stepEl.style.display = '';
+    const statusEl = document.getElementById('step-' + step + '-status');
+    statusEl.style.display = '';
+    statusEl.textContent = 'generating...';
+    statusEl.className = 'status-badge status-running';
+
+    // Disable generate/continue button
+    const genBtn = document.getElementById('cs-generate-btn');
+    if (genBtn) genBtn.disabled = true;
+    if (step > 1) {
+        const prevCont = document.getElementById('step-' + (step - 1) + '-continue');
+        if (prevCont) prevCont.disabled = true;
+    }
+
+    const body = {
+        video_number: step,
+        ...settings,
+        end_frame_image: _endFrameUrls[step - 1] || '',
+    };
+
+    const result = await api('/api/scripts/' + scriptId + '/generate-step', 'POST', body);
+    if (!result || !result.ok) {
+        toast('Generation failed: ' + (result?.detail || 'error'), 'error');
+        statusEl.textContent = 'failed';
+        statusEl.className = 'status-badge status-failed';
+        _pipelineStep--;
+        if (genBtn) genBtn.disabled = false;
         return;
     }
 
-    const completed = data.filter(g => g.status === 'completed' && g.video_url);
-    if (completed.length === 0) {
-        if (emptyEl) { emptyEl.style.display = ''; emptyEl.querySelector('p').textContent = 'Videos are still generating...'; }
-        if (listEl) listEl.style.display = 'none';
-        return;
-    }
+    // Show variant placeholders and start polling
+    const variantsEl = document.getElementById('step-' + step + '-variants');
+    variantsEl.innerHTML = result.generation_ids.map((gid, i) => `
+        <div id="var-${step}-${i}" style="background: #f8fafc; border-radius: 10px; padding: 12px; border: 2px solid #e2e8f0; transition: border-color 0.2s;">
+            <div class="flex items-center justify-between mb-2">
+                <span style="font-size: 11px; font-weight: 700; color: #6b7280;">Variant ${String.fromCharCode(65 + i)}</span>
+                <span id="var-${step}-${i}-status" class="status-badge status-running">generating</span>
+            </div>
+            <div id="var-${step}-${i}-player" style="width: 100%; aspect-ratio: 9/16; max-height: 300px; background: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; overflow: hidden;">
+                <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#374151" stroke-width="2" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <input type="radio" name="select-v${step}" value="${gid}" onchange="onVariantSelect(${scriptId}, ${step}, ${gid})" style="accent-color: #3b82f6;" disabled>
+                    <span style="font-size: 11px; font-weight: 600; color: #374151;">Select</span>
+                </label>
+                <button onclick="deleteGeneration(${scriptId}, ${gid}, this)" style="margin-left: auto; font-size: 10px; color: #ef4444; background: none; border: none; cursor: pointer;">Delete</button>
+            </div>
+        </div>
+    `).join('');
 
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (listEl) listEl.style.display = '';
+    // Start polling each variant
+    result.generation_ids.forEach((gid, i) => {
+        pollVariant(scriptId, step, i, gid);
+    });
+}
 
-    listEl.innerHTML = completed.map(g => {
-        const subStatus = g.subtitle_status || '';
-        const isProcessing = subStatus === 'processing';
-        const isCompleted = subStatus === 'completed';
-        const downloadUrl = '/api/scripts/' + scriptId + '/download-subtitled/' + g.id;
+// === Poll variant status ===
+function pollVariant(scriptId, step, variantIdx, genId) {
+    const key = `${step}-${variantIdx}`;
+    if (_pollers[key]) clearInterval(_pollers[key]);
+    _pollers[key] = setInterval(async () => {
+        const r = await api(`/api/scripts/${scriptId}/video-status/${genId}`);
+        if (!r) return;
+        const statusEl = document.getElementById(`var-${step}-${variantIdx}-status`);
+        const playerEl = document.getElementById(`var-${step}-${variantIdx}-player`);
 
-        let actionHtml = '';
-        if (isCompleted) {
-            actionHtml = '<div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">' +
-                '<span class="status-badge status-completed">Subtitles Ready</span>' +
-                '<a href="' + downloadUrl + '" download class="btn-sm btn-primary inline-flex">' +
-                '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
-                'Download with Subtitles</a></div>' +
-                '<div style="margin-top: 8px;"><video src="' + downloadUrl + '" controls style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;"></video></div>';
-        } else if (isProcessing) {
-            actionHtml = '<div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">' +
-                '<span class="status-badge status-running">Processing subtitles...</span>' +
-                '<span style="font-size: 11px; color: #9ca3af;">Whisper transcription + burn animation</span></div>';
+        if (r.status === 'completed' && r.video_url) {
+            clearInterval(_pollers[key]);
+            statusEl.textContent = 'completed';
+            statusEl.className = 'status-badge status-completed';
+            playerEl.innerHTML = `<video src="${r.video_url}" controls style="width:100%;height:100%;object-fit:contain;"></video>`;
+            // Enable radio button
+            const radio = document.querySelector(`input[name="select-v${step}"][value="${genId}"]`);
+            if (radio) radio.disabled = false;
+            checkStepComplete(step);
+        } else if (r.status === 'failed' || r.status === 'nsfw') {
+            clearInterval(_pollers[key]);
+            statusEl.textContent = r.status;
+            statusEl.className = 'status-badge status-failed';
+            playerEl.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; font-size: 11px;">${r.error || r.status}</div>`;
         } else {
-            actionHtml = '<div style="margin-top: 12px;">' +
-                '<button class="btn-sm btn-primary" onclick="subtitleTabAdd(' + scriptId + ', ' + g.id + ', this)" style="padding: 8px 20px; font-size: 12px; font-weight: 700;">' +
-                '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>' +
-                'Add TikTok Subtitles</button></div>';
+            statusEl.textContent = r.status || 'generating';
         }
-
-        return '<div style="background: #f8fafc; border-radius: 10px; padding: 16px; border: 1px solid #e2e8f0;">' +
-            '<div style="display: flex; align-items: center; justify-content: space-between;">' +
-            '<div style="display: flex; align-items: center; gap: 8px;">' +
-            '<span style="font-size: 13px; font-weight: 700; color: #1e293b;">Video ' + g.video_number + '</span>' +
-            '<span style="font-size: 11px; color: #9ca3af;">' + g.model_id.split('/').pop() + ' / ' + g.duration + 's</span></div>' +
-            '<a href="' + g.video_url + '" target="_blank" class="btn-sm btn-secondary" style="font-size: 10px;">Watch Original</a></div>' +
-            '<div style="margin-top: 8px;"><video src="' + g.video_url + '" controls style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;"></video></div>' +
-            actionHtml +
-            '</div>';
-    }).join('');
+    }, 4000);
 }
 
-async function subtitleTabAdd(scriptId, generationId, btn) {
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Starting...';
+// === Check if all variants in a step are done ===
+function checkStepComplete(step) {
+    const variantsEl = document.getElementById('step-' + step + '-variants');
+    const statuses = variantsEl.querySelectorAll('[id$="-status"]');
+    const allDone = Array.from(statuses).every(s => s.textContent === 'completed' || s.textContent === 'failed' || s.textContent === 'nsfw');
+    if (allDone) {
+        const stepStatusEl = document.getElementById('step-' + step + '-status');
+        stepStatusEl.textContent = 'choose variant';
+        stepStatusEl.className = 'status-badge' ;
+        stepStatusEl.style.background = 'rgba(59,130,246,0.1)';
+        stepStatusEl.style.color = '#3b82f6';
     }
-    const result = await api('/api/scripts/' + scriptId + '/add-subtitles/' + generationId, 'POST');
-    if (result && result.ok) {
-        toast('Subtitle generation started!', 'info');
-        // Poll for completion
-        const interval = setInterval(async () => {
-            const status = await api('/api/scripts/' + scriptId + '/subtitle-status/' + generationId);
-            if (!status) return;
-            if (status.subtitle_status === 'completed' || status.subtitle_status === 'failed') {
-                clearInterval(interval);
-                toast(status.subtitle_status === 'completed' ? 'Subtitles ready!' : 'Subtitles failed', status.subtitle_status === 'completed' ? 'success' : 'error');
-                loadSubtitleTab(scriptId);
-            }
-        }, 3000);
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Processing...';
-        }
+}
+
+// === Select variant ===
+async function onVariantSelect(scriptId, step, genId) {
+    // Highlight selected
+    document.querySelectorAll(`#step-${step}-variants > div`).forEach(d => d.style.borderColor = '#e2e8f0');
+    const radio = document.querySelector(`input[name="select-v${step}"][value="${genId}"]`);
+    if (radio) radio.closest('[id^="var-"]').style.borderColor = '#3b82f6';
+
+    const result = await api(`/api/scripts/${scriptId}/select-variant`, 'POST', {
+        video_number: step,
+        generation_id: genId,
+    });
+    if (!result || !result.ok) {
+        toast('Selection failed: ' + (result?.detail || 'error'), 'error');
+        return;
+    }
+
+    _endFrameUrls[step] = result.end_frame_url || '';
+    const badge = document.getElementById('step-' + step + '-endframe-badge');
+    if (badge && result.end_frame_url) badge.style.display = '';
+
+    const actionsEl = document.getElementById('step-' + step + '-actions');
+    if (actionsEl) actionsEl.style.display = '';
+    if (step < 3) {
+        const contBtn = document.getElementById('step-' + step + '-continue');
+        if (contBtn) contBtn.disabled = false;
     } else {
-        toast('Failed to start subtitles: ' + (result?.detail || 'Unknown error'), 'error');
-        if (btn) { btn.disabled = false; btn.textContent = 'Add TikTok Subtitles'; }
+        const finBtn = document.getElementById('step-3-finalize');
+        if (finBtn) finBtn.disabled = false;
+    }
+
+    toast('Variant selected! End frame extracted.', 'success');
+}
+
+// === Delete generation ===
+async function deleteGeneration(scriptId, genId, btn) {
+    if (!confirm('Delete this generation?')) return;
+    const r = await api(`/api/scripts/${scriptId}/video-generation/${genId}`, 'DELETE');
+    if (r && r.ok) {
+        if (btn) btn.closest('[id^="var-"]').remove();
+        toast('Generation deleted', 'info');
+    }
+}
+
+// === Concat + Subtitles ===
+async function concatAndSubtitle(scriptId) {
+    const finBtn = document.getElementById('step-3-finalize');
+    if (finBtn) { finBtn.disabled = true; finBtn.textContent = 'Processing...'; }
+
+    const finalEl = document.getElementById('step-final');
+    finalEl.style.display = '';
+    document.getElementById('final-video-area').style.display = 'none';
+    document.getElementById('final-processing').style.display = '';
+
+    const result = await api(`/api/scripts/${scriptId}/concat-videos`, 'POST');
+    if (!result || !result.ok) {
+        toast('Concat failed: ' + (result?.detail || 'error'), 'error');
+        document.getElementById('final-processing').innerHTML = '<p style="color: #ef4444; font-size: 12px;">Concatenation failed</p>';
+        return;
+    }
+
+    toast('Videos concatenated! Generating subtitles...', 'success');
+    // Poll for final video with subtitles
+    const pollFinal = setInterval(async () => {
+        const s = await api(`/api/scripts/${scriptId}/final-video-status`);
+        if (!s) return;
+        if (s.has_subtitled) {
+            clearInterval(pollFinal);
+            showFinalVideo(scriptId, true);
+        } else if (s.has_final) {
+            // Show final without subtitles while we wait
+            showFinalVideo(scriptId, false);
+        }
+    }, 5000);
+    // Also show after a timeout even without subtitles
+    setTimeout(() => { showFinalVideo(scriptId, false); }, 3000);
+}
+
+function showFinalVideo(scriptId, hasSubs) {
+    document.getElementById('final-processing').style.display = 'none';
+    document.getElementById('final-video-area').style.display = '';
+    const player = document.getElementById('final-video-player');
+    const dlUrl = hasSubs ? `/api/scripts/${scriptId}/download-final?subtitled=true` : `/api/scripts/${scriptId}/download-final`;
+    player.src = dlUrl;
+    document.getElementById('final-download').href = `/api/scripts/${scriptId}/download-final`;
+    if (hasSubs) {
+        const subDl = document.getElementById('final-sub-download');
+        subDl.style.display = '';
+        subDl.href = `/api/scripts/${scriptId}/download-final?subtitled=true`;
+        const subStatus = document.getElementById('final-sub-status');
+        subStatus.style.display = '';
+        subStatus.textContent = 'Subtitles Ready';
+        subStatus.className = 'status-badge status-completed';
+    }
+}
+
+// === Generate Metadata ===
+async function generateMetadata(scriptId) {
+    const btn = document.getElementById('gen-metadata-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Generating...';
+    const result = await api(`/api/scripts/${scriptId}/generate-metadata`, 'POST');
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Generate Metadata';
+    if (!result || !result.ok) {
+        toast('Metadata generation failed: ' + (result?.detail || 'error'), 'error');
+        return;
+    }
+    const m = result.metadata;
+    document.getElementById('pub-tiktok-title').value = m.tiktok?.title || '';
+    document.getElementById('pub-tiktok-desc').value = m.tiktok?.description || '';
+    document.getElementById('pub-tiktok-tags').value = m.tiktok?.tags || '';
+    document.getElementById('pub-instagram-title').value = m.instagram?.title || '';
+    document.getElementById('pub-instagram-desc').value = m.instagram?.description || '';
+    document.getElementById('pub-instagram-tags').value = m.instagram?.tags || '';
+    document.getElementById('pub-youtube-title').value = m.youtube?.title || '';
+    document.getElementById('pub-youtube-desc').value = m.youtube?.description || '';
+    document.getElementById('pub-youtube-tags').value = m.youtube?.tags || '';
+    toast('Metadata generated!', 'success');
+}
+
+// === Copy platform metadata ===
+function copyPlatformMeta(platform) {
+    const title = document.getElementById('pub-' + platform + '-title').value;
+    const desc = document.getElementById('pub-' + platform + '-desc').value;
+    const tags = document.getElementById('pub-' + platform + '-tags').value;
+    const text = [title, desc, tags].filter(Boolean).join('\n\n');
+    navigator.clipboard.writeText(text).then(() => toast('Copied ' + platform + ' metadata!', 'success'));
+}
+
+// === Restore pipeline from existing generations ===
+async function restorePipeline() {
+    const data = await api('/api/scripts/' + SCRIPT_ID + '/video-generations');
+    if (!data || !Array.isArray(data) || data.length === 0) return;
+
+    // Group by video_number
+    const byStep = {};
+    data.forEach(g => {
+        if (!byStep[g.video_number]) byStep[g.video_number] = [];
+        byStep[g.video_number].push(g);
+    });
+
+    for (let step = 1; step <= 3; step++) {
+        const gens = byStep[step];
+        if (!gens || gens.length === 0) continue;
+
+        _pipelineStep = Math.max(_pipelineStep, step);
+        const stepEl = document.getElementById('step-' + step);
+        stepEl.style.display = '';
+
+        const variantsEl = document.getElementById('step-' + step + '-variants');
+        variantsEl.innerHTML = gens.map((g, i) => {
+            const isCompleted = g.status === 'completed' && g.video_url;
+            const isFailed = g.status === 'failed' || g.status === 'nsfw';
+            const isSelected = g.selected;
+            return `
+                <div id="var-${step}-${i}" style="background: #f8fafc; border-radius: 10px; padding: 12px; border: 2px solid ${isSelected ? '#3b82f6' : '#e2e8f0'};">
+                    <div class="flex items-center justify-between mb-2">
+                        <span style="font-size: 11px; font-weight: 700; color: #6b7280;">Variant ${String.fromCharCode(65 + i)}</span>
+                        <span class="status-badge ${isCompleted ? 'status-completed' : isFailed ? 'status-failed' : 'status-running'}">${g.status}</span>
+                    </div>
+                    <div style="width: 100%; aspect-ratio: 9/16; max-height: 300px; background: #000; border-radius: 8px; overflow: hidden;">
+                        ${isCompleted ? `<video src="${g.video_url}" controls style="width:100%;height:100%;object-fit:contain;"></video>` :
+                          isFailed ? `<div style="padding:20px;text-align:center;color:#ef4444;font-size:11px;">${g.status}</div>` :
+                          '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#374151" stroke-width="2" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/></svg></div>'}
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="radio" name="select-v${step}" value="${g.id}" ${isSelected ? 'checked' : ''} ${isCompleted ? '' : 'disabled'} onchange="onVariantSelect(${SCRIPT_ID}, ${step}, ${g.id})" style="accent-color:#3b82f6;">
+                            <span style="font-size:11px;font-weight:600;color:#374151;">${isSelected ? 'Selected' : 'Select'}</span>
+                        </label>
+                        <button onclick="deleteGeneration(${SCRIPT_ID}, ${g.id}, this)" style="margin-left:auto;font-size:10px;color:#ef4444;background:none;border:none;cursor:pointer;">Delete</button>
+                    </div>
+                </div>`;
+        }).join('');
+
+        // Restore end frame
+        const selected = gens.find(g => g.selected);
+        if (selected && selected.end_frame_url) {
+            _endFrameUrls[step] = selected.end_frame_url;
+            const badge = document.getElementById('step-' + step + '-endframe-badge');
+            if (badge) badge.style.display = '';
+            const actionsEl = document.getElementById('step-' + step + '-actions');
+            if (actionsEl) actionsEl.style.display = '';
+            if (step < 3) {
+                const contBtn = document.getElementById('step-' + step + '-continue');
+                if (contBtn) contBtn.disabled = false;
+            } else {
+                const finBtn = document.getElementById('step-3-finalize');
+                if (finBtn) finBtn.disabled = false;
+            }
+        }
+
+        // If any gen is still running, poll it
+        gens.forEach((g, i) => {
+            if (g.status !== 'completed' && g.status !== 'failed' && g.status !== 'nsfw') {
+                pollVariant(SCRIPT_ID, step, i, g.id);
+            }
+        });
+
+        const statusEl = document.getElementById('step-' + step + '-status');
+        if (statusEl) {
+            const allDone = gens.every(g => g.status === 'completed' || g.status === 'failed' || g.status === 'nsfw');
+            if (allDone && selected) {
+                statusEl.textContent = 'done';
+                statusEl.className = 'status-badge status-completed';
+                statusEl.style.display = '';
+            } else if (allDone) {
+                statusEl.textContent = 'choose variant';
+                statusEl.style.display = '';
+                statusEl.style.background = 'rgba(59,130,246,0.1)';
+                statusEl.style.color = '#3b82f6';
+            } else {
+                statusEl.textContent = 'generating...';
+                statusEl.className = 'status-badge status-running';
+                statusEl.style.display = '';
+            }
+        }
+    }
+
+    // Check if final video exists
+    const fs = await api(`/api/scripts/${SCRIPT_ID}/final-video-status`);
+    if (fs && (fs.has_final || fs.has_subtitled)) {
+        const finalEl = document.getElementById('step-final');
+        finalEl.style.display = '';
+        showFinalVideo(SCRIPT_ID, fs.has_subtitled);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     loadAvatarsDropdown();
-    loadVideoGenerations({{ script.id }});
-    loadSubtitleTab({{ script.id }});
+    restorePipeline();
 });
 </script>
 {% endblock %}
