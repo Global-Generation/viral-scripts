@@ -81,8 +81,9 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 50-80 words of dialogue PER VIDEO. Both videos should have roughly EQUAL amounts of dialogue. 3-4 camera changes per video.
-Text chunks between camera changes: 2-3 sentences each."""
+DIALOGUE LIMIT: 50-80 words of dialogue PER VIDEO. 3-4 camera changes per video.
+Text chunks between camera changes: 2-3 sentences each.
+SPLITTING RULE: Count the dialogue lines in the script. Split them roughly 50/50 between Video 1 and Video 2. Video 1 gets the FIRST half of the lines, Video 2 gets the SECOND half. Do NOT put the conclusion/moral/payoff in Video 1 — that belongs in Video 2."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
 
@@ -94,9 +95,10 @@ You generate a SINGLE video prompt — Video 1 of 2 (the HOOK + TENSION).
 ══════════════════════
 ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
-FIRST HALF of the story. Confident opening, energy builds gradually.
+FIRST HALF of the script lines ONLY. Confident opening, energy builds gradually.
 Character stays composed. Never frantic.
-End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but the IDEA leaves the viewer wanting more.
+Do NOT include the conclusion, moral, or payoff — that goes in Video 2.
+End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
 
 ══════════════════════
 ENDING
@@ -108,7 +110,8 @@ MANDATORY: The video ends with a SHORT PAUSE (1-2 seconds of silence). Character
 """
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Take the CORE IDEA from the first half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase or invent new lines. 50-80 words of dialogue.
+Use the FIRST HALF of the script's lines as dialogue — do NOT paraphrase or invent new lines. 50-80 words of dialogue.
+Do NOT include the conclusion, moral, or payoff — leave that for Video 2. Stop BEFORE the script's resolution.
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
