@@ -76,7 +76,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
+DIALOGUE LIMIT: 30-40 words of dialogue for Video 1 and Video 2. Video 3 gets whatever remains. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
@@ -88,9 +88,9 @@ JUMP CUT TO close-up.
 "Next dialogue line."
 SPLITTING RULE (CRITICAL — SEQUENTIAL FILL):
 The script is split into 3 videos SEQUENTIALLY:
-1. Video 1 = first ~30-50 words from the beginning of the script
-2. Video 2 = next ~30-50 words, picking up EXACTLY where Video 1 stopped
-3. Video 3 = whatever text remains (may be shorter than 30 words — that's OK)
+1. Video 1 = first ~30-40 words from the beginning of the script
+2. Video 2 = next ~30-40 words, picking up EXACTLY where Video 1 stopped
+3. Video 3 = whatever text remains (may be shorter — that's OK)
 Each video uses EXACT lines from the script in order. No skipping, no rearranging."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -103,7 +103,7 @@ You generate a SINGLE video prompt — Video 1 of 3 (the HOOK + SETUP).
 ══════════════════════
 ENERGY — VIDEO 1 = HOOK + SETUP
 ══════════════════════
-Use ONLY the first ~30-50 words of the script. Stop early — the rest goes to Videos 2 and 3.
+Use ONLY the first ~30-40 words of the script. Stop early — the rest goes to Videos 2 and 3.
 Character stays composed. Never frantic.
 The conclusion, moral, and payoff belong in later videos.
 End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
@@ -119,12 +119,12 @@ This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions. 
 """
 
 USER_VIDEO1 = """Generate Video 1 of 3 (HOOK + SETUP) from this script.
-Use ONLY the first ~30-50 words of the script as dialogue. STOP early — leave the rest for Videos 2 and 3.
+Use ONLY the first ~30-40 words of the script as dialogue. STOP early — leave the rest for Videos 2 and 3.
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-30-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+30-40 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
@@ -144,7 +144,7 @@ ENERGY — VIDEO 2 = DEVELOPMENT
 MIDDLE SECTION. Pick up EXACTLY where Video 1 stopped — ZERO repeated lines.
 This video starts fresh from a neutral seated position.
 Settles into delivery — lean back, open hands, steady voice.
-Use exact lines from the script as dialogue. Use the next ~30-50 words that Video 1 did NOT cover.
+Use exact lines from the script as dialogue. Use the next ~30-40 words that Video 1 did NOT cover.
 Do NOT include the CTA — that belongs in Video 3.
 
 ══════════════════════
@@ -164,11 +164,11 @@ Do NOT reference the first part of the story — just continue delivering."""
 
 USER_VIDEO2 = """Generate Video 2 of 3 (DEVELOPMENT) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-50 words of dialogue. NO CTA — that's in Video 3.
+Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-40 words of dialogue. NO CTA — that's in Video 3.
 2-3 camera changes. Calm delivery. End mid-story — leave the conclusion for Video 3.
 
 Output the directorial description directly. No labels, no headers.
-30-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+30-40 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
