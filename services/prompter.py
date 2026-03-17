@@ -205,5 +205,10 @@ def generate_video_prompt(script_text: str) -> str:
     )
     video2_text = response2.content[0].text.strip()
 
-    # Combine both
-    return f"{video1_text}\n\n{video2_text}"
+    # Combine both — prepend camera setup header so readers know what Camera A/B mean
+    camera_header = """CAMERA SETUP:
+Camera A — Front-facing, slightly off-center. Close-ups and medium shots.
+Camera B — Side angle, ~30-45° offset. Wide 3/4 and alternate medium shots.
+Both cameras are FIXED on tripods. All transitions are HARD CUTS.
+"""
+    return f"{camera_header}\n{video1_text}\n\n{video2_text}"
