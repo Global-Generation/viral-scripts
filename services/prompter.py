@@ -81,8 +81,8 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 50-80 words of dialogue PER VIDEO. 3-4 camera changes per video.
-Text chunks between camera changes: 2-3 sentences each.
+DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
+Text chunks between camera changes: 1-2 sentences MAX of directorial description. Keep scene directions SHORT — focus on dialogue, not narration. Do NOT over-describe body language, emotions, or atmosphere.
 SPLITTING RULE (CRITICAL — MUST BE PROPORTIONAL):
 1. Count ALL words in the script
 2. Video 1 dialogue = first ~40-50% of the script's words. Video 2 dialogue = remaining ~50-60% (including conclusion + CTA)
@@ -120,7 +120,7 @@ Video 2 must have roughly the SAME amount of dialogue as Video 1 — so do NOT u
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-50-80 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+30-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
@@ -161,11 +161,11 @@ Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT lines from the script as dialogue — do NOT paraphrase. 50-80 words of dialogue (including CTA).
+Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-50 words of dialogue (including CTA).
 3-4 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
-50-80 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
+30-50 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
 
 ---
 
@@ -205,7 +205,7 @@ def generate_video_prompt(script_text: str) -> dict:
     # Step 1: Generate Video 1 (Hook + Tension)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=1000,
+        max_tokens=700,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text, word_count=word_count, half_words=half_words)}]
     )
@@ -226,7 +226,7 @@ def generate_video_prompt(script_text: str) -> dict:
     # Step 2: Generate Video 2 (Resolution)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=1000,
+        max_tokens=700,
         system=SYSTEM_VIDEO2,
         messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text, video1=video1_text)}]
     )
