@@ -305,6 +305,6 @@ def generate_video_prompt(script_text: str) -> dict:
     _log_usage("prompt")  # three Claude calls per generation
     return {
         "video1": f"{CAMERA_HEADER}\n{video1_text}",
-        "video2": f"{CAMERA_HEADER}\n{video2_text}",
-        "video3": f"{CAMERA_HEADER}\n{video3_text}",
+        "video2": video2_text,
+        "video3": video3_text,
     }
