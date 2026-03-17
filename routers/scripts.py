@@ -286,10 +286,10 @@ def generate_prompt(script_id: int, db: Session = Depends(get_db)):
     result = generate_video_prompt(text)
     script.video1_prompt = result["video1"]
     script.video2_prompt = result["video2"]
-    script.video3_prompt = result["video3"]
-    script.video_prompt = result["video1"] + "\n\n" + result["video2"] + "\n\n" + result["video3"]
+    script.video3_prompt = ""
+    script.video_prompt = result["video1"] + "\n\n" + result["video2"]
     db.commit()
-    return {"ok": True, "video1_prompt": result["video1"], "video2_prompt": result["video2"], "video3_prompt": result["video3"]}
+    return {"ok": True, "video1_prompt": result["video1"], "video2_prompt": result["video2"], "video3_prompt": ""}
 
 
 @router.post("/batch-generate-prompts")
@@ -310,8 +310,8 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
             result = generate_video_prompt(text)
             script.video1_prompt = result["video1"]
             script.video2_prompt = result["video2"]
-            script.video3_prompt = result["video3"]
-            script.video_prompt = result["video1"] + "\n\n" + result["video2"] + "\n\n" + result["video3"]
+            script.video3_prompt = ""
+            script.video_prompt = result["video1"] + "\n\n" + result["video2"]
             db.commit()
             count += 1
             logger.info(f"Generated prompt for script #{script.id}")

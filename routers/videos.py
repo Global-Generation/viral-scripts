@@ -4,62 +4,86 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
 from database import get_db
-from models import VideoGeneration, Script, Video, Avatar
+from models import Script, Video
 
 router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
 CREATORS = ["daniel", "boris", "thomas"]
-# Default publication offsets from TikTok date
 PUB_OFFSETS = {"tiktok": 0, "instagram": 7, "youtube": 14}
+
+# Base date for scheduling (start assigning from this date)
+SCHEDULE_START = date(2026, 3, 18)
 
 
 @router.get("/videos", response_class=HTMLResponse)
 def videos_page(request: Request, db: Session = Depends(get_db)):
-    generations = (
-        db.query(VideoGeneration)
-        .options(
-            joinedload(VideoGeneration.script).joinedload(Script.video),
-            joinedload(VideoGeneration.avatar),
-        )
-        .order_by(VideoGeneration.created_at.desc())
-        .all()
-    )
+    today = date.today()
 
-    # Build schedule: per-creator scripts with video generations
+    # Build schedule: per-creator, only scripts with prompts ready
     schedule = {}
+    todays_tasks = []
+
     for creator in CREATORS:
         scripts = (
             db.query(Script)
             .options(joinedload(Script.video))
-            .filter(Script.assigned_to == creator)
-            .order_by(Script.id.desc())
+            .filter(
+                Script.assigned_to == creator,
+                Script.video1_prompt != "",
+                Script.video1_prompt.isnot(None),
+                Script.video2_prompt != "",
+                Script.video2_prompt.isnot(None),
+            )
+            .order_by(Script.id.asc())
             .all()
         )
-        # Get generation counts per script
-        gen_counts = {}
-        completed_counts = {}
-        for s in scripts:
-            gens = db.query(VideoGeneration).filter(VideoGeneration.script_id == s.id).all()
-            gen_counts[s.id] = len(gens)
-            completed_counts[s.id] = len([g for g in gens if g.status == "completed"])
 
-        # Get final video URLs per script
-        final_videos = {}
-        for s in scripts:
-            if s.final_subtitled_path:
-                final_videos[s.id] = f"/api/scripts/{s.id}/download-final?subtitled=true"
-            elif s.final_video_path:
-                final_videos[s.id] = f"/api/scripts/{s.id}/download-final"
+        # Assign dates: 1 script per day per creator
+        script_dates = []
+        for i, script in enumerate(scripts):
+            base_date = SCHEDULE_START + timedelta(days=i)
+            tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
+            ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+            yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+            entry = {
+                "script": script,
+                "tiktok_date": tt_date,
+                "instagram_date": ig_date,
+                "youtube_date": yt_date,
+                "has_pub_meta": bool(script.pub_title_tiktok),
+            }
+            script_dates.append(entry)
+
+            # Check if any platform is due today
+            if tt_date == today:
+                todays_tasks.append({
+                    "creator": creator,
+                    "script": script,
+                    "platform": "TikTok",
+                    "date": tt_date,
+                })
+            if ig_date == today:
+                todays_tasks.append({
+                    "creator": creator,
+                    "script": script,
+                    "platform": "Instagram",
+                    "date": ig_date,
+                })
+            if yt_date == today:
+                todays_tasks.append({
+                    "creator": creator,
+                    "script": script,
+                    "platform": "YouTube",
+                    "date": yt_date,
+                })
 
         schedule[creator] = {
-            "scripts": scripts,
-            "gen_counts": gen_counts,
-            "completed_counts": completed_counts,
-            "final_videos": final_videos,
+            "scripts": script_dates,
+            "count": len(scripts),
         }
 
     return templates.TemplateResponse(
@@ -67,9 +91,10 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "active_page": "videos",
-            "generations": generations,
             "schedule": schedule,
             "creators": CREATORS,
             "pub_offsets": PUB_OFFSETS,
+            "todays_tasks": todays_tasks,
+            "today": today,
         }
     )

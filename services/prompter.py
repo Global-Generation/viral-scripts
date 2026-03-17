@@ -76,7 +76,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT — HARD LIMIT: Video 1 and Video 2 must have EXACTLY 30-40 words of dialogue each. NOT 50, NOT 60 — count your words. If you exceed 40 words of dialogue in a video, you have FAILED. Video 3 gets whatever remains. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
+DIALOGUE LIMIT — HARD LIMIT: Video 1 and Video 2 must have EXACTLY 40-50 words of dialogue each. NOT 30, NOT 60 — count your words. If you exceed 50 words of dialogue in a video, you have FAILED. Both videos must have APPROXIMATELY EQUAL amounts of dialogue (within 5 words of each other). 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
@@ -87,25 +87,25 @@ JUMP CUT TO close-up.
 
 "Next dialogue line."
 SPLITTING RULE (CRITICAL — SEQUENTIAL FILL):
-The script is split into 3 videos SEQUENTIALLY:
-1. Video 1 = first ~30-40 words from the beginning of the script
-2. Video 2 = next ~30-40 words, picking up EXACTLY where Video 1 stopped
-3. Video 3 = whatever text remains (may be shorter — that's OK)
-Each video uses EXACT lines from the script in order. No skipping, no rearranging."""
+The script is split into 2 videos SEQUENTIALLY, with EQUAL text in each:
+1. Video 1 = first ~50% of the script words (HOOK + DEVELOPMENT)
+2. Video 2 = remaining ~50% of the script words (CONCLUSION + CTA)
+Each video uses EXACT lines from the script in order. No skipping, no rearranging.
+The two halves must be APPROXIMATELY EQUAL in dialogue word count (within 5 words of each other)."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
 
 SYSTEM_VIDEO1 = f"""You are a professional video director for vertical TikTok/Reels content.
-You generate a SINGLE video prompt — Video 1 of 3 (the HOOK + SETUP).
+You generate a SINGLE video prompt — Video 1 of 2 (HOOK + DEVELOPMENT).
 
 {SHARED_RULES}
 
 ══════════════════════
-ENERGY — VIDEO 1 = HOOK + SETUP
+ENERGY — VIDEO 1 = HOOK + DEVELOPMENT
 ══════════════════════
-Use ONLY the first ~30-40 words of the script. Stop early — the rest goes to Videos 2 and 3.
+Use ONLY the first ~50% of the script. Stop at roughly the halfway point.
 Character stays composed. Never frantic.
-The conclusion, moral, and payoff belong in later videos.
+The conclusion, moral, and payoff belong in Video 2.
 End mid-story on a COMPLETE SENTENCE. The viewer wants to hear what comes next.
 
 ══════════════════════
@@ -118,83 +118,34 @@ This is NON-NEGOTIABLE. Every Video 1 ends with "He pauses." — no exceptions. 
 
 """
 
-USER_VIDEO1 = """Generate Video 1 of 3 (HOOK + SETUP) from this script.
-Use ONLY the first ~30-40 words of the script as dialogue. STOP early — leave the rest for Videos 2 and 3.
+USER_VIDEO1 = """Generate Video 1 of 2 (HOOK + DEVELOPMENT) from this script.
+Use ONLY the first ~50% of the script as dialogue ({half_words} words). STOP at the halfway point — leave the rest for Video 2.
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-30-40 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
+40-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
-SCRIPT ({word_count} words total — use only the first ~{third_words} words):
+SCRIPT ({word_count} words total — use only the first ~{half_words} words):
 {script}"""
 
 # ── STEP 2: Video 2 (RESOLUTION — payoff) ──
 
 SYSTEM_VIDEO2 = f"""You are a professional video director for vertical TikTok/Reels content.
-You generate a SINGLE video prompt — Video 2 of 3 (DEVELOPMENT).
+You generate a SINGLE video prompt — Video 2 of 2 (CONCLUSION + CTA).
 
 {SHARED_RULES}
 
 ══════════════════════
-ENERGY — VIDEO 2 = DEVELOPMENT
+ENERGY — VIDEO 2 = CONCLUSION + CTA
 ══════════════════════
-MIDDLE SECTION. Pick up EXACTLY where Video 1 stopped — ZERO repeated lines.
+FINAL SECTION. Pick up EXACTLY where Video 1 stopped — ZERO repeated lines.
 This video starts fresh from a neutral seated position.
-Settles into delivery — lean back, open hands, steady voice.
-Use exact lines from the script as dialogue. Use the next ~30-40 words that Video 1 did NOT cover.
-Do NOT include the CTA — that belongs in Video 3.
-
-══════════════════════
-ENDING (MANDATORY!)
-══════════════════════
-Video 2 ends on a COMPLETE SENTENCE. The topic is still open — viewer wants to hear the conclusion.
-The LAST shot of Video 2 must be a CLOSE-UP — this is the splice point where Video 3 will be joined.
-The VERY LAST LINE of Video 2 must ALWAYS be: He pauses.
-This is NON-NEGOTIABLE. Every Video 2 ends with "He pauses." — no exceptions. No long silence.
-
-══════════════════════
-OPENING — VIDEO 2
-══════════════════════
-Start on THREE-QUARTER VIEW. The character is in a neutral seated position, calm and composed.
-Video 1 ended on a close-up — so this three-quarter view creates a clear cut when the two are joined.
-Do NOT reference the first part of the story — just continue delivering."""
-
-USER_VIDEO2 = """Generate Video 2 of 3 (DEVELOPMENT) from this script.
-Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
-Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-40 words of dialogue. NO CTA — that's in Video 3.
-2-3 camera changes. Calm delivery. End mid-story — leave the conclusion for Video 3.
-
-Output the directorial description directly. No labels, no headers.
-30-40 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
-
----
-
-VIDEO 1 ALREADY GENERATED (DO NOT REPEAT ANY OF THIS):
-{video1}
-
----
-
-FULL SCRIPT:
-{script}"""
-
-
-# ── STEP 3: Video 3 (CONCLUSION — payoff + CTA) ──
-
-SYSTEM_VIDEO3 = f"""You are a professional video director for vertical TikTok/Reels content.
-You generate a SINGLE video prompt — Video 3 of 3 (CONCLUSION).
-
-{SHARED_RULES}
-
-══════════════════════
-ENERGY — VIDEO 3 = CONCLUSION + CTA
-══════════════════════
-FINAL SECTION. Pick up EXACTLY where Video 2 stopped — ZERO repeated lines from Video 1 or Video 2.
-This video starts fresh from a neutral seated position.
-Use whatever script text remains. This may be shorter than 30 words — that's OK.
+Use the remaining ~50% of the script that Video 1 did NOT cover.
 Deliver the conclusion, moral, or final insight from the script.
+40-50 words of dialogue — must be approximately EQUAL to Video 1 in length.
 
 ══════════════════════
 CTA (MANDATORY — EXACT PATTERN!)
@@ -207,30 +158,30 @@ NEVER invent creative CTAs. NEVER say "comment [word]". NEVER mention apps, prod
 Just: he gives advice → link in bio. That's it. This counts toward the word limit.
 
 ══════════════════════
-OPENING — VIDEO 3
+ENDING
+══════════════════════
+End with quiet finality. The LAST shot should be a CLOSE-UP with a nod after CTA.
+
+══════════════════════
+OPENING — VIDEO 2
 ══════════════════════
 Start on THREE-QUARTER VIEW. The character is in a neutral seated position, calm and composed.
-Video 2 ended on a close-up — so this three-quarter view creates a clear cut when the two are joined.
-Do NOT reference earlier parts of the story — just deliver the conclusion."""
+Video 1 ended on a close-up — so this three-quarter view creates a clear cut when the two are joined.
+Do NOT reference the first part of the story — just deliver the conclusion."""
 
-USER_VIDEO3 = """Generate Video 3 of 3 (CONCLUSION) from this script.
-Pick up EXACTLY where Video 2 left off. Do NOT repeat ANY line from Video 1 or Video 2. Zero overlap.
-Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. End with CTA.
-This video may be shorter — use whatever script text remains plus the CTA.
-2-3 camera changes. Calm delivery. End with quiet finality.
+USER_VIDEO2 = """Generate Video 2 of 2 (CONCLUSION + CTA) from this script.
+Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
+Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. 40-50 words of dialogue. End with CTA.
+The amount of dialogue in Video 2 must be APPROXIMATELY EQUAL to Video 1 (within 5 words).
+2-3 camera changes. Calm delivery. End with quiet finality and a nod.
 
 Output the directorial description directly. No labels, no headers.
-Dialogue in "quotes" — taken word-for-word from the script, ending with a nod after CTA. Start with the opening shot description.
+40-50 words of dialogue in "quotes" — taken word-for-word from the script, ending with CTA + nod. Start with the opening shot description.
 
 ---
 
-VIDEO 1 ALREADY GENERATED (DO NOT REPEAT):
+VIDEO 1 ALREADY GENERATED (DO NOT REPEAT ANY OF THIS):
 {video1}
-
----
-
-VIDEO 2 ALREADY GENERATED (DO NOT REPEAT):
-{video2}
 
 ---
 
@@ -270,21 +221,21 @@ def _strip_label(text: str, video_num: int) -> str:
 
 
 def generate_video_prompt(script_text: str) -> dict:
-    """Return {"video1": ..., "video2": ..., "video3": ...} — each is a standalone filming prompt."""
+    """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt (2 equal-length parts)."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     word_count = len(script_text.split())
-    third_words = word_count // 3
+    half_words = word_count // 2
 
-    # Step 1: Generate Video 1 (Hook + Setup)
+    # Step 1: Generate Video 1 (Hook + Development — first ~50%)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
         system=SYSTEM_VIDEO1,
-        messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text, word_count=word_count, third_words=third_words)}]
+        messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text, word_count=word_count, half_words=half_words)}]
     )
     video1_text = _strip_label(response1.content[0].text.strip(), 1)
 
-    # Step 2: Generate Video 2 (Development)
+    # Step 2: Generate Video 2 (Conclusion + CTA — remaining ~50%)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
@@ -293,20 +244,10 @@ def generate_video_prompt(script_text: str) -> dict:
     )
     video2_text = _strip_label(response2.content[0].text.strip(), 2)
 
-    # Step 3: Generate Video 3 (Conclusion + CTA)
-    response3 = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=700,
-        system=SYSTEM_VIDEO3,
-        messages=[{"role": "user", "content": USER_VIDEO3.format(script=script_text, video1=video1_text, video2=video2_text)}]
-    )
-    video3_text = _strip_label(response3.content[0].text.strip(), 3)
-
     _log_usage("prompt")
     _log_usage("prompt")
-    _log_usage("prompt")  # three Claude calls per generation
     return {
         "video1": f"{CAMERA_HEADER}\n{video1_text}",
         "video2": f"{CAMERA_HEADER}\n{video2_text}",
-        "video3": f"{CAMERA_HEADER}\n{video3_text}",
+        "video3": "",
     }
