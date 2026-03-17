@@ -126,13 +126,16 @@ class CustomVariantRequest(BaseModel):
     prompt: str
 
 
-# Shared style prefix for all variants — ensures photorealistic output + correct framing
+# Variant style = same as UGC_PREFIX to keep identical look/framing/background
 VARIANT_STYLE = (
-    "Photorealistic photograph, vertical 9:16. "
-    "Webcam-style framing: person in lower 60% of frame, head at upper third. "
-    "Visible from chest up, one hand gesturing. Sitting in a chair at a desk. "
-    "Looking directly at camera with confident eye contact. "
-    "Background sharp and detailed, deep depth of field. High detail, 2K quality. "
+    "Vertical photo (9:16). Webcam-style framing at desk distance. "
+    "Person occupies lower 60% of frame, head at upper third — leaving generous space above for the room environment. "
+    "Visible from chest/torso up, one hand gesturing with a pen. Sitting in a leather chair at a wooden desk. "
+    "Looking directly at camera with confident eye contact. Front-facing, slightly below eye level. "
+    "IMPORTANT: background takes up at least 40% of the image. "
+    "Background must be sharp, detailed, and richly decorated — bookshelves with books, framed diplomas and certificates on walls, "
+    "table lamp with warm glow, framed photos, wooden paneling. Deep depth of field, nothing blurred. "
+    "Photorealistic, high detail. No phone, no selfie. "
 )
 
 
@@ -223,14 +226,15 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
             variant_prompt = (
                 f"{VARIANT_STYLE}"
                 f"{person_desc}, {outfit}. "
-                f"Same background as reference. Only the clothes are different."
+                f"Same person, same face, same background, same pose. Only the clothes change."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
                 f"{VARIANT_STYLE}"
-                f"{person_desc}, same clothes as reference image. "
+                f"{person_desc}. "
+                f"Same person, same face, same clothes, same pose. "
                 f"New background: {location}."
             )
             label = f"location_{i+1}"
@@ -240,6 +244,7 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
             variant_prompt = (
                 f"{VARIANT_STYLE}"
                 f"{person_desc}, {outfit}. "
+                f"Same person, same face, same pose. "
                 f"Setting: {location}."
             )
             label = f"new_look_{i+1}"
