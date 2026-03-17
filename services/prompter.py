@@ -97,12 +97,12 @@ ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
 FIRST HALF of the story. Confident opening, energy builds gradually.
 Character stays composed. Never frantic. Keep dialogue MINIMAL — let visuals carry the scene.
-End MID-THOUGHT — sentence NOT finished. Viewer wants to hear the rest.
+End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but the IDEA leaves the viewer wanting more.
 
 ══════════════════════
 ENDING
 ══════════════════════
-Video 1 ends MID-THOUGHT. Sentence NOT finished. Energy is elevated but controlled.
+Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution. Energy is elevated but controlled.
 
 At the VERY END of your output, add:
 SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
