@@ -174,13 +174,18 @@ UGC_PREFIX = (
 
 @router.post("/api/avatars/{avatar_id}/generate-variants")
 def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depends(get_db)):
-    """Generate variant images using image-to-image to preserve face and background."""
+    """Generate variant images using Soul ID (face) + image_url reference (background)."""
     parent = db.query(Avatar).get(avatar_id)
     if not parent:
         raise HTTPException(status_code=404, detail="Avatar not found")
 
     if not parent.image_url:
         raise HTTPException(status_code=400, detail="Avatar must have a generated image first")
+
+    # Require trained Soul ID
+    if not parent.soul_id or parent.soul_id_status != "ready":
+        raise HTTPException(status_code=400,
+                            detail="Soul ID not ready. Train it first via the Train Soul button.")
 
     # Outfit styles to cycle through for variety
     OUTFIT_OPTIONS = [
@@ -196,44 +201,35 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         "outdoors on a city street with buildings behind",
     ]
 
-    # Strength per mode: lower = more preservation, higher = more change
-    # IMPORTANT: keep values low! 0.4+ destroys face/background entirely
-    STRENGTH_BY_MODE = {
-        "outfits": 0.15,
-        "location": 0.25,
-        "new_look": 0.3,
-    }
-
     count = min(data.count, 4)
-    strength = STRENGTH_BY_MODE.get(data.mode, 0.4)
     variants_created = []
 
-    # Step 1: Build all variant prompts and save to DB
+    # Build variant prompts — Soul ID handles face, prompt describes scene
     variant_records = []
     for i in range(count):
         if data.mode == "outfits":
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             variant_prompt = (
-                f"Photorealistic portrait of the same person in the same room and setting. "
-                f"Keep identical face, age, hair, glasses, pose, and background. "
-                f"Only change: {outfit}."
+                f"{PORTRAIT_BASE}"
+                f"Same person from reference image, {outfit}. "
+                f"Keep the same face, background, and setting. Only change the clothes."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"Photorealistic portrait of the same person wearing the same clothes. "
-                f"Keep identical face, age, hair, glasses, and outfit. "
-                f"Change the background to: {location}."
+                f"{PORTRAIT_BASE}"
+                f"Same person from reference image, same outfit and clothes. "
+                f"New setting: {location}."
             )
             label = f"location_{i+1}"
         else:  # new_look
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"Photorealistic portrait of the same person. "
-                f"Keep identical face, age, hair, and glasses. "
-                f"New outfit: {outfit}. New setting: {location}."
+                f"{PORTRAIT_BASE}"
+                f"Same person from reference image, {outfit}. "
+                f"Setting: {location}."
             )
             label = f"new_look_{i+1}"
 
@@ -250,20 +246,24 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         db.refresh(variant)
         variant_records.append((variant, variant_prompt, label))
 
-    # Step 2: Submit all generation requests in parallel (image-to-image)
+    # Submit all requests in parallel — Soul ID for face + image_url for composition
     import concurrent.futures
 
-    def _submit_one(source_url, prompt, img_strength):
-        result = generate_variant_image(source_image_url=source_url, prompt=prompt, strength=img_strength)
+    def _submit_one(soul_id, prompt, ref_image_url):
+        result = generate_with_soul_id(
+            soul_id=soul_id, prompt=prompt, image_url=ref_image_url,
+        )
         if not result.get("request_id"):
             import time
             time.sleep(2)
-            result = generate_variant_image(source_image_url=source_url, prompt=prompt, strength=img_strength)
+            result = generate_with_soul_id(
+                soul_id=soul_id, prompt=prompt, image_url=ref_image_url,
+            )
         return result
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = [
-            executor.submit(_submit_one, parent.image_url, vp, strength)
+            executor.submit(_submit_one, parent.soul_id, vp, parent.image_url)
             for _, vp, _ in variant_records
         ]
         results = [f.result() for f in futures]
@@ -284,12 +284,17 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
 
 @router.post("/api/avatars/{avatar_id}/generate-custom-variant")
 def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Session = Depends(get_db)):
-    """Generate a single custom variant using image-to-image with user-provided text."""
+    """Generate a single custom variant using Soul ID + image reference."""
     parent = db.query(Avatar).get(avatar_id)
     if not parent:
         raise HTTPException(status_code=404, detail="Avatar not found")
     if not parent.image_url:
         raise HTTPException(status_code=400, detail="Avatar must have a generated image first")
+
+    # Require trained Soul ID
+    if not parent.soul_id or parent.soul_id_status != "ready":
+        raise HTTPException(status_code=400,
+                            detail="Soul ID not ready. Train it first via the Train Soul button.")
 
     # Count existing custom variants to number the label
     existing_custom = db.query(Avatar).filter(
@@ -299,9 +304,10 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     label = f"custom_{existing_custom + 1}"
 
     variant_prompt = (
-        f"Photorealistic portrait of the same person in the same room and setting. "
-        f"Keep identical face, age, hair, glasses, pose, outfit, and background. "
-        f"Only apply this small change: {data.prompt}"
+        f"{PORTRAIT_BASE}"
+        f"Same person from reference image. "
+        f"Keep the same face, background, outfit, and pose. "
+        f"Only apply this change: {data.prompt}"
     )
 
     variant = Avatar(
@@ -316,14 +322,14 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     db.commit()
     db.refresh(variant)
 
-    result = generate_variant_image(
-        source_image_url=parent.image_url, prompt=variant_prompt, strength=0.12
+    result = generate_with_soul_id(
+        soul_id=parent.soul_id, prompt=variant_prompt, image_url=parent.image_url,
     )
     if not result.get("request_id"):
         import time
         time.sleep(2)
-        result = generate_variant_image(
-            source_image_url=parent.image_url, prompt=variant_prompt, strength=0.12
+        result = generate_with_soul_id(
+            soul_id=parent.soul_id, prompt=variant_prompt, image_url=parent.image_url,
         )
 
     if result.get("request_id"):

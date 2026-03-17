@@ -247,19 +247,23 @@ def check_soul_id_status(soul_id: str) -> dict:
 
 
 def generate_with_soul_id(soul_id: str, prompt: str,
-                          aspect_ratio: str = "9:16") -> dict:
-    """Generate image using trained Soul ID for perfect face preservation."""
+                          aspect_ratio: str = "9:16",
+                          image_url: str = "") -> dict:
+    """Generate image using trained Soul ID for face + optional image_url for composition."""
     _ensure_env()
     try:
+        arguments = {
+            "prompt": prompt,
+            "custom_reference_id": soul_id,
+            "custom_reference_strength": 1.0,
+            "aspect_ratio": aspect_ratio,
+            "quality": "2k",
+        }
+        if image_url:
+            arguments["image_url"] = image_url
         controller = higgsfield_client.submit(
             IMAGE_MODEL,
-            arguments={
-                "prompt": prompt,
-                "custom_reference_id": soul_id,
-                "custom_reference_strength": 1.0,
-                "aspect_ratio": aspect_ratio,
-                "quality": "2k",
-            }
+            arguments=arguments,
         )
         request_id = controller.request_id if hasattr(controller, "request_id") else ""
         _log_usage("higgsfield", IMAGE_MODEL, "image-soul", request_id=str(request_id), status="queued")
