@@ -2,6 +2,40 @@
 {% block title %}Script — {{ video.title[:40] if video else 'View' }}{% endblock %}
 
 {% block content %}
+<style>
+/* Camera movement grid */
+.cam-opt { cursor: pointer; text-align: center; transition: all 0.15s; }
+.cam-opt:hover .cam-box { border-color: #93c5fd; }
+.cam-box { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0; background: #0f172a; position: relative; transition: border-color 0.15s; }
+.cam-opt.cam-active .cam-box { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+.cam-scene { position: absolute; inset: -30%; background: radial-gradient(circle at 40% 40%, #60a5fa 0%, #1e3a5f 40%, #0f172a 70%); border-radius: 50%; }
+.cam-name { font-size: 9px; color: #6b7280; margin-top: 3px; font-weight: 600; line-height: 1.1; }
+.cam-opt.cam-active .cam-name { color: #3b82f6; }
+.cam-opt:hover .cam-auto, .cam-active .cam-auto { animation: camAuto 3s ease-in-out infinite; }
+@keyframes camAuto { 0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(5%,-3%) scale(1.05)} 50%{transform:translate(-3%,5%) scale(1.02)} 75%{transform:translate(3%,2%) scale(1.08)} }
+.cam-opt:hover .cam-static, .cam-active .cam-static { animation: camStatic 2s ease-in-out infinite; }
+@keyframes camStatic { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+.cam-opt:hover .cam-zoom-in, .cam-active .cam-zoom-in { animation: camZoomIn 2.5s ease-in-out infinite; }
+@keyframes camZoomIn { 0%{transform:scale(1)} 50%{transform:scale(1.35)} 100%{transform:scale(1)} }
+.cam-opt:hover .cam-zoom-out, .cam-active .cam-zoom-out { animation: camZoomOut 2.5s ease-in-out infinite; }
+@keyframes camZoomOut { 0%{transform:scale(1.35)} 50%{transform:scale(1)} 100%{transform:scale(1.35)} }
+.cam-opt:hover .cam-pan-left, .cam-active .cam-pan-left { animation: camPanL 2.5s ease-in-out infinite; }
+@keyframes camPanL { 0%{transform:translateX(0)} 50%{transform:translateX(20%)} 100%{transform:translateX(0)} }
+.cam-opt:hover .cam-pan-right, .cam-active .cam-pan-right { animation: camPanR 2.5s ease-in-out infinite; }
+@keyframes camPanR { 0%{transform:translateX(0)} 50%{transform:translateX(-20%)} 100%{transform:translateX(0)} }
+.cam-opt:hover .cam-orbit-left, .cam-active .cam-orbit-left { animation: camOrbitL 3s ease-in-out infinite; }
+@keyframes camOrbitL { 0%{transform:translateX(0) rotate(0deg)} 50%{transform:translateX(15%) rotate(-8deg)} 100%{transform:translateX(0) rotate(0deg)} }
+.cam-opt:hover .cam-orbit-right, .cam-active .cam-orbit-right { animation: camOrbitR 3s ease-in-out infinite; }
+@keyframes camOrbitR { 0%{transform:translateX(0) rotate(0deg)} 50%{transform:translateX(-15%) rotate(8deg)} 100%{transform:translateX(0) rotate(0deg)} }
+.cam-opt:hover .cam-crane-up, .cam-active .cam-crane-up { animation: camCraneUp 2.5s ease-in-out infinite; }
+@keyframes camCraneUp { 0%{transform:translateY(0)} 50%{transform:translateY(15%)} 100%{transform:translateY(0)} }
+.cam-opt:hover .cam-crane-down, .cam-active .cam-crane-down { animation: camCraneDown 2.5s ease-in-out infinite; }
+@keyframes camCraneDown { 0%{transform:translateY(0)} 50%{transform:translateY(-15%)} 100%{transform:translateY(0)} }
+.cam-opt:hover .cam-fpv, .cam-active .cam-fpv { animation: camFPV 3s ease-in-out infinite; }
+@keyframes camFPV { 0%{transform:translate(0,0) scale(1) rotate(0)} 25%{transform:translate(-10%,-8%) scale(1.1) rotate(-3deg)} 50%{transform:translate(5%,-12%) scale(1.2) rotate(2deg)} 75%{transform:translate(8%,5%) scale(1.1) rotate(-1deg)} 100%{transform:translate(0,0) scale(1) rotate(0)} }
+.cam-opt:hover .cam-dolly-in, .cam-active .cam-dolly-in { animation: camDollyIn 2.5s ease-in-out infinite; }
+@keyframes camDollyIn { 0%{transform:scale(1) translateY(0)} 50%{transform:scale(1.25) translateY(-5%)} 100%{transform:scale(1) translateY(0)} }
+</style>
 <div class="mb-6">
     <a href="/scripts" class="text-sm text-gray-400 hover:text-gray-600 mb-2 inline-block">&larr; <span data-i18n="sv.back">Scripts Library</span></a>
     <h1 class="text-xl font-bold text-gray-900 mb-1">Script #{{ script.id }}</h1>
@@ -254,31 +288,28 @@
             <select id="cs-avatar" style="display:none;"><option value="">Select avatar...</option></select>
         </div>
 
-        <!-- Settings row -->
-        <div style="padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-            <div>
-                <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Movement</label>
-                <select id="cs-camera" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
-                    <option value="">Auto</option>
-                    <option value="static">Static</option>
-                    <option value="handheld">Handheld</option>
-                    <option value="zoom_in">Zoom In</option>
-                    <option value="zoom_out">Zoom Out</option>
-                    <option value="pan_left">Pan Left</option>
-                    <option value="pan_right">Pan Right</option>
-                    <option value="orbit_left">Orbit Left</option>
-                    <option value="orbit_right">Orbit Right</option>
-                    <option value="crane_up">Crane Up</option>
-                    <option value="crane_down">Crane Down</option>
-                    <option value="fpv_drone">FPV Drone</option>
-                    <option value="dolly_in">Dolly In</option>
-                    <option value="dolly_out">Dolly Out</option>
-                    <option value="tilt_up">Tilt Up</option>
-                    <option value="tilt_down">Tilt Down</option>
-                    <option value="arc_left">Arc Left</option>
-                    <option value="arc_right">Arc Right</option>
-                </select>
+        <!-- Camera Movement Grid -->
+        <div style="padding: 0 18px 8px;">
+            <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Camera Movement</label>
+            <input type="hidden" id="cs-camera" value="">
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;">
+                <div class="cam-opt cam-active" onclick="selectCamera('', this)"><div class="cam-box"><div class="cam-scene cam-auto"></div></div><div class="cam-name">Auto</div></div>
+                <div class="cam-opt" onclick="selectCamera('static', this)"><div class="cam-box"><div class="cam-scene cam-static"></div></div><div class="cam-name">Static</div></div>
+                <div class="cam-opt" onclick="selectCamera('zoom_in', this)"><div class="cam-box"><div class="cam-scene cam-zoom-in"></div></div><div class="cam-name">Zoom In</div></div>
+                <div class="cam-opt" onclick="selectCamera('zoom_out', this)"><div class="cam-box"><div class="cam-scene cam-zoom-out"></div></div><div class="cam-name">Zoom Out</div></div>
+                <div class="cam-opt" onclick="selectCamera('pan_left', this)"><div class="cam-box"><div class="cam-scene cam-pan-left"></div></div><div class="cam-name">Pan Left</div></div>
+                <div class="cam-opt" onclick="selectCamera('pan_right', this)"><div class="cam-box"><div class="cam-scene cam-pan-right"></div></div><div class="cam-name">Pan Right</div></div>
+                <div class="cam-opt" onclick="selectCamera('orbit_left', this)"><div class="cam-box"><div class="cam-scene cam-orbit-left"></div></div><div class="cam-name">Orbit L</div></div>
+                <div class="cam-opt" onclick="selectCamera('orbit_right', this)"><div class="cam-box"><div class="cam-scene cam-orbit-right"></div></div><div class="cam-name">Orbit R</div></div>
+                <div class="cam-opt" onclick="selectCamera('crane_up', this)"><div class="cam-box"><div class="cam-scene cam-crane-up"></div></div><div class="cam-name">Crane Up</div></div>
+                <div class="cam-opt" onclick="selectCamera('crane_down', this)"><div class="cam-box"><div class="cam-scene cam-crane-down"></div></div><div class="cam-name">Crane Down</div></div>
+                <div class="cam-opt" onclick="selectCamera('fpv_drone', this)"><div class="cam-box"><div class="cam-scene cam-fpv"></div></div><div class="cam-name">FPV</div></div>
+                <div class="cam-opt" onclick="selectCamera('dolly_forward', this)"><div class="cam-box"><div class="cam-scene cam-dolly-in"></div></div><div class="cam-name">Dolly In</div></div>
             </div>
+        </div>
+
+        <!-- Settings row -->
+        <div style="padding: 4px 18px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
                 <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Speed Ramp</label>
                 <select id="cs-speed-ramp" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
@@ -296,18 +327,10 @@
             </div>
         </div>
 
-        <!-- Bottom bar — pills -->
-        <div style="padding: 10px 18px; background: #f1f5f9; display: flex; align-items: center; gap: 6px; overflow-x: auto; border-top: 1px solid #e2e8f0;">
-            <select id="cs-model" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
-                <option value="higgsfield-ai/dop/standard">DoP Standard</option>
-                <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
-                <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
-            </select>
-            <select id="cs-ratio" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
-                <option value="9:16">9:16</option>
-                <option value="16:9">16:9</option>
-                <option value="1:1">1:1</option>
-            </select>
+        <!-- Bottom bar -->
+        <div style="padding: 10px 18px; background: #f1f5f9; display: flex; align-items: center; gap: 8px; overflow-x: auto; border-top: 1px solid #e2e8f0;">
+            <span style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 0.05em; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">KLING v2.1 PRO</span>
+            <span style="font-size: 10px; font-weight: 600; color: #6b7280; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">9:16</span>
             <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
                 <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;" checked>
                 <span style="font-size: 11px; font-weight: 600; color: #374151;">Sound</span>
@@ -317,6 +340,9 @@
                 <span style="font-size: 11px; font-weight: 600; color: #374151;">Slow Mo</span>
             </label>
             <div style="flex:1;"></div>
+            <button id="cs-auto-btn" onclick="multiShotAuto({{ script.id }})" style="padding: 8px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.03em;">
+                AUTO
+            </button>
             <button id="cs-generate-btn" onclick="generateStep({{ script.id }})" style="padding: 8px 28px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.02em;">
                 GENERATE
             </button>
@@ -585,9 +611,9 @@ function switchTab(tabName, btn) {
 function getSettings() {
     return {
         avatar_id: parseInt(document.getElementById('cs-avatar').value) || null,
-        model_id: document.getElementById('cs-model').value,
+        model_id: 'kling-video/v2.1/pro/image-to-video',
         duration: parseInt(document.getElementById('cs-duration').value),
-        aspect_ratio: document.getElementById('cs-ratio').value,
+        aspect_ratio: '9:16',
         camera_movement: document.getElementById('cs-camera').value,
         sound: document.getElementById('cs-sound').checked,
         slow_motion: document.getElementById('cs-slowmo').checked,
@@ -933,9 +959,76 @@ async function restorePipeline() {
     }
 }
 
+// === Select camera movement ===
+function selectCamera(value, el) {
+    document.getElementById('cs-camera').value = value;
+    document.querySelectorAll('.cam-opt').forEach(o => o.classList.remove('cam-active'));
+    if (el) el.classList.add('cam-active');
+}
+
+// === Multi-shot Auto: generate all 3 steps automatically ===
+async function multiShotAuto(scriptId) {
+    const settings = getSettings();
+    if (!settings.avatar_id) { toast('Select an avatar first', 'error'); return; }
+    if (_pipelineStep > 0) {
+        toast('Pipeline already started. Use GENERATE to continue step by step.', 'info');
+        return;
+    }
+    const autoBtn = document.getElementById('cs-auto-btn');
+    const genBtn = document.getElementById('cs-generate-btn');
+    if (autoBtn) { autoBtn.disabled = true; autoBtn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1 inline" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>AUTO...'; }
+    if (genBtn) genBtn.disabled = true;
+
+    try {
+        for (let s = 1; s <= 3; s++) {
+            await generateStep(scriptId);
+            await waitForVariantsComplete(s);
+            await autoSelectFirstCompleted(scriptId, s);
+        }
+        await concatAndSubtitle(scriptId);
+        toast('Multi-shot auto complete!', 'success');
+    } catch (e) {
+        toast('Auto pipeline error: ' + (e.message || 'unknown'), 'error');
+    }
+    if (autoBtn) { autoBtn.disabled = false; autoBtn.innerHTML = 'AUTO'; }
+    if (genBtn) genBtn.disabled = false;
+}
+
+function waitForVariantsComplete(step) {
+    return new Promise((resolve) => {
+        const check = setInterval(() => {
+            const variantsEl = document.getElementById('step-' + step + '-variants');
+            if (!variantsEl) { clearInterval(check); resolve(); return; }
+            const statuses = variantsEl.querySelectorAll('[id$="-status"]');
+            if (statuses.length === 0) return;
+            const allDone = Array.from(statuses).every(s =>
+                s.textContent === 'completed' || s.textContent === 'failed' || s.textContent === 'nsfw'
+            );
+            if (allDone) { clearInterval(check); resolve(); }
+        }, 2000);
+    });
+}
+
+async function autoSelectFirstCompleted(scriptId, step) {
+    const variantsEl = document.getElementById('step-' + step + '-variants');
+    if (!variantsEl) return;
+    const radios = variantsEl.querySelectorAll('input[type="radio"]:not(:disabled)');
+    if (radios.length > 0) {
+        radios[0].checked = true;
+        await onVariantSelect(scriptId, step, parseInt(radios[0].value));
+    } else {
+        throw new Error('No valid variants in step ' + step);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadAvatarsDropdown();
-    restorePipeline();
+    restorePipeline().then(() => {
+        if (_pipelineStep > 0) {
+            const autoBtn = document.getElementById('cs-auto-btn');
+            if (autoBtn) autoBtn.disabled = true;
+        }
+    });
 });
 </script>
 {% endblock %}
