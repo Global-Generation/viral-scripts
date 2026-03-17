@@ -17,7 +17,8 @@ REWRITE_PROMPT = """Rewrite this TikTok script. Requirements:
 - Tone: dry, matter-of-fact, slightly witty. Think podcast host, not hype beast
 - Short sentences. No fluff. Say it once
 - Keep the same topic and key facts
-- LENGTH: cut to ~30% of the original word count. Ruthlessly trim. If a sentence doesn't add new information, delete it. Target: 60-100 words TOTAL for the entire script. This will be split into two short videos — every word must earn its place
+- LENGTH: cut to ~30% of the original word count. Ruthlessly trim. If a sentence doesn't add new information, delete it. Target: 60-100 words TOTAL
+- OUTPUT: plain text only. No headers, no labels, no markdown, no "Video 1" / "Video 2" splitting. Just the rewritten script as one continuous text
 - CTA RULE: REMOVE any "Comment [word] for..." or "DM [word] for..." lines from the original. Replace with a simple ending like: "More on my page — link in bio." or just end naturally without a CTA. NEVER keep "Comment X", "DM me X", or any engagement-bait CTA
 
 Original script:
