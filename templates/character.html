@@ -4,7 +4,81 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">{{ label }}</h1>
-    <p class="text-sm text-gray-500">{{ scripts|length }} assigned scripts</p>
+    <p class="text-sm text-gray-500">{{ total }} assigned scripts</p>
+</div>
+
+<!-- Stats row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <!-- Total Scripts -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Scripts</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total }}</div>
+    </div>
+    <!-- Published -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Published</div>
+        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #000; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">TikTok</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b; margin-left: auto;">{{ pub_tt }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #E1306C; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">Instagram</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b; margin-left: auto;">{{ pub_ig }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF0000; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">YouTube</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b; margin-left: auto;">{{ pub_yt }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Category Split -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Category</div>
+        <div style="margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span style="color: #8B5CF6; font-weight: 600;">AI {{ ai_count }}</span>
+                <span style="color: #34C759; font-weight: 600;">Finance {{ finance_count }}</span>
+            </div>
+            {% set cat_total = ai_count + finance_count %}
+            {% set ai_pct = (ai_count * 100 / cat_total) if cat_total > 0 else 0 %}
+            <div style="height: 8px; border-radius: 4px; background: #34C759; overflow: hidden;">
+                <div style="height: 100%; width: {{ ai_pct }}%; background: #8B5CF6; border-radius: 4px 0 0 4px;"></div>
+            </div>
+            {% if cat_total > 0 %}
+            <div style="font-size: 10px; color: #9ca3af; margin-top: 4px; text-align: center;">
+                {{ (ai_pct)|round|int }}% / {{ (100 - ai_pct)|round|int }}%
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Avg Score -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Avg Viral Score</div>
+        {% if avg_score >= 70 %}
+        <div style="font-size: 28px; font-weight: 800; color: #16a34a; margin-top: 4px;">{{ avg_score }}</div>
+        <div style="font-size: 10px; color: #16a34a; font-weight: 600;">HIGH</div>
+        {% elif avg_score >= 50 %}
+        <div style="font-size: 28px; font-weight: 800; color: #ca8a04; margin-top: 4px;">{{ avg_score }}</div>
+        <div style="font-size: 10px; color: #ca8a04; font-weight: 600;">MEDIUM</div>
+        {% elif avg_score > 0 %}
+        <div style="font-size: 28px; font-weight: 800; color: #9ca3af; margin-top: 4px;">{{ avg_score }}</div>
+        <div style="font-size: 10px; color: #9ca3af; font-weight: 600;">LOW</div>
+        {% else %}
+        <div style="font-size: 28px; font-weight: 800; color: #d1d5db; margin-top: 4px;">&mdash;</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Publication Timeline Chart -->
+<div class="stat-card mb-4" id="chart-card" style="{% if not scripts %}display:none{% endif %}">
+    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Publication Timeline</div>
+    <div style="position: relative; height: 200px;">
+        <canvas id="timelineChart"></canvas>
+    </div>
 </div>
 
 {% if not scripts %}
@@ -118,6 +192,75 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// === Publication Timeline Chart ===
+(function() {
+    const data = {{ timeline_json|safe }};
+    const canvas = document.getElementById('timelineChart');
+    if (!canvas || !data.length) {
+        const card = document.getElementById('chart-card');
+        if (card) card.style.display = 'none';
+        return;
+    }
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.date),
+            datasets: [
+                {
+                    label: 'TikTok',
+                    data: data.map(d => d.tiktok),
+                    borderColor: '#000',
+                    backgroundColor: 'rgba(0,0,0,0.05)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.3,
+                    fill: false,
+                },
+                {
+                    label: 'Instagram',
+                    data: data.map(d => d.instagram),
+                    borderColor: '#E1306C',
+                    backgroundColor: 'rgba(225,48,108,0.05)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.3,
+                    fill: false,
+                },
+                {
+                    label: 'YouTube',
+                    data: data.map(d => d.youtube),
+                    borderColor: '#FF0000',
+                    backgroundColor: 'rgba(255,0,0,0.05)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.3,
+                    fill: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 10 } },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                },
+                x: {
+                    ticks: { font: { size: 10 }, maxRotation: 45 },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
 <script>
 // === Expand/collapse provocative text ===
 function toggleExpand(row, event) {
