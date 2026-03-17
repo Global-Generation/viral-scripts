@@ -49,8 +49,9 @@ Three angles — close-up (front), medium shot (front), side view (30-45° offse
 All cameras are FIXED on tripods. COMPLETELY STATIC. Zero movement within any shot.
 All transitions are HARD CUTS — instant switch from one static angle to another static angle.
 
-Every transition = CUT. Describe which angle we CUT TO.
-Say "CUT TO close-up" or "CUT TO side view" — NOT "camera pushes in" or "camera orbits."
+Every transition = just "CUT TO close-up." or "CUT TO side view." — PERIOD. That's it.
+Do NOT add descriptions after the cut. NO "CUT TO close-up, his expression focused as he..." — just "CUT TO close-up."
+The dialogue and minimal action go on the NEXT line after the cut, not on the same line.
 NEVER use these words FOR THE CAMERA: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer.
 Each angle is a FROZEN STATIC FRAME — the CAMERA does not move within a shot. The CHARACTER can move freely (gestures, lean, nod, turn).
 
@@ -82,7 +83,7 @@ Character, location, frame format, resolution — all from reference photo. Do N
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
 DIALOGUE LIMIT: 30-50 words of dialogue PER VIDEO. 3-4 camera changes per video.
-Text chunks between camera changes: 1-2 sentences MAX of directorial description. Keep scene directions SHORT — focus on dialogue, not narration. Do NOT over-describe body language, emotions, or atmosphere.
+Between camera changes: dialogue in quotes + ONE short action if needed (e.g. "He nods."). Do NOT describe emotions, expressions, atmosphere, or body language in detail. Less narration, more dialogue.
 SPLITTING RULE (CRITICAL — MUST BE PROPORTIONAL):
 1. Count ALL words in the script
 2. Video 1 dialogue = first ~40-50% of the script's words. Video 2 dialogue = remaining ~50-60% (including conclusion + CTA)
