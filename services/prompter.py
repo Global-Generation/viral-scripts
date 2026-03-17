@@ -231,7 +231,7 @@ def generate_video_prompt(script_text: str) -> dict:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     words = script_text.split()
     word_count = len(words)
-    half = word_count // 2
+    half = int(word_count * 0.6)  # V1 gets 60%, V2 gets 40% + CTA ≈ equal length
 
     # Pre-split script into 2 halves — Claude only sees its half
     first_half = " ".join(words[:half])
