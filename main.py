@@ -13,13 +13,14 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Viral Scripts")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from routers import pages, search, scripts, presets, nari, anna
+from routers import pages, search, scripts, presets, nari, anna, character
 app.include_router(pages.router)
 app.include_router(search.router)
 app.include_router(scripts.router)
 app.include_router(presets.router)
 app.include_router(nari.router)
 app.include_router(anna.router)
+app.include_router(character.router)
 
 
 @app.get("/health")

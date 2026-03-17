@@ -4,24 +4,14 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Scripts Library</h1>
-    <p class="text-sm text-gray-500">All extracted and modified TikTok scripts</p>
+    <p class="text-sm text-gray-500">Unassigned scripts — assign to Boris, Daniel, or Thomas from script view</p>
 </div>
 
 <!-- Category filter tabs -->
-<div class="flex gap-1 mb-2 border-b border-gray-200">
-    <a href="/scripts{% if assigned %}?assigned={{ assigned }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
-    <a href="/scripts?category=ai{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
-    <a href="/scripts?category=finance{% if assigned %}&assigned={{ assigned }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
-</div>
-
-<!-- Assignment filter tabs with counts -->
-<div class="flex gap-1 mb-4">
-    <a href="/scripts{% if category %}?category={{ category }}{% endif %}" class="prompt-tab {% if not assigned %}active{% endif %}" style="font-size: 11px;">All</a>
-    <a href="/scripts?assigned=boris{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if assigned == 'boris' %}active{% endif %}" style="font-size: 11px; color: #2563EB;">Boris ({{ boris_count }})</a>
-    <a href="/scripts?assigned=thomas{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if assigned == 'thomas' %}active{% endif %}" style="font-size: 11px; color: #16a34a;">Thomas ({{ thomas_count }})</a>
-    <a href="/scripts?assigned=daniel{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if assigned == 'daniel' %}active{% endif %}" style="font-size: 11px; color: #ea580c;">Daniel ({{ daniel_count }})</a>
-    <a href="/scripts?assigned=yes{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if assigned == 'yes' %}active{% endif %}" style="font-size: 11px;">Assigned ({{ assigned_count }})</a>
-    <a href="/scripts?assigned=no{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if assigned == 'no' %}active{% endif %}" style="font-size: 11px;">Unassigned ({{ unassigned_count }})</a>
+<div class="flex gap-1 mb-4 border-b border-gray-200">
+    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}">All</a>
+    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
+    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
 </div>
 
 {% if not scripts %}

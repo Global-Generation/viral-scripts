@@ -67,39 +67,24 @@ def search_results_page(
 def scripts_library(
     request: Request,
     category: str = Query(""),
-    assigned: str = Query(""),
     db: Session = Depends(get_db)
 ):
+    # Scripts Library shows only unassigned scripts
+    # Assigned scripts (boris/daniel/thomas) have their own tabs
     base_q = (
         db.query(Script)
         .join(Video)
         .join(Search, Video.search_id == Search.id)
+        .filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
     )
     if category:
         base_q = base_q.filter(Search.category == category)
 
-    # Compute counts respecting category filter
-    boris_count = base_q.filter(Script.assigned_to == "boris").count()
-    thomas_count = base_q.filter(Script.assigned_to == "thomas").count()
-    daniel_count = base_q.filter(Script.assigned_to == "daniel").count()
-    assigned_count = boris_count + thomas_count + daniel_count
-    total_count = base_q.count()
-    unassigned_count = total_count - assigned_count
-
-    # Apply assignment filter
     q = base_q.order_by(Script.viral_score.desc(), Script.created_at.desc())
-    if assigned == "yes":
-        q = q.filter(Script.assigned_to != "", Script.assigned_to.isnot(None))
-    elif assigned == "no":
-        q = q.filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
-    elif assigned in ("boris", "thomas", "daniel"):
-        q = q.filter(Script.assigned_to == assigned)
     scripts = q.all()
     return templates.TemplateResponse(
         "scripts_library.html",
-        ctx(request, "scripts", scripts=scripts, category=category, assigned=assigned,
-            boris_count=boris_count, thomas_count=thomas_count, daniel_count=daniel_count,
-            assigned_count=assigned_count, unassigned_count=unassigned_count)
+        ctx(request, "scripts", scripts=scripts, category=category)
     )
 
 
