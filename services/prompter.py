@@ -166,6 +166,7 @@ Use EXACT lines from the script as dialogue — do NOT paraphrase. 30-50 words o
 2-3 camera changes. Calm delivery. End mid-story — leave the conclusion for Video 3.
 
 Output the directorial description directly. No labels, no headers.
+Do NOT output any "CAMERA SETUP:" block — start directly with the opening shot angle and action.
 30-50 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
@@ -218,6 +219,7 @@ This video may be shorter — use whatever script text remains plus the CTA.
 2-3 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
+Do NOT output any "CAMERA SETUP:" block — start directly with the opening shot angle and action.
 Dialogue in "quotes" — taken word-for-word from the script, ending with a nod after CTA. Start with the opening shot description.
 
 ---
@@ -257,13 +259,26 @@ def _log_usage(request_type: str, status: str = "completed"):
 
 
 def _strip_label(text: str, video_num: int) -> str:
-    """Strip 'VIDEO N:' label if AI accidentally adds it."""
+    """Strip 'VIDEO N:' label and CAMERA SETUP block if AI accidentally adds them."""
     for prefix in (f"VIDEO {video_num}:", f"VIDEO {video_num} —", f"VIDEO {video_num}:"):
         if text.upper().startswith(prefix.upper()):
             text = text[len(prefix):].strip()
             break
     if "SPLICE STATE:" in text:
         text = text.split("SPLICE STATE:", 1)[0].strip()
+    # Strip CAMERA SETUP block if AI outputs it despite instructions
+    if text.startswith("CAMERA SETUP:"):
+        lines = text.split("\n")
+        # Find end of camera setup block (first empty line or line starting with a shot description)
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if i > 0 and (stripped == "" and i > 3):
+                # Skip past empty line after camera setup
+                text = "\n".join(lines[i+1:]).strip()
+                break
+            if i > 0 and any(stripped.lower().startswith(a) for a in ["three-quarter", "medium shot", "close-up", "he "]):
+                text = "\n".join(lines[i:]).strip()
+                break
     return text
 
 
