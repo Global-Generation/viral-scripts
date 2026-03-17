@@ -12,16 +12,16 @@ CHARACTER & LOCATION
 - The character is ALWAYS MALE. Use masculine pronouns (he/him/his). Remove any female names, references, or pronouns from the original script
 - If the original script mentions a female name (e.g. "Sabrina", "Jessica") — DROP IT completely or replace with a neutral phrase. NEVER keep female names or say "she/her"
 - Appearance, clothing, setting, frame format — ALL from the reference photo and generator settings. Do NOT describe in text
-- Character sits in one location. Does not stand up or walk. Body stays STILL — no leaning forward/back, no shifting posture, no turning
-- Gesticulation is MINIMAL and only with hands: small finger movements, open palms, counting on fingers. The body and head do NOT move
+- Character sits in one location. Does not stand up or walk
+- Natural gesticulation: object in hands, fingers, palms, lean forward/back, head tilts, nods — all OK. The CHARACTER moves freely, the CAMERA does not
 - Face ALWAYS in frame
 - No B-roll. No numbers/text on screen. No location changes
 - Frame is VERTICAL 9:16 — always cropped to portrait orientation
 
-GESTICULATION BY EMOTION (hands only, body stays still):
+GESTICULATION BY EMOTION:
 - Authority → finger/object toward camera, palm on table
 - Sarcasm → counts on fingers, raises eyebrow
-- Empathy → open palms
+- Empathy → open palms, lean forward
 - Impact → pause, direct gaze, nod
 
 ══════════════════════
@@ -51,8 +51,8 @@ All transitions are HARD CUTS — instant switch from one static angle to anothe
 
 Every transition = CUT. Describe which angle we CUT TO.
 Say "CUT TO close-up" or "CUT TO side view" — NOT "camera pushes in" or "camera orbits."
-NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer, shift closer, lean forward, lean back, shift posture.
-Each angle is a FROZEN STATIC FRAME. The camera does NOT move. The character does NOT move their body — only hands and face.
+NEVER use these words FOR THE CAMERA: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer.
+Each angle is a FROZEN STATIC FRAME — the CAMERA does not move within a shot. The CHARACTER can move freely (gestures, lean, nod, turn).
 
 ══════════════════════
 HOOK — FIRST 2 SECONDS
