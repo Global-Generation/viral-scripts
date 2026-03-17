@@ -68,6 +68,17 @@ class NariVideo(Base):
     created_at = Column(DateTime, default=utcnow)
 
 
+class AnnaVideo(Base):
+    __tablename__ = "anna_videos"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    production_status = Column(String, default="")
+    published_tiktok = Column(DateTime, nullable=True)
+    published_youtube = Column(DateTime, nullable=True)
+    published_instagram = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+
 class PresetQuery(Base):
     __tablename__ = "preset_queries"
     id = Column(Integer, primary_key=True, index=True)

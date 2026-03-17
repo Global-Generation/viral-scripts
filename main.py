@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from database import init_db, SessionLocal
 import models  # noqa: F401 — register all models with Base.metadata
-from models import PresetQuery, NariVideo
+from models import PresetQuery, NariVideo, AnnaVideo
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -13,12 +13,13 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Viral Scripts")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from routers import pages, search, scripts, presets, nari
+from routers import pages, search, scripts, presets, nari, anna
 app.include_router(pages.router)
 app.include_router(search.router)
 app.include_router(scripts.router)
 app.include_router(presets.router)
 app.include_router(nari.router)
+app.include_router(anna.router)
 
 
 @app.get("/health")
@@ -34,6 +35,7 @@ def startup():
     _migrate_character_type()
     _seed_presets()
     _seed_nari()
+    _seed_anna()
 
 
 def _migrate_character_type():
@@ -126,6 +128,36 @@ def _seed_nari():
         db.add_all([NariVideo(title=t) for t in titles])
         db.commit()
         logging.info(f"Seeded {len(titles)} Nari videos")
+    finally:
+        db.close()
+
+
+def _seed_anna():
+    db = SessionLocal()
+    try:
+        if db.query(AnnaVideo).count() > 0:
+            return
+        titles = [
+            "Break Free from Living Paycheck to Paycheck: Here's Where to Begin",
+            "Discover the Exact Amount You Should Save from Each Biweekly Paycheck",
+            "Escaping DEBT in 2026: A Daring Challenge!",
+            "Everyone advises you to save money, but few reveal the secrets to doing it effectively",
+            "Everyone advises you to SAVE MONEY, but no one reveals the secrets to doing it.",
+            "I Conquered Over $80,000 in Student Loan Debt, but the Biggest Challenge Wasn't Financial",
+            "I Paid Off $50K in My 20s: The Surprising Mistake Everyone Overlooks",
+            "I understand your battle with overspending and sticking to a budget – you're not alone.",
+            "I'm scared to let my savings dip to $1,000, but I know I must tackle my debt.",
+            "Is Debt Consolidation the Right Move for You? Let's Simplify It!",
+            "Many adults struggle with money because they never learned this crucial lesson early on",
+            "Many fear debt consolidation due to a lack of understanding",
+            "The ideal savings target for every age in the US: Are you on track? (1)",
+            "The ideal savings target for every age in the US: Are you on track?",
+            "Unlocking a Credit Score Above 700: The Key Factors That Truly Matter",
+            "What You Need to Know if Your Credit Score is Below 700",
+        ]
+        db.add_all([AnnaVideo(title=t) for t in titles])
+        db.commit()
+        logging.info(f"Seeded {len(titles)} Anna videos")
     finally:
         db.close()
 
