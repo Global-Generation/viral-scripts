@@ -82,7 +82,7 @@ OUTPUT FORMAT
 ══════════════════════
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
-~25-35 words of dialogue PER VIDEO (short!). Only 2-3 camera changes per video.
+DIALOGUE LIMIT: 20-30 words of dialogue PER VIDEO. This is a HARD LIMIT — count your words. If you exceed 30 words of dialogue in quotes, you have FAILED. Only 2-3 camera changes per video.
 Text chunks between camera changes: 1-2 sentences each. Keep it TIGHT."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -109,13 +109,13 @@ At the VERY END of your output, add:
 SPLICE STATE: [exact final camera framing, body pose, lean, energy level, facial expression, gaze]"""
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Use the FIRST HALF of the script content. Condense to ~25-35 words of dialogue.
+Use the FIRST HALF of the script content. Condense to strictly 20-30 words of dialogue.
 Only 2-3 camera changes. Keep it SHORT. Calm confident tone — no yelling or panic.
 
 Output:
 
 VIDEO 1:
-[directorial description, ~25-35 words of dialogue in "quotes"]
+[directorial description, 20-30 words MAX of dialogue in "quotes"]
 
 SPLICE STATE: [final frame state]
 
@@ -162,7 +162,7 @@ EXPLICITLY describe the starting state in your first sentence.
 The FIRST 1 SECOND of Video 2 = SILENT BEAT. No dialogue. Character holds position from splice state — a breath, a look. THEN the first line begins. This pause is MANDATORY."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
-Use the SECOND HALF of the script content. Condense to ~20-30 words of dialogue.
+Use the SECOND HALF of the script content. Condense to strictly 20-30 words of dialogue.
 Only 2-3 camera changes. Be BRIEF — this is the shortest part. Calm delivery. End with quiet finality.
 
 Video 1 ended with this state — start EXACTLY here:
@@ -171,7 +171,7 @@ Video 1 ended with this state — start EXACTLY here:
 Output:
 
 VIDEO 2:
-[directorial description, ~20-30 words of dialogue in "quotes", ending with a nod]
+[directorial description, 20-30 words MAX of dialogue in "quotes", ending with a nod]
 
 ---
 
@@ -185,7 +185,7 @@ def generate_video_prompt(script_text: str) -> str:
     # Step 1: Generate Video 1 (Hook + Tension)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=1024,
+        max_tokens=512,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text)}]
     )
@@ -204,7 +204,7 @@ def generate_video_prompt(script_text: str) -> str:
     # Step 2: Generate Video 2 (Resolution)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=1024,
+        max_tokens=512,
         system=SYSTEM_VIDEO2,
         messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text, splice_state=splice1)}]
     )
