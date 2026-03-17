@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    libass9 \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 

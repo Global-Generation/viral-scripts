@@ -1,10 +1,143 @@
 {% extends "base.html" %}
-{% block title %}All Videos{% endblock %}
+{% block title %}Videos & Schedule{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="videos.title">All Videos</h1>
-    <p class="text-sm text-gray-500" data-i18n="videos.subtitle">Generated videos from Cinema Studio</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Videos & Publication Schedule</h1>
+    <p class="text-sm text-gray-500">Generated videos + publication calendar. Default: TT +0, Insta +7, YouTube +14 days. One per day per creator.</p>
+</div>
+
+<!-- Publication Schedule per Creator -->
+<div class="space-y-4 mb-6">
+    {% for creator in creators %}
+    {% set data = schedule[creator] %}
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-gray-700" style="text-transform: capitalize;">
+                {% if creator == 'boris' %}
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2563EB; margin-right: 6px;"></span>
+                {% elif creator == 'thomas' %}
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #16a34a; margin-right: 6px;"></span>
+                {% elif creator == 'daniel' %}
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ea580c; margin-right: 6px;"></span>
+                {% endif %}
+                {{ creator }}
+            </h2>
+            <span class="text-xs text-gray-400">{{ data.scripts|length }} scripts assigned</span>
+        </div>
+
+        {% if data.scripts %}
+        <div class="overflow-x-auto">
+            <table class="w-full" style="font-size: 12px;">
+                <thead>
+                    <tr class="border-b border-gray-100">
+                        <th class="th" style="font-size: 10px;">Script</th>
+                        <th class="th" style="font-size: 10px;">Score</th>
+                        <th class="th" style="font-size: 10px; text-align: center;">Videos</th>
+                        <th class="th" style="font-size: 10px;">TikTok</th>
+                        <th class="th" style="font-size: 10px;">Instagram</th>
+                        <th class="th" style="font-size: 10px;">YouTube</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for script in data.scripts %}
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                        <td class="td" style="max-width: 200px;">
+                            <a href="/scripts/{{ script.id }}" class="text-xs text-blue-500 hover:underline truncate block">
+                                {{ script.video.title[:50] if script.video else ('Script #' ~ script.id) }}
+                            </a>
+                        </td>
+                        <td class="td">
+                            {% if script.viral_score >= 70 %}
+                            <span style="font-weight: 700; color: #16a34a;">{{ script.viral_score }}</span>
+                            {% elif script.viral_score >= 50 %}
+                            <span style="font-weight: 600; color: #ca8a04;">{{ script.viral_score }}</span>
+                            {% elif script.viral_score > 0 %}
+                            <span style="color: #9ca3af;">{{ script.viral_score }}</span>
+                            {% else %}
+                            <span style="color: #d1d5db;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="td" style="text-align: center;">
+                            {% set gc = data.gen_counts.get(script.id, 0) %}
+                            {% set cc = data.completed_counts.get(script.id, 0) %}
+                            {% if cc > 0 %}
+                            <span class="status-badge status-completed">{{ cc }}/{{ gc }}</span>
+                            {% elif gc > 0 %}
+                            <span class="status-badge status-running">{{ gc }} gen</span>
+                            {% else %}
+                            <span style="color: #d1d5db;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="td">
+                            {% if script.published_tiktok %}
+                            <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_tiktok.strftime('%b %d') }}</span>
+                            {% else %}
+                            <span style="color: #d1d5db; font-size: 10px;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="td">
+                            {% if script.published_instagram %}
+                            <span class="status-badge" style="background: rgba(225,48,108,0.1); color: #E1306C; font-size: 10px;">{{ script.published_instagram.strftime('%b %d') }}</span>
+                            {% else %}
+                            <span style="color: #d1d5db; font-size: 10px;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="td">
+                            {% if script.published_youtube %}
+                            <span class="status-badge" style="background: rgba(255,0,0,0.1); color: #FF0000; font-size: 10px;">{{ script.published_youtube.strftime('%b %d') }}</span>
+                            {% else %}
+                            <span style="color: #d1d5db; font-size: 10px;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-xs text-gray-400">No scripts assigned</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Default Offsets Info -->
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-3">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #000;"></span>
+            <span style="font-size: 11px; font-weight: 600; color: #374151;">TikTok: Day 0</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #E1306C;"></span>
+            <span style="font-size: 11px; font-weight: 600; color: #374151;">Instagram: +7 days</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF0000;"></span>
+            <span style="font-size: 11px; font-weight: 600; color: #374151;">YouTube: +14 days</span>
+        </div>
+        <div style="flex: 1;"></div>
+        <span style="font-size: 11px; color: #9ca3af;">1 video per day per creator</span>
+    </div>
+</div>
+
+<!-- Analytics (placeholder) -->
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-2 mb-3">
+        <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <h2 class="text-sm font-semibold text-gray-700">Analytics</h2>
+    </div>
+    <div style="text-align: center; padding: 32px 20px; color: #9ca3af; border: 2px dashed #e2e8f0; border-radius: 10px;">
+        <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 10px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <p style="font-size: 13px; font-weight: 600; color: #6b7280;">Analytics Dashboard</p>
+        <p style="font-size: 12px; margin-top: 4px;">Views, engagement, and performance metrics coming soon</p>
+    </div>
+</div>
+
+<!-- All Generated Videos -->
+<div class="mb-4">
+    <h2 class="text-lg font-bold text-gray-900 mb-3">All Generated Videos</h2>
 </div>
 
 {% if generations %}
@@ -29,15 +162,23 @@
             <div>
                 <span class="text-xs font-medium text-gray-900">Video {{ gen.video_number }}</span>
                 <span class="status-badge ml-1 {% if gen.status == 'completed' %}status-completed{% elif gen.status == 'failed' or gen.status == 'nsfw' %}status-failed{% elif gen.status == 'in_progress' %}status-running{% else %}status-queued{% endif %}">{{ gen.status }}</span>
+                {% if gen.subtitle_status == 'completed' %}
+                <span class="status-badge status-completed ml-1">Subs</span>
+                {% endif %}
             </div>
             <span class="text-xs text-gray-400">{{ gen.duration }}s / {{ gen.aspect_ratio }}</span>
         </div>
 
-        <!-- Script link -->
-        {% if gen.script and gen.script.video %}
-        <a href="/scripts/{{ gen.script_id }}" class="text-xs text-blue-500 hover:underline line-clamp-2">
-            {{ gen.script.video.title or ('Script #' ~ gen.script_id) }}
-        </a>
+        <!-- Script link + creator -->
+        {% if gen.script %}
+        <div class="flex items-center justify-between">
+            <a href="/scripts/{{ gen.script_id }}" class="text-xs text-blue-500 hover:underline line-clamp-1">
+                {{ gen.script.video.title[:40] if gen.script.video else ('Script #' ~ gen.script_id) }}
+            </a>
+            {% if gen.script.assigned_to %}
+            <span class="status-badge" style="font-size: 9px; {% if gen.script.assigned_to == 'boris' %}background: rgba(37,99,235,0.1); color: #2563EB;{% elif gen.script.assigned_to == 'thomas' %}background: rgba(22,163,74,0.1); color: #16a34a;{% elif gen.script.assigned_to == 'daniel' %}background: rgba(234,88,12,0.1); color: #ea580c;{% endif %}">{{ gen.script.assigned_to }}</span>
+            {% endif %}
+        </div>
         {% endif %}
 
         <!-- Avatar + Model -->

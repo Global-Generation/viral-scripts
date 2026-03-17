@@ -10,401 +10,530 @@
     {% endif %}
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <!-- Left: Script content -->
-    <div class="lg:col-span-2 space-y-4">
-        <!-- Original script -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold text-gray-700" data-i18n="sec.original">Original Script</h2>
-                <button class="btn-sm btn-secondary" onclick="copyText('original-text')">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    <span data-i18n="btn.copy">Copy</span>
-                </button>
-            </div>
-            <textarea id="original-text" class="w-full input" rows="12" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;">{{ script.original_text }}</textarea>
-        </div>
+<!-- Tabs -->
+<div style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0;">
+    <button class="sv-tab sv-tab-active" data-tab="scenario" onclick="switchTab('scenario', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #1e293b; border-bottom: 2px solid #3b82f6; margin-bottom: -2px; transition: all 0.15s;">Scenario</button>
+    <button class="sv-tab" data-tab="video" onclick="switchTab('video', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Video</button>
+    <button class="sv-tab" data-tab="subtitles" onclick="switchTab('subtitles', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Subtitles</button>
+    <button class="sv-tab" data-tab="publication" onclick="switchTab('publication', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Publication</button>
+</div>
 
-        <!-- Modified script -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold text-gray-700">
-                    <span data-i18n="sec.provocative">Provocative Version</span>
-                    {% if script.modified_text %}
-                    <span class="status-badge status-completed ml-2">Ready</span>
-                    {% endif %}
-                </h2>
-                <div class="flex gap-2">
-                    {% if script.modified_text %}
-                    <button class="btn-sm btn-secondary" onclick="copyText('modified-text')">
+<!-- ==================== TAB 1: SCENARIO ==================== -->
+<div id="tab-scenario" class="sv-tab-content">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Left: Script content -->
+        <div class="lg:col-span-2 space-y-4">
+            <!-- Original script -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700" data-i18n="sec.original">Original Script</h2>
+                    <button class="btn-sm btn-secondary" onclick="copyText('original-text')">
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         <span data-i18n="btn.copy">Copy</span>
                     </button>
+                </div>
+                <textarea id="original-text" class="w-full input" rows="12" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;">{{ script.original_text }}</textarea>
+            </div>
+
+            <!-- Modified script -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700">
+                        <span data-i18n="sec.provocative">Provocative Version</span>
+                        {% if script.modified_text %}
+                        <span class="status-badge status-completed ml-2">Ready</span>
+                        {% endif %}
+                    </h2>
+                    <div class="flex gap-2">
+                        {% if script.modified_text %}
+                        <button class="btn-sm btn-secondary" onclick="copyText('modified-text')">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            <span data-i18n="btn.copy">Copy</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <textarea id="modified-text" class="w-full input" rows="12" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Make Provocative' to generate..." data-i18n-placeholder="sv.make_prov_ph">{{ script.modified_text or '' }}</textarea>
+            </div>
+
+            <!-- Generate Prompts button -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-gray-700">Video Prompts</h2>
+                    <button id="generate-prompt-btn" class="btn-sm btn-primary" onclick="generatePrompt({{ script.id }})">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        Generate Prompts
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video 1 Prompt -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700">
+                        Video 1 Prompt
+                        <span id="v1-ready-badge" class="status-badge status-completed ml-2" {% if not script.video1_prompt %}style="display:none;"{% endif %}>Ready</span>
+                    </h2>
+                    <button class="btn-sm btn-secondary" onclick="copyText('video1-prompt-text')">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy
+                    </button>
+                </div>
+                <textarea id="video1-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video1_prompt or '' }}</textarea>
+            </div>
+
+            <!-- Video 2 Prompt -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700">
+                        Video 2 Prompt
+                        <span id="v2-ready-badge" class="status-badge status-completed ml-2" {% if not script.video2_prompt %}style="display:none;"{% endif %}>Ready</span>
+                    </h2>
+                    <button class="btn-sm btn-secondary" onclick="copyText('video2-prompt-text')">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy
+                    </button>
+                </div>
+                <textarea id="video2-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video2_prompt or '' }}</textarea>
+            </div>
+
+            <!-- Video 3 Prompt -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700">
+                        Video 3 Prompt
+                        <span id="v3-ready-badge" class="status-badge status-completed ml-2" {% if not script.video3_prompt %}style="display:none;"{% endif %}>Ready</span>
+                    </h2>
+                    <button class="btn-sm btn-secondary" onclick="copyText('video3-prompt-text')">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy
+                    </button>
+                </div>
+                <textarea id="video3-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video3_prompt or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Right: Actions panel -->
+        <div class="space-y-4">
+            <!-- Assigned To -->
+            <div class="stat-card">
+                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.assigned_to">Assigned To</h2>
+                <div id="assigned-badge" class="mb-3">
+                    {% if script.assigned_to == 'boris' %}
+                    <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">Boris</span>
+                    {% elif script.assigned_to == 'thomas' %}
+                    <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 13px; padding: 6px 12px;">Thomas</span>
+                    {% elif script.assigned_to == 'daniel' %}
+                    <span class="status-badge" style="background: rgba(234,88,12,0.1); color: #ea580c; font-size: 13px; padding: 6px 12px;">Daniel</span>
+                    {% else %}
+                    <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Unassigned</span>
+                    {% endif %}
+                </div>
+                <div class="flex gap-1 flex-wrap">
+                    <button class="btn-sm {% if script.assigned_to == 'boris' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'boris')">Boris</button>
+                    <button class="btn-sm {% if script.assigned_to == 'thomas' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'thomas')">Thomas</button>
+                    <button class="btn-sm {% if script.assigned_to == 'daniel' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'daniel')">Daniel</button>
+                    {% if script.assigned_to %}
+                    <button class="btn-sm btn-danger" style="font-size: 10px;" onclick="assignScript({{ script.id }}, '')">Unassign</button>
                     {% endif %}
                 </div>
             </div>
-            <textarea id="modified-text" class="w-full input" rows="12" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Make Provocative' to generate..." data-i18n-placeholder="sv.make_prov_ph">{{ script.modified_text or '' }}</textarea>
-        </div>
 
-        <!-- Generate Prompts button -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-gray-700">Video Prompts</h2>
-                <button id="generate-prompt-btn" class="btn-sm btn-primary" onclick="generatePrompt({{ script.id }})">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    Generate Prompts
-                </button>
-            </div>
-        </div>
-
-        <!-- Video 1 Prompt -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold text-gray-700">
-                    Video 1 Prompt
-                    <span id="v1-ready-badge" class="status-badge status-completed ml-2" {% if not script.video1_prompt %}style="display:none;"{% endif %}>Ready</span>
-                </h2>
-                <button class="btn-sm btn-secondary" onclick="copyText('video1-prompt-text')">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    Copy
-                </button>
-            </div>
-            <textarea id="video1-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video1_prompt or '' }}</textarea>
-        </div>
-
-        <!-- Video 2 Prompt -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold text-gray-700">
-                    Video 2 Prompt
-                    <span id="v2-ready-badge" class="status-badge status-completed ml-2" {% if not script.video2_prompt %}style="display:none;"{% endif %}>Ready</span>
-                </h2>
-                <button class="btn-sm btn-secondary" onclick="copyText('video2-prompt-text')">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    Copy
-                </button>
-            </div>
-            <textarea id="video2-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video2_prompt or '' }}</textarea>
-        </div>
-
-        <!-- Video 3 Prompt -->
-        <div class="stat-card">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold text-gray-700">
-                    Video 3 Prompt
-                    <span id="v3-ready-badge" class="status-badge status-completed ml-2" {% if not script.video3_prompt %}style="display:none;"{% endif %}>Ready</span>
-                </h2>
-                <button class="btn-sm btn-secondary" onclick="copyText('video3-prompt-text')">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    Copy
-                </button>
-            </div>
-            <textarea id="video3-prompt-text" class="w-full input" rows="14" style="font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6;" placeholder="Click 'Generate Prompts' above...">{{ script.video3_prompt or '' }}</textarea>
-        </div>
-
-        <!-- Director Panel (Cinema Studio) -->
-        <div style="background: #1a1d21; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
-            <!-- Header -->
-            <div style="padding: 14px 18px 0; display: flex; align-items: center; gap: 8px;">
-                <svg width="16" height="16" fill="none" stroke="#c8ff00" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
-                <span style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.01em;">Director Panel</span>
-            </div>
-
-            <!-- Avatar Selection — thumbnail row -->
-            <div style="padding: 12px 18px; display: flex; align-items: center; gap: 10px; overflow-x: auto;">
-                <div id="cs-avatar-thumbs" style="display: flex; gap: 6px; flex: 1; overflow-x: auto;"></div>
-                <select id="cs-avatar" style="display:none;"><option value="">Select avatar...</option></select>
-            </div>
-
-            <!-- Settings row -->
-            <div style="padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Movement</label>
-                    <select id="cs-camera" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
-                        <option value="">Auto</option>
-                        <optgroup label="Dolly">
-                            <option value="dolly_in">Dolly In</option>
-                            <option value="dolly_out">Dolly Out</option>
-                            <option value="dolly_left">Dolly Left</option>
-                            <option value="dolly_right">Dolly Right</option>
-                            <option value="super_dolly_in">Super Dolly In</option>
-                            <option value="super_dolly_out">Super Dolly Out</option>
-                            <option value="double_dolly">Double Dolly</option>
-                            <option value="dolly_zoom_in">Dolly Zoom In</option>
-                            <option value="dolly_zoom_out">Dolly Zoom Out</option>
-                        </optgroup>
-                        <optgroup label="Pan / Tilt">
-                            <option value="pan_left">Pan Left</option>
-                            <option value="pan_right">Pan Right</option>
-                            <option value="tilt_up">Tilt Up</option>
-                            <option value="tilt_down">Tilt Down</option>
-                            <option value="whip_pan">Whip Pan</option>
-                            <option value="dutch_angle">Dutch Angle</option>
-                        </optgroup>
-                        <optgroup label="Orbit / Rotation">
-                            <option value="arc_left">Arc Left</option>
-                            <option value="arc_right">Arc Right</option>
-                            <option value="360_orbit">360 Orbit</option>
-                            <option value="lazy_susan">Lazy Susan</option>
-                            <option value="3d_rotation">3D Rotation</option>
-                            <option value="bullet_time">Bullet Time</option>
-                        </optgroup>
-                        <optgroup label="Crane / Jib">
-                            <option value="crane_up">Crane Up</option>
-                            <option value="crane_down">Crane Down</option>
-                            <option value="crane_over_the_head">Crane Over Head</option>
-                            <option value="jib_up">Jib Up</option>
-                            <option value="jib_down">Jib Down</option>
-                        </optgroup>
-                        <optgroup label="Zoom">
-                            <option value="zoom_in">Zoom In</option>
-                            <option value="zoom_out">Zoom Out</option>
-                            <option value="rapid_zoom_in">Rapid Zoom In</option>
-                            <option value="rapid_zoom_out">Rapid Zoom Out</option>
-                            <option value="crash_zoom_in">Crash Zoom In</option>
-                            <option value="crash_zoom_out">Crash Zoom Out</option>
-                            <option value="yoyo_zoom">YoYo Zoom</option>
-                            <option value="eating_zoom">Eating Zoom</option>
-                        </optgroup>
-                        <optgroup label="Special">
-                            <option value="fpv_drone">FPV Drone</option>
-                            <option value="aerial_pullback">Aerial Pullback</option>
-                            <option value="handheld">Handheld</option>
-                            <option value="hero_cam">Hero Cam</option>
-                            <option value="snorricam">Snorricam</option>
-                            <option value="robo_arm">Robo Arm</option>
-                            <option value="hyperlapse">Hyperlapse</option>
-                            <option value="head_tracking">Head Tracking</option>
-                            <option value="wiggle">Wiggle</option>
-                            <option value="static">Static</option>
-                        </optgroup>
-                        <optgroup label="Through / Transition">
-                            <option value="through_object_in">Through Object In</option>
-                            <option value="through_object_out">Through Object Out</option>
-                            <option value="flying_cam_transition">Flying Cam</option>
-                        </optgroup>
-                        <optgroup label="Cinematic">
-                            <option value="glam">Glam</option>
-                            <option value="eyes_in">Eyes In</option>
-                            <option value="mouth_in">Mouth In</option>
-                            <option value="focus_change">Focus Change</option>
-                            <option value="fisheye">Fisheye</option>
-                            <option value="low_shutter">Low Shutter</option>
-                            <option value="overhead">Overhead</option>
-                            <option value="object_pov">Object POV</option>
-                            <option value="bts">BTS</option>
-                        </optgroup>
-                        <optgroup label="Vehicle">
-                            <option value="car_chasing">Car Chasing</option>
-                            <option value="car_grip">Car Grip</option>
-                            <option value="road_rush">Road Rush</option>
-                            <option value="buckle_up">Buckle Up</option>
-                        </optgroup>
-                        <optgroup label="Timelapse">
-                            <option value="timelapse_glam">Timelapse Glam</option>
-                            <option value="timelapse_human">Timelapse Human</option>
-                            <option value="timelapse_landscape">Timelapse Landscape</option>
-                        </optgroup>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Speed Ramp</label>
-                    <select id="cs-speed-ramp" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
-                        <option value="auto">Auto</option>
-                        <option value="none">None (constant)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Duration</label>
-                    <select id="cs-duration" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #24272c; color: #e5e7eb; font-size: 12px; outline: none; font-family: inherit;">
-                        <option value="5">5s</option>
-                        <option value="10" selected>10s</option>
-                    </select>
+            <!-- Actions -->
+            <div class="stat-card">
+                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.actions">Actions</h2>
+                <div class="space-y-2">
+                    <button id="rewrite-btn" class="btn btn-primary w-full justify-center" onclick="rewriteScript({{ script.id }})">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span data-i18n="btn.make_provocative">Make Provocative</span>
+                    </button>
+                    <button class="btn btn-secondary w-full justify-center" onclick="saveScript({{ script.id }})">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        <span data-i18n="btn.save">Save Changes</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Bottom bar — pill toggles -->
-            <div style="padding: 10px 18px; background: #15171a; display: flex; align-items: center; gap: 6px; overflow-x: auto; border-top: 1px solid rgba(255,255,255,0.04);">
-                <!-- Model pill -->
-                <select id="cs-model" style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; color: #e5e7eb; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
-                    <option value="higgsfield-ai/dop/standard">DoP Standard</option>
-                    <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
-                    <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
-                </select>
-
-                <!-- Aspect ratio pill -->
-                <select id="cs-ratio" style="padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; color: #e5e7eb; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
-                    <option value="9:16">9:16</option>
-                    <option value="16:9">16:9</option>
-                    <option value="21:9">21:9</option>
-                    <option value="1:1">1:1</option>
-                </select>
-
-                <!-- Sound toggle pill -->
-                <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; cursor: pointer; white-space: nowrap;">
-                    <svg width="12" height="12" fill="none" stroke="#e5e7eb" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-                    <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#c8ff00;cursor:pointer;" checked>
-                    <span style="font-size: 11px; font-weight: 600; color: #e5e7eb;">Sound</span>
-                </label>
-
-                <!-- Slow motion toggle -->
-                <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: #24272c; cursor: pointer; white-space: nowrap;">
-                    <input type="checkbox" id="cs-slowmo" style="width:14px;height:14px;accent-color:#c8ff00;cursor:pointer;">
-                    <span style="font-size: 11px; font-weight: 600; color: #e5e7eb;">Slow Mo</span>
-                </label>
-
-                <!-- Spacer -->
-                <div style="flex:1;"></div>
-
-                <!-- Generate buttons -->
-                <button id="cs-gen-v1" onclick="generateVideo({{ script.id }}, 1)" style="padding: 6px 18px; border-radius: 8px; border: none; background: #c8ff00; color: #0f1113; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-                    GENERATE V1
-                </button>
-                <button id="cs-gen-v2" onclick="generateVideo({{ script.id }}, 2)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid rgba(200,255,0,0.3); background: transparent; color: #c8ff00; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-                    GENERATE V2
-                </button>
-            </div>
-
-            <!-- Video 1 Status & Preview -->
-            <div id="cs-v1-area" style="display:none;" class="mb-3">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-xs font-medium text-gray-600">Video 1</span>
-                    <span id="cs-v1-status" class="status-badge status-queued">queued</span>
-                </div>
-                <div id="cs-v1-player" style="display:none;">
-                    <video id="cs-v1-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <div class="flex gap-2 mt-2 items-center">
-                        <a id="cs-v1-download" href="#" download class="btn-sm btn-secondary inline-flex">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download
-                        </a>
-                        <span id="cs-v1-sub-status" style="display:none;"></span>
-                        <button id="cs-v1-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV1GenId, 1)">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            Add Subtitles
-                        </button>
+            <!-- Video info -->
+            {% if video %}
+            <div class="stat-card">
+                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.video_info">Video Info</h2>
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <span class="text-gray-400">Title:</span>
+                        <p class="text-gray-700 font-medium">{{ video.title or 'Untitled' }}</p>
                     </div>
-                    <!-- Subtitled video player -->
-                    <div id="cs-v1-sub-player" style="display:none;" class="mt-3">
-                        <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
-                        <video id="cs-v1-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                        <a id="cs-v1-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download with Subtitles
-                        </a>
+                    <div>
+                        <span class="text-gray-400">URL:</span>
+                        <a href="{{ video.tiktok_url }}" target="_blank" class="text-blue-500 hover:underline break-all block">{{ video.tiktok_url }}</a>
+                    </div>
+                    {% if search %}
+                    <div>
+                        <span class="text-gray-400">Search query:</span>
+                        <p class="text-gray-700">{{ search.query }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Category:</span>
+                        {% if search.category == 'ai' %}
+                        <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
+                        {% elif search.category == 'finance' %}
+                        <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
+                        {% else %}
+                        <span class="status-badge status-queued">General</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="text-gray-400">Score:</span>
+                        <span class="text-gray-700">{{ '%.2f'|format(video.score) }}</span>
                     </div>
                 </div>
             </div>
+            {% endif %}
 
-            <!-- Video 2 Status & Preview -->
-            <div id="cs-v2-area" style="display:none;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-xs font-medium text-gray-600">Video 2</span>
-                    <span id="cs-v2-status" class="status-badge status-queued">queued</span>
+            <!-- Viral Score -->
+            <div class="stat-card">
+                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.viral_potential">Viral Potential</h2>
+                <div id="viral-score-display" class="text-center mb-3">
+                    {% if script.viral_score >= 70 %}
+                    <span style="font-size: 32px; font-weight: 800; color: #16a34a;">{{ script.viral_score }}</span>
+                    <span style="font-size: 12px; color: #16a34a; display: block;">HIGH POTENTIAL</span>
+                    {% elif script.viral_score >= 50 %}
+                    <span style="font-size: 32px; font-weight: 800; color: #ca8a04;">{{ script.viral_score }}</span>
+                    <span style="font-size: 12px; color: #ca8a04; display: block;">MODERATE</span>
+                    {% elif script.viral_score > 0 %}
+                    <span style="font-size: 32px; font-weight: 800; color: #9ca3af;">{{ script.viral_score }}</span>
+                    <span style="font-size: 12px; color: #9ca3af; display: block;">LOW</span>
+                    {% else %}
+                    <span style="font-size: 14px; color: #d1d5db;">Not scored</span>
+                    {% endif %}
                 </div>
-                <div id="cs-v2-player" style="display:none;">
-                    <video id="cs-v2-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                    <div class="flex gap-2 mt-2 items-center">
-                        <a id="cs-v2-download" href="#" download class="btn-sm btn-secondary inline-flex">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download
-                        </a>
-                        <span id="cs-v2-sub-status" style="display:none;"></span>
-                        <button id="cs-v2-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV2GenId, 2)">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            Add Subtitles
-                        </button>
-                    </div>
-                    <!-- Subtitled video player -->
-                    <div id="cs-v2-sub-player" style="display:none;" class="mt-3">
-                        <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
-                        <video id="cs-v2-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
-                        <a id="cs-v2-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download with Subtitles
-                        </a>
-                    </div>
-                </div>
+                <button class="btn btn-secondary w-full justify-center text-xs" onclick="scoreScript({{ script.id }})">
+                    {% if script.viral_score > 0 %}Re-score{% else %}Score{% endif %}
+                </button>
             </div>
 
-            <!-- Previous Generations -->
-            <div id="cs-history" style="display:none;" class="mt-4 border-t border-gray-100 pt-3">
-                <h3 class="text-xs font-medium text-gray-400 uppercase mb-2">Previous Generations</h3>
-                <div id="cs-history-list" class="space-y-2"></div>
+            <!-- Script metadata -->
+            <div class="stat-card">
+                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.script_info">Script Info</h2>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Status</span>
+                        {% if script.status == 'modified' %}
+                        <span class="status-badge status-completed">Modified</span>
+                        {% else %}
+                        <span class="status-badge status-running">Extracted</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Original length</span>
+                        <span class="text-gray-700">{{ script.original_text|length }} chars</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Created</span>
+                        <span class="text-gray-700">{{ script.created_at.strftime('%b %d, %H:%M') }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Right: Actions panel -->
-    <div class="space-y-4">
-        <!-- Character Type -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.character_type">Character Type</h2>
-            <div id="character-badge" class="mb-3">
-                {% if script.character_type == 'grandpa' %}
-                <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 13px; padding: 6px 12px;">&#x1F474; Wall Street Grandpa</span>
-                {% elif script.character_type == 'techguy' %}
-                <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">&#x1F468;&#x200D;&#x1F4BB; IT Tech Guy</span>
-                {% elif script.character_type == 'cartoon' %}
-                <span class="status-badge" style="background: rgba(168,85,247,0.1); color: #7C3AED; font-size: 13px; padding: 6px 12px;">&#x1F3AC; Cartoon</span>
-                {% else %}
-                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Not classified</span>
-                {% endif %}
+<!-- ==================== TAB 2: VIDEO ==================== -->
+<div id="tab-video" class="sv-tab-content" style="display: none;">
+    <!-- Director Panel (Cinema Studio) — Light Theme -->
+    <div style="background: #ffffff; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <!-- Header -->
+        <div style="padding: 14px 18px 0; display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+            <span style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: -0.01em;">Director Panel</span>
+        </div>
+
+        <!-- Avatar Selection — thumbnail row -->
+        <div style="padding: 12px 18px; display: flex; align-items: center; gap: 10px; overflow-x: auto;">
+            <div id="cs-avatar-thumbs" style="display: flex; gap: 6px; flex: 1; overflow-x: auto;"></div>
+            <select id="cs-avatar" style="display:none;"><option value="">Select avatar...</option></select>
+        </div>
+
+        <!-- Settings row -->
+        <div style="padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div>
+                <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Movement</label>
+                <select id="cs-camera" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
+                    <option value="">Auto</option>
+                    <optgroup label="Dolly">
+                        <option value="dolly_in">Dolly In</option>
+                        <option value="dolly_out">Dolly Out</option>
+                        <option value="dolly_left">Dolly Left</option>
+                        <option value="dolly_right">Dolly Right</option>
+                        <option value="super_dolly_in">Super Dolly In</option>
+                        <option value="super_dolly_out">Super Dolly Out</option>
+                        <option value="double_dolly">Double Dolly</option>
+                        <option value="dolly_zoom_in">Dolly Zoom In</option>
+                        <option value="dolly_zoom_out">Dolly Zoom Out</option>
+                    </optgroup>
+                    <optgroup label="Pan / Tilt">
+                        <option value="pan_left">Pan Left</option>
+                        <option value="pan_right">Pan Right</option>
+                        <option value="tilt_up">Tilt Up</option>
+                        <option value="tilt_down">Tilt Down</option>
+                        <option value="whip_pan">Whip Pan</option>
+                        <option value="dutch_angle">Dutch Angle</option>
+                    </optgroup>
+                    <optgroup label="Orbit / Rotation">
+                        <option value="arc_left">Arc Left</option>
+                        <option value="arc_right">Arc Right</option>
+                        <option value="360_orbit">360 Orbit</option>
+                        <option value="lazy_susan">Lazy Susan</option>
+                        <option value="3d_rotation">3D Rotation</option>
+                        <option value="bullet_time">Bullet Time</option>
+                    </optgroup>
+                    <optgroup label="Crane / Jib">
+                        <option value="crane_up">Crane Up</option>
+                        <option value="crane_down">Crane Down</option>
+                        <option value="crane_over_the_head">Crane Over Head</option>
+                        <option value="jib_up">Jib Up</option>
+                        <option value="jib_down">Jib Down</option>
+                    </optgroup>
+                    <optgroup label="Zoom">
+                        <option value="zoom_in">Zoom In</option>
+                        <option value="zoom_out">Zoom Out</option>
+                        <option value="rapid_zoom_in">Rapid Zoom In</option>
+                        <option value="rapid_zoom_out">Rapid Zoom Out</option>
+                        <option value="crash_zoom_in">Crash Zoom In</option>
+                        <option value="crash_zoom_out">Crash Zoom Out</option>
+                        <option value="yoyo_zoom">YoYo Zoom</option>
+                        <option value="eating_zoom">Eating Zoom</option>
+                    </optgroup>
+                    <optgroup label="Special">
+                        <option value="fpv_drone">FPV Drone</option>
+                        <option value="aerial_pullback">Aerial Pullback</option>
+                        <option value="handheld">Handheld</option>
+                        <option value="hero_cam">Hero Cam</option>
+                        <option value="snorricam">Snorricam</option>
+                        <option value="robo_arm">Robo Arm</option>
+                        <option value="hyperlapse">Hyperlapse</option>
+                        <option value="head_tracking">Head Tracking</option>
+                        <option value="wiggle">Wiggle</option>
+                        <option value="static">Static</option>
+                    </optgroup>
+                    <optgroup label="Through / Transition">
+                        <option value="through_object_in">Through Object In</option>
+                        <option value="through_object_out">Through Object Out</option>
+                        <option value="flying_cam_transition">Flying Cam</option>
+                    </optgroup>
+                    <optgroup label="Cinematic">
+                        <option value="glam">Glam</option>
+                        <option value="eyes_in">Eyes In</option>
+                        <option value="mouth_in">Mouth In</option>
+                        <option value="focus_change">Focus Change</option>
+                        <option value="fisheye">Fisheye</option>
+                        <option value="low_shutter">Low Shutter</option>
+                        <option value="overhead">Overhead</option>
+                        <option value="object_pov">Object POV</option>
+                        <option value="bts">BTS</option>
+                    </optgroup>
+                    <optgroup label="Vehicle">
+                        <option value="car_chasing">Car Chasing</option>
+                        <option value="car_grip">Car Grip</option>
+                        <option value="road_rush">Road Rush</option>
+                        <option value="buckle_up">Buckle Up</option>
+                    </optgroup>
+                    <optgroup label="Timelapse">
+                        <option value="timelapse_glam">Timelapse Glam</option>
+                        <option value="timelapse_human">Timelapse Human</option>
+                        <option value="timelapse_landscape">Timelapse Landscape</option>
+                    </optgroup>
+                </select>
             </div>
-            <button class="btn btn-secondary w-full justify-center text-xs" onclick="classifyScript({{ script.id }})">
-                {% if script.character_type %}Re-classify{% else %}Classify{% endif %}
+            <div>
+                <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Speed Ramp</label>
+                <select id="cs-speed-ramp" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
+                    <option value="auto">Auto</option>
+                    <option value="none">None (constant)</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Duration</label>
+                <select id="cs-duration" style="width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; font-size: 12px; outline: none; font-family: inherit;">
+                    <option value="5">5s</option>
+                    <option value="10" selected>10s</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Bottom bar — pill toggles -->
+        <div style="padding: 10px 18px; background: #f1f5f9; display: flex; align-items: center; gap: 6px; overflow-x: auto; border-top: 1px solid #e2e8f0;">
+            <!-- Model pill -->
+            <select id="cs-model" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
+                <option value="higgsfield-ai/dop/standard">DoP Standard</option>
+                <option value="kling-video/v2.1/pro/image-to-video">Kling v2.1 Pro</option>
+                <option value="bytedance/seedance/v1/pro/image-to-video">Seedance v1 Pro</option>
+            </select>
+
+            <!-- Aspect ratio pill -->
+            <select id="cs-ratio" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #374151; font-size: 11px; font-weight: 600; outline: none; font-family: inherit; cursor: pointer;">
+                <option value="9:16">9:16</option>
+                <option value="16:9">16:9</option>
+                <option value="21:9">21:9</option>
+                <option value="1:1">1:1</option>
+            </select>
+
+            <!-- Sound toggle pill -->
+            <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
+                <svg width="12" height="12" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                <input type="checkbox" id="cs-sound" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;" checked>
+                <span style="font-size: 11px; font-weight: 600; color: #374151;">Sound</span>
+            </label>
+
+            <!-- Slow motion toggle -->
+            <label style="display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; white-space: nowrap;">
+                <input type="checkbox" id="cs-slowmo" style="width:14px;height:14px;accent-color:#3b82f6;cursor:pointer;">
+                <span style="font-size: 11px; font-weight: 600; color: #374151;">Slow Mo</span>
+            </label>
+
+            <!-- Spacer -->
+            <div style="flex:1;"></div>
+
+            <!-- Generate buttons -->
+            <button id="cs-gen-v1" onclick="generateVideo({{ script.id }}, 1)" style="padding: 6px 18px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+                GENERATE V1
+            </button>
+            <button id="cs-gen-v2" onclick="generateVideo({{ script.id }}, 2)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid #3b82f6; background: transparent; color: #3b82f6; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+                GENERATE V2
+            </button>
+            <button id="cs-gen-v3" onclick="generateVideo({{ script.id }}, 3)" style="padding: 6px 18px; border-radius: 8px; border: 1px solid #3b82f6; background: transparent; color: #3b82f6; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+                GENERATE V3
             </button>
         </div>
 
-        <!-- Assigned To -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.assigned_to">Assigned To</h2>
-            <div id="assigned-badge" class="mb-3">
-                {% if script.assigned_to == 'boris' %}
-                <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">Boris</span>
-                {% elif script.assigned_to == 'thomas' %}
-                <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 13px; padding: 6px 12px;">Thomas</span>
-                {% elif script.assigned_to == 'daniel' %}
-                <span class="status-badge" style="background: rgba(234,88,12,0.1); color: #ea580c; font-size: 13px; padding: 6px 12px;">Daniel</span>
-                {% else %}
-                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Unassigned</span>
-                {% endif %}
+        <!-- Video 1 Status & Preview -->
+        <div id="cs-v1-area" style="display:none; padding: 12px 18px;" class="mb-3">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-medium text-gray-600">Video 1</span>
+                <span id="cs-v1-status" class="status-badge status-queued">queued</span>
             </div>
-            <div class="flex gap-1 flex-wrap">
-                <button class="btn-sm {% if script.assigned_to == 'boris' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'boris')">Boris</button>
-                <button class="btn-sm {% if script.assigned_to == 'thomas' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'thomas')">Thomas</button>
-                <button class="btn-sm {% if script.assigned_to == 'daniel' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="assignScript({{ script.id }}, 'daniel')">Daniel</button>
-                {% if script.assigned_to %}
-                <button class="btn-sm btn-danger" style="font-size: 10px;" onclick="assignScript({{ script.id }}, '')">Unassign</button>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Production Status -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.production">Production Status</h2>
-            <div id="production-badge" class="mb-3">
-                {% if script.production_status == 'ready' %}
-                <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">Ready</span>
-                {% elif script.production_status == 'filmed' %}
-                <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 13px; padding: 6px 12px;">Filmed</span>
-                {% elif script.production_status == 'published' %}
-                <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 13px; padding: 6px 12px;">Published</span>
-                {% else %}
-                <span class="status-badge status-queued" style="font-size: 13px; padding: 6px 12px;">Not set</span>
-                {% endif %}
-            </div>
-            <div class="flex gap-1 flex-wrap">
-                <button class="btn-sm {% if script.production_status == 'ready' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'ready')">Ready</button>
-                <button class="btn-sm {% if script.production_status == 'filmed' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'filmed')">Filmed</button>
-                <button class="btn-sm {% if script.production_status == 'published' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, 'published')">Published</button>
-                {% if script.production_status %}
-                <button class="btn-sm btn-danger" style="font-size: 10px;" onclick="updateProduction({{ script.id }}, '')">Clear</button>
-                {% endif %}
+            <div id="cs-v1-player" style="display:none;">
+                <video id="cs-v1-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                <div class="flex gap-2 mt-2 items-center">
+                    <a id="cs-v1-download" href="#" download class="btn-sm btn-secondary inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download
+                    </a>
+                    <span id="cs-v1-sub-status" style="display:none;"></span>
+                    <button id="cs-v1-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV1GenId, 1)">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        Add Subtitles
+                    </button>
+                </div>
+                <!-- Subtitled video player -->
+                <div id="cs-v1-sub-player" style="display:none;" class="mt-3">
+                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
+                    <video id="cs-v1-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                    <a id="cs-v1-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download with Subtitles
+                    </a>
+                </div>
             </div>
         </div>
 
-        <!-- Publication -->
+        <!-- Video 2 Status & Preview -->
+        <div id="cs-v2-area" style="display:none; padding: 12px 18px;">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-medium text-gray-600">Video 2</span>
+                <span id="cs-v2-status" class="status-badge status-queued">queued</span>
+            </div>
+            <div id="cs-v2-player" style="display:none;">
+                <video id="cs-v2-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                <div class="flex gap-2 mt-2 items-center">
+                    <a id="cs-v2-download" href="#" download class="btn-sm btn-secondary inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download
+                    </a>
+                    <span id="cs-v2-sub-status" style="display:none;"></span>
+                    <button id="cs-v2-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV2GenId, 2)">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        Add Subtitles
+                    </button>
+                </div>
+                <!-- Subtitled video player -->
+                <div id="cs-v2-sub-player" style="display:none;" class="mt-3">
+                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
+                    <video id="cs-v2-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                    <a id="cs-v2-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download with Subtitles
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video 3 Status & Preview -->
+        <div id="cs-v3-area" style="display:none; padding: 12px 18px;">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-medium text-gray-600">Video 3</span>
+                <span id="cs-v3-status" class="status-badge status-queued">queued</span>
+            </div>
+            <div id="cs-v3-player" style="display:none;">
+                <video id="cs-v3-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                <div class="flex gap-2 mt-2 items-center">
+                    <a id="cs-v3-download" href="#" download class="btn-sm btn-secondary inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download
+                    </a>
+                    <span id="cs-v3-sub-status" style="display:none;"></span>
+                    <button id="cs-v3-sub-btn" style="display:none;" class="btn-sm btn-primary inline-flex" onclick="addSubtitles({{ script.id }}, window._csV3GenId, 3)">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        Add Subtitles
+                    </button>
+                </div>
+                <!-- Subtitled video player -->
+                <div id="cs-v3-sub-player" style="display:none;" class="mt-3">
+                    <p class="text-xs font-medium text-gray-500 mb-1">With Subtitles:</p>
+                    <video id="cs-v3-sub-video" controls class="w-full rounded-lg" style="max-height: 320px; background: #000;"></video>
+                    <a id="cs-v3-sub-download" href="#" download class="btn-sm btn-primary mt-2 inline-flex">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download with Subtitles
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous Generations -->
+        <div id="cs-history" style="display:none; padding: 12px 18px;" class="mt-4 border-t border-gray-200 pt-3">
+            <h3 class="text-xs font-medium text-gray-400 uppercase mb-2">Previous Generations</h3>
+            <div id="cs-history-list" class="space-y-2"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB 3: SUBTITLES ==================== -->
+<div id="tab-subtitles" class="sv-tab-content" style="display: none;">
+    <div style="background: #ffffff; border-radius: 14px; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <!-- Header -->
+        <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: between; gap: 8px;">
+            <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+            <span style="font-size: 13px; font-weight: 700; color: #1e293b;">TikTok Subtitles</span>
+            <span style="font-size: 11px; color: #9ca3af; margin-left: 8px;">Word-by-word highlight, Futura Bold, pop animation, 72fps</span>
+        </div>
+
+        <!-- Subtitle cards loaded dynamically -->
+        <div id="sub-tab-content" style="padding: 16px 20px;">
+            <div id="sub-tab-empty" style="text-align: center; padding: 40px 20px; color: #9ca3af;">
+                <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px;"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <p style="font-size: 13px; font-weight: 600;">No videos generated yet</p>
+                <p style="font-size: 12px; margin-top: 4px;">Generate videos in the Video tab first, then come here to add subtitles</p>
+            </div>
+            <div id="sub-tab-list" class="space-y-4" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB 4: PUBLICATION ==================== -->
+<div id="tab-publication" class="sv-tab-content" style="display: none;">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Publication Dates -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.publication">Publication</h2>
             <div class="space-y-2">
@@ -444,111 +573,144 @@
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Metadata (TBD) -->
         <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.actions">Actions</h2>
-            <div class="space-y-2">
-                <button id="rewrite-btn" class="btn btn-primary w-full justify-center" onclick="rewriteScript({{ script.id }})">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    <span data-i18n="btn.make_provocative">Make Provocative</span>
-                </button>
-                <button class="btn btn-secondary w-full justify-center" onclick="saveScript({{ script.id }})">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                    <span data-i18n="btn.save">Save Changes</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Video info -->
-        {% if video %}
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.video_info">Video Info</h2>
-            <div class="space-y-2 text-xs">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Post Details</h2>
+            <div class="space-y-3">
                 <div>
-                    <span class="text-gray-400">Title:</span>
-                    <p class="text-gray-700 font-medium">{{ video.title or 'Untitled' }}</p>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Title</label>
+                    <input type="text" id="pub-title" class="w-full input" style="font-size: 13px;" placeholder="Video title..." value="">
                 </div>
                 <div>
-                    <span class="text-gray-400">URL:</span>
-                    <a href="{{ video.tiktok_url }}" target="_blank" class="text-blue-500 hover:underline break-all block">{{ video.tiktok_url }}</a>
-                </div>
-                {% if search %}
-                <div>
-                    <span class="text-gray-400">Search query:</span>
-                    <p class="text-gray-700">{{ search.query }}</p>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Description</label>
+                    <textarea id="pub-description" class="w-full input" rows="4" style="font-size: 13px;" placeholder="Video description..."></textarea>
                 </div>
                 <div>
-                    <span class="text-gray-400">Category:</span>
-                    {% if search.category == 'ai' %}
-                    <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
-                    {% elif search.category == 'finance' %}
-                    <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
-                    {% else %}
-                    <span class="status-badge status-queued">General</span>
-                    {% endif %}
-                </div>
-                {% endif %}
-                <div>
-                    <span class="text-gray-400">Score:</span>
-                    <span class="text-gray-700">{{ '%.2f'|format(video.score) }}</span>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Viral Score -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.viral_potential">Viral Potential</h2>
-            <div id="viral-score-display" class="text-center mb-3">
-                {% if script.viral_score >= 70 %}
-                <span style="font-size: 32px; font-weight: 800; color: #16a34a;">{{ script.viral_score }}</span>
-                <span style="font-size: 12px; color: #16a34a; display: block;">HIGH POTENTIAL</span>
-                {% elif script.viral_score >= 50 %}
-                <span style="font-size: 32px; font-weight: 800; color: #ca8a04;">{{ script.viral_score }}</span>
-                <span style="font-size: 12px; color: #ca8a04; display: block;">MODERATE</span>
-                {% elif script.viral_score > 0 %}
-                <span style="font-size: 32px; font-weight: 800; color: #9ca3af;">{{ script.viral_score }}</span>
-                <span style="font-size: 12px; color: #9ca3af; display: block;">LOW</span>
-                {% else %}
-                <span style="font-size: 14px; color: #d1d5db;">Not scored</span>
-                {% endif %}
-            </div>
-            <button class="btn btn-secondary w-full justify-center text-xs" onclick="scoreScript({{ script.id }})">
-                {% if script.viral_score > 0 %}Re-score{% else %}Score{% endif %}
-            </button>
-        </div>
-
-        <!-- Script metadata -->
-        <div class="stat-card">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sv.script_info">Script Info</h2>
-            <div class="space-y-2 text-xs">
-                <div class="flex justify-between">
-                    <span class="text-gray-400">Status</span>
-                    {% if script.status == 'modified' %}
-                    <span class="status-badge status-completed">Modified</span>
-                    {% else %}
-                    <span class="status-badge status-running">Extracted</span>
-                    {% endif %}
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400">Original length</span>
-                    <span class="text-gray-700">{{ script.original_text|length }} chars</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400">Created</span>
-                    <span class="text-gray-700">{{ script.created_at.strftime('%b %d, %H:%M') }}</span>
+                    <label style="font-size: 10px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Tags</label>
+                    <input type="text" id="pub-tags" class="w-full input" style="font-size: 13px;" placeholder="#viral #finance #ai" value="">
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
+// === Tab switching ===
+function switchTab(tabName, btn) {
+    // Hide all tabs
+    document.querySelectorAll('.sv-tab-content').forEach(el => el.style.display = 'none');
+    // Deactivate all tab buttons
+    document.querySelectorAll('.sv-tab').forEach(el => {
+        el.style.color = '#9ca3af';
+        el.style.borderBottomColor = 'transparent';
+    });
+    // Show selected tab
+    const tab = document.getElementById('tab-' + tabName);
+    if (tab) tab.style.display = '';
+    // Activate button
+    if (btn) {
+        btn.style.color = '#1e293b';
+        btn.style.borderBottomColor = '#3b82f6';
+    }
+    // Reload subtitle tab when switching to it
+    if (tabName === 'subtitles') {
+        loadSubtitleTab({{ script.id }});
+    }
+}
+
+// === Subtitles Tab ===
+async function loadSubtitleTab(scriptId) {
+    const data = await api('/api/scripts/' + scriptId + '/video-generations');
+    const emptyEl = document.getElementById('sub-tab-empty');
+    const listEl = document.getElementById('sub-tab-list');
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        if (emptyEl) emptyEl.style.display = '';
+        if (listEl) listEl.style.display = 'none';
+        return;
+    }
+
+    const completed = data.filter(g => g.status === 'completed' && g.video_url);
+    if (completed.length === 0) {
+        if (emptyEl) { emptyEl.style.display = ''; emptyEl.querySelector('p').textContent = 'Videos are still generating...'; }
+        if (listEl) listEl.style.display = 'none';
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (listEl) listEl.style.display = '';
+
+    listEl.innerHTML = completed.map(g => {
+        const subStatus = g.subtitle_status || '';
+        const isProcessing = subStatus === 'processing';
+        const isCompleted = subStatus === 'completed';
+        const downloadUrl = '/api/scripts/' + scriptId + '/download-subtitled/' + g.id;
+
+        let actionHtml = '';
+        if (isCompleted) {
+            actionHtml = '<div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">' +
+                '<span class="status-badge status-completed">Subtitles Ready</span>' +
+                '<a href="' + downloadUrl + '" download class="btn-sm btn-primary inline-flex">' +
+                '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
+                'Download with Subtitles</a></div>' +
+                '<div style="margin-top: 8px;"><video src="' + downloadUrl + '" controls style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;"></video></div>';
+        } else if (isProcessing) {
+            actionHtml = '<div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">' +
+                '<span class="status-badge status-running">Processing subtitles...</span>' +
+                '<span style="font-size: 11px; color: #9ca3af;">Whisper transcription + burn animation</span></div>';
+        } else {
+            actionHtml = '<div style="margin-top: 12px;">' +
+                '<button class="btn-sm btn-primary" onclick="subtitleTabAdd(' + scriptId + ', ' + g.id + ', this)" style="padding: 8px 20px; font-size: 12px; font-weight: 700;">' +
+                '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>' +
+                'Add TikTok Subtitles</button></div>';
+        }
+
+        return '<div style="background: #f8fafc; border-radius: 10px; padding: 16px; border: 1px solid #e2e8f0;">' +
+            '<div style="display: flex; align-items: center; justify-content: space-between;">' +
+            '<div style="display: flex; align-items: center; gap: 8px;">' +
+            '<span style="font-size: 13px; font-weight: 700; color: #1e293b;">Video ' + g.video_number + '</span>' +
+            '<span style="font-size: 11px; color: #9ca3af;">' + g.model_id.split('/').pop() + ' / ' + g.duration + 's</span></div>' +
+            '<a href="' + g.video_url + '" target="_blank" class="btn-sm btn-secondary" style="font-size: 10px;">Watch Original</a></div>' +
+            '<div style="margin-top: 8px;"><video src="' + g.video_url + '" controls style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;"></video></div>' +
+            actionHtml +
+            '</div>';
+    }).join('');
+}
+
+async function subtitleTabAdd(scriptId, generationId, btn) {
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Starting...';
+    }
+    const result = await api('/api/scripts/' + scriptId + '/add-subtitles/' + generationId, 'POST');
+    if (result && result.ok) {
+        toast('Subtitle generation started!', 'info');
+        // Poll for completion
+        const interval = setInterval(async () => {
+            const status = await api('/api/scripts/' + scriptId + '/subtitle-status/' + generationId);
+            if (!status) return;
+            if (status.subtitle_status === 'completed' || status.subtitle_status === 'failed') {
+                clearInterval(interval);
+                toast(status.subtitle_status === 'completed' ? 'Subtitles ready!' : 'Subtitles failed', status.subtitle_status === 'completed' ? 'success' : 'error');
+                loadSubtitleTab(scriptId);
+            }
+        }, 3000);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Processing...';
+        }
+    } else {
+        toast('Failed to start subtitles: ' + (result?.detail || 'Unknown error'), 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Add TikTok Subtitles'; }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadAvatarsDropdown();
     loadVideoGenerations({{ script.id }});
+    loadSubtitleTab({{ script.id }});
 });
 </script>
 {% endblock %}

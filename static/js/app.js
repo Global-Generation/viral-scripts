@@ -113,8 +113,10 @@ async function saveScript(scriptId) {
     const data = { original_text: original, modified_text: modified };
     const v1El = document.getElementById('video1-prompt-text');
     const v2El = document.getElementById('video2-prompt-text');
+    const v3El = document.getElementById('video3-prompt-text');
     if (v1El) data.video1_prompt = v1El.value;
     if (v2El) data.video2_prompt = v2El.value;
+    if (v3El) data.video3_prompt = v3El.value;
     const result = await api('/api/scripts/' + scriptId, 'PUT', data);
     if (result && result.ok) {
         toast('Saved!', 'success');
@@ -270,7 +272,7 @@ async function generateVideo(scriptId, videoNumber) {
     } else {
         toast('Generation failed: ' + (result?.detail || result?.error || 'Unknown error'), 'error');
     }
-    if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>Generate Video ' + videoNumber; }
+    if (btn) { btn.disabled = false; btn.textContent = 'GENERATE V' + videoNumber; }
 }
 
 function updateVideoStatus(videoNumber, status) {
@@ -340,10 +342,10 @@ async function loadAvatarsDropdown() {
     }
     thumbs.innerHTML = avatarsWithImage.map((a, i) => {
         return '<div onclick="selectCSAvatar(' + a.id + ', this)" style="cursor:pointer;text-align:center;" class="cs-avatar-opt' + (i === 0 ? ' cs-av-active' : '') + '">' +
-            '<div style="width:42px;height:42px;border-radius:8px;overflow:hidden;border:2px solid ' + (i === 0 ? '#c8ff00' : 'rgba(255,255,255,0.1)') + ';transition:all 0.15s;">' +
+            '<div style="width:42px;height:42px;border-radius:8px;overflow:hidden;border:2px solid ' + (i === 0 ? '#3b82f6' : '#e2e8f0') + ';transition:all 0.15s;">' +
             '<img src="' + a.image_url + '" alt="' + a.name + '" style="width:100%;height:100%;object-fit:cover;">' +
             '</div>' +
-            '<div style="font-size:9px;color:#9ca3af;margin-top:2px;max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.name + '</div>' +
+            '<div style="font-size:9px;color:#6b7280;margin-top:2px;max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + a.name + '</div>' +
             '</div>';
     }).join('');
 
@@ -357,10 +359,10 @@ function selectCSAvatar(id, el) {
     const select = document.getElementById('cs-avatar');
     if (select) select.value = id;
     // Update highlights
-    document.querySelectorAll('.cs-avatar-opt div:first-child').forEach(d => d.style.borderColor = 'rgba(255,255,255,0.1)');
+    document.querySelectorAll('.cs-avatar-opt div:first-child').forEach(d => d.style.borderColor = '#e2e8f0');
     if (el) {
         const thumb = el.querySelector('div:first-child');
-        if (thumb) thumb.style.borderColor = '#c8ff00';
+        if (thumb) thumb.style.borderColor = '#3b82f6';
     }
 }
 
