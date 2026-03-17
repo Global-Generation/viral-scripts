@@ -10,3 +10,7 @@ yt-dlp>=2024.12.23
 anthropic==0.40.0
 aiofiles==24.1.0
 higgsfield-client
+stable-ts>=2.16.0
+pysubs2>=1.7.0
+Pillow>=10.0.0
+moviepy>=2.0.0
