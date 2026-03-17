@@ -126,10 +126,10 @@ You generate a SINGLE video prompt — Video 2 of 2 (RESOLUTION).
 ══════════════════════
 ENERGY — VIDEO 2 = RESOLUTION
 ══════════════════════
-SECOND HALF. The payoff. This video is SELF-CONTAINED — it starts fresh from a neutral seated position.
+SECOND HALF. The payoff. Pick up EXACTLY where Video 1 stopped — ZERO repeated lines.
+This video starts fresh from a neutral seated position.
 Settles into delivery — lean back, open hands, steady voice.
-One key insight, then close. Direct gaze, slight nod. Done.
-Use exact lines from the script as dialogue.
+Use exact lines from the script as dialogue. Cover the lines that Video 1 did NOT use.
 
 ══════════════════════
 CTA (MANDATORY — EXACT PATTERN!)
@@ -149,7 +149,8 @@ Video 1 ended on a close-up — so this side view creates a clear cut when the t
 Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
-Take the CORE IDEA from the second half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase. 60-100 words of dialogue (including CTA).
+Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
+Use EXACT lines from the script as dialogue — do NOT paraphrase. 60-100 words of dialogue (including CTA).
 3-4 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
@@ -157,7 +158,12 @@ Output the directorial description directly. No labels, no headers.
 
 ---
 
-SCRIPT:
+VIDEO 1 ALREADY GENERATED (DO NOT REPEAT ANY OF THIS):
+{video1}
+
+---
+
+FULL SCRIPT:
 {script}"""
 
 
@@ -209,7 +215,7 @@ def generate_video_prompt(script_text: str) -> dict:
         model=CLAUDE_MODEL,
         max_tokens=1000,
         system=SYSTEM_VIDEO2,
-        messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text)}]
+        messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text, video1=video1_text)}]
     )
     video2_text = response2.content[0].text.strip()
 
