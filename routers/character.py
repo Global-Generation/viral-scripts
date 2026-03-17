@@ -9,9 +9,9 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 CHARACTERS = {
-    "boris": {"label": "Boris", "color": "#2563EB"},
-    "daniel": {"label": "Daniel", "color": "#ea580c"},
-    "thomas": {"label": "Thomas", "color": "#16a34a"},
+    "boris": {"label": "AI - Boris", "color": "#2563EB"},
+    "daniel": {"label": "AI - Daniel", "color": "#ea580c"},
+    "thomas": {"label": "AI - Thomas", "color": "#16a34a"},
 }
 
 
