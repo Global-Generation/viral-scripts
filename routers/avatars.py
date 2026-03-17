@@ -1,6 +1,8 @@
 import logging
+import os
+import uuid
 from typing import Optional
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -111,6 +113,30 @@ def get_variants(avatar_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Avatar not found")
     # Return parent first, then variants sorted by creation
     variants = db.query(Avatar).filter(Avatar.parent_id == avatar_id).order_by(Avatar.created_at.asc()).all()
+
+    # Auto-heal stuck variants: have request_id but no image_url (e.g. after deploy/restart)
+    for v in variants:
+        if v.image_request_id and not v.image_url:
+            try:
+                result = check_status(v.image_request_id)
+                if result["status"] == "completed" and result.get("url"):
+                    v.image_url = result["url"]
+                    db.commit()
+                    logger.info(f"Auto-healed stuck variant {v.id}")
+            except Exception as e:
+                logger.warning(f"Auto-heal check failed for variant {v.id}: {e}")
+
+    # Also check parent if stuck
+    if parent.image_request_id and not parent.image_url:
+        try:
+            result = check_status(parent.image_request_id)
+            if result["status"] == "completed" and result.get("url"):
+                parent.image_url = result["url"]
+                db.commit()
+                logger.info(f"Auto-healed stuck parent avatar {parent.id}")
+        except Exception as e:
+            logger.warning(f"Auto-heal check failed for parent {parent.id}: {e}")
+
     return {
         "parent": _avatar_to_dict(parent),
         "variants": [_avatar_to_dict(v) for v in variants],
@@ -339,7 +365,12 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     ).count()
     label = f"custom_{existing_custom + 1}"
 
-    variant_prompt = f"{PORTRAIT_BASE}{base_prompt}. {data.prompt}"
+    variant_prompt = (
+        f"{PORTRAIT_BASE}"
+        f"{base_prompt}. "
+        f"Same background, outfit, and pose as reference image. "
+        f"Only apply this change: {data.prompt}"
+    )
 
     variant = Avatar(
         parent_id=parent.id,
@@ -433,6 +464,45 @@ def delete_avatar(avatar_id: int, db: Session = Depends(get_db)):
     db.delete(avatar)
     db.commit()
     return {"ok": True}
+
+
+class UploadUrlRequest(BaseModel):
+    image_url: str
+
+
+@router.post("/api/avatars/{avatar_id}/upload-url")
+def upload_avatar_url(avatar_id: int, data: UploadUrlRequest, db: Session = Depends(get_db)):
+    """Set avatar image from an external URL (e.g. Higgsfield CDN link)."""
+    avatar = db.query(Avatar).get(avatar_id)
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    avatar.image_url = data.image_url
+    db.commit()
+    return {"ok": True, "image_url": avatar.image_url}
+
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads")
+
+
+@router.post("/api/avatars/{avatar_id}/upload-image")
+async def upload_avatar_image(avatar_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Upload a local image file as avatar photo."""
+    avatar = db.query(Avatar).get(avatar_id)
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    ext = os.path.splitext(file.filename or "img.png")[1] or ".png"
+    filename = f"{uuid.uuid4().hex}{ext}"
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    contents = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    avatar.image_url = f"/static/uploads/{filename}"
+    db.commit()
+    return {"ok": True, "image_url": avatar.image_url}
 
 
 # === Soul ID ===

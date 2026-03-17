@@ -41,6 +41,7 @@ def startup():
     _migrate_subtitle_fields()
     _migrate_avatar_variants()
     _migrate_video3_prompt()
+    _migrate_pipeline_fields()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -148,6 +149,48 @@ def _migrate_video3_prompt():
         db.execute(text("ALTER TABLE scripts ADD COLUMN video3_prompt TEXT DEFAULT ''"))
         db.commit()
         logging.info("Migrated: added video3_prompt column to scripts")
+    db.close()
+
+
+def _migrate_pipeline_fields():
+    """Add pipeline fields to scripts and video_generations if they don't exist."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    # Scripts table: final video + publication metadata
+    for col, sql in [
+        ("final_video_path", "ALTER TABLE scripts ADD COLUMN final_video_path TEXT DEFAULT ''"),
+        ("final_subtitled_path", "ALTER TABLE scripts ADD COLUMN final_subtitled_path TEXT DEFAULT ''"),
+        ("pub_title_tiktok", "ALTER TABLE scripts ADD COLUMN pub_title_tiktok TEXT DEFAULT ''"),
+        ("pub_desc_tiktok", "ALTER TABLE scripts ADD COLUMN pub_desc_tiktok TEXT DEFAULT ''"),
+        ("pub_tags_tiktok", "ALTER TABLE scripts ADD COLUMN pub_tags_tiktok TEXT DEFAULT ''"),
+        ("pub_title_instagram", "ALTER TABLE scripts ADD COLUMN pub_title_instagram TEXT DEFAULT ''"),
+        ("pub_desc_instagram", "ALTER TABLE scripts ADD COLUMN pub_desc_instagram TEXT DEFAULT ''"),
+        ("pub_tags_instagram", "ALTER TABLE scripts ADD COLUMN pub_tags_instagram TEXT DEFAULT ''"),
+        ("pub_title_youtube", "ALTER TABLE scripts ADD COLUMN pub_title_youtube TEXT DEFAULT ''"),
+        ("pub_desc_youtube", "ALTER TABLE scripts ADD COLUMN pub_desc_youtube TEXT DEFAULT ''"),
+        ("pub_tags_youtube", "ALTER TABLE scripts ADD COLUMN pub_tags_youtube TEXT DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to scripts")
+    # Video generations table: pipeline fields
+    for col, sql in [
+        ("speed_ramp", "ALTER TABLE video_generations ADD COLUMN speed_ramp VARCHAR DEFAULT 'auto'"),
+        ("variant_index", "ALTER TABLE video_generations ADD COLUMN variant_index INTEGER DEFAULT 0"),
+        ("selected", "ALTER TABLE video_generations ADD COLUMN selected BOOLEAN DEFAULT 0"),
+        ("end_frame_url", "ALTER TABLE video_generations ADD COLUMN end_frame_url TEXT DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM video_generations LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to video_generations")
     db.close()
 
 

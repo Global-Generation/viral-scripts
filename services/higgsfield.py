@@ -103,6 +103,7 @@ def generate_variant_image(source_image_url: str, prompt: str,
 def generate_video(image_url: str, prompt: str, duration: int = 5,
                    aspect_ratio: str = "9:16", camera_movement: str = "",
                    sound: bool = False, slow_motion: bool = False,
+                   speed_ramp: str = "auto", end_image: str = "",
                    model_id: str = "higgsfield-ai/dop/standard") -> dict:
     """Generate a video from an image via Cinema Studio."""
     _ensure_env()
@@ -119,6 +120,10 @@ def generate_video(image_url: str, prompt: str, duration: int = 5,
             arguments["sound"] = True
         if slow_motion:
             arguments["slow_motion"] = True
+        if speed_ramp and speed_ramp != "auto":
+            arguments["speed_ramp"] = speed_ramp
+        if end_image:
+            arguments["end_image"] = end_image
 
         controller = higgsfield_client.submit(model_id, arguments=arguments)
         request_id = controller.request_id if hasattr(controller, "request_id") else ""

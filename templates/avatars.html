@@ -323,6 +323,18 @@
                 Download Image
             </button>
 
+            <div style="display:flex;gap:6px;">
+                <button class="sc-variant-btn" style="flex:1;" onclick="document.getElementById('sc-upload-file').click()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Upload Photo
+                </button>
+                <button class="sc-variant-btn" style="flex:1;" onclick="pasteImageUrl()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    Paste URL
+                </button>
+            </div>
+            <input type="file" id="sc-upload-file" accept="image/*" style="display:none;" onchange="uploadImageFile(this)">
+
             <div style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:4px;">
                 <div class="sc-panel-label">Variations</div>
                 <div style="display:flex;flex-direction:column;gap:6px;">
@@ -762,6 +774,59 @@ function pollAvatarStatus(avatarId) {
             }
         }
     }, 3000);
+}
+
+// === Upload Image ===
+async function uploadImageFile(input) {
+    if (!input.files.length || !_selectedActorId) return;
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const resp = await fetch('/api/avatars/' + _selectedActorId + '/upload-image', {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await resp.json();
+        if (result.ok && result.image_url) {
+            toast('Image uploaded!', 'success');
+            updateAvatarImageInUI(_selectedActorId, result.image_url);
+        } else {
+            toast('Upload failed: ' + (result.detail || 'Error'), 'error');
+        }
+    } catch(e) {
+        toast('Upload failed', 'error');
+    }
+    input.value = '';
+}
+
+async function pasteImageUrl() {
+    const url = prompt('Paste image URL:');
+    if (!url || !_selectedActorId) return;
+
+    const result = await api('/api/avatars/' + _selectedActorId + '/upload-url', 'POST', { image_url: url });
+    if (result && result.ok && result.image_url) {
+        toast('Image URL set!', 'success');
+        updateAvatarImageInUI(_selectedActorId, result.image_url);
+    } else {
+        toast('Failed: ' + (result?.detail || 'Error'), 'error');
+    }
+}
+
+function updateAvatarImageInUI(actorId, imageUrl) {
+    // Update preview
+    const imgWrap = document.getElementById('sc-preview-img-wrap');
+    if (imgWrap) imgWrap.innerHTML = '<img id="sc-preview-image" src="' + imageUrl + '" alt="">';
+    // Update sidebar thumb
+    const item = document.getElementById('actor-item-' + actorId);
+    if (item) {
+        const thumb = item.querySelector('.sc-actor-thumb');
+        if (thumb) thumb.innerHTML = '<img src="' + imageUrl + '" alt="">';
+        const data = JSON.parse(item.dataset.avatar);
+        data.image_url = imageUrl;
+        item.dataset.avatar = JSON.stringify(data);
+    }
 }
 
 // Auto-poll for actors generating on load + load variants for first
