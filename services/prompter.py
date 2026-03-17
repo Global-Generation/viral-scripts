@@ -78,7 +78,8 @@ OUTPUT FORMAT
 ══════════════════════
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
-DIALOGUE LIMIT: 25-35 words of dialogue PER VIDEO. This is a HARD LIMIT — count your words. If you exceed 35 words of dialogue in quotes, you have FAILED. 3-4 camera changes per video.
+DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
+DIALOGUE LIMIT: 60-100 words of dialogue PER VIDEO. 3-4 camera changes per video.
 Text chunks between camera changes: 2-3 sentences each."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
@@ -92,7 +93,7 @@ You generate a SINGLE video prompt — Video 1 of 2 (the HOOK + TENSION).
 ENERGY — VIDEO 1 = SETUP + BUILDING INTEREST
 ══════════════════════
 FIRST HALF of the story. Confident opening, energy builds gradually.
-Character stays composed. Never frantic. Keep dialogue MINIMAL — let visuals carry the scene.
+Character stays composed. Never frantic.
 End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but the IDEA leaves the viewer wanting more.
 
 ══════════════════════
@@ -104,11 +105,11 @@ The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where V
 """
 
 USER_VIDEO1 = """Generate Video 1 of 2 (SETUP + INTEREST) from this script.
-Take the CORE IDEA from the first half of the script. Distill to 25-35 words of dialogue — do NOT try to cover everything.
+Take the CORE IDEA from the first half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase or invent new lines. 60-100 words of dialogue.
 3-4 camera changes. Calm confident tone — no yelling or panic.
 
 Output the directorial description directly. No labels, no headers.
-25-35 words of dialogue in "quotes". Start with the opening shot description.
+60-100 words of dialogue in "quotes" — taken word-for-word from the script. Start with the opening shot description.
 
 ---
 
@@ -128,7 +129,7 @@ ENERGY — VIDEO 2 = RESOLUTION
 SECOND HALF. The payoff. This video is SELF-CONTAINED — it starts fresh from a neutral seated position.
 Settles into delivery — lean back, open hands, steady voice.
 One key insight, then close. Direct gaze, slight nod. Done.
-Keep dialogue MINIMAL — most of the scene is body language and camera work.
+Use exact lines from the script as dialogue.
 
 ══════════════════════
 CTA (MANDATORY — EXACT PATTERN!)
@@ -138,7 +139,7 @@ The LAST thing he says is a simple CTA. Use ONLY one of these patterns:
 - "More advice on my page — link in bio."
 - "Follow for more — link in bio."
 NEVER invent creative CTAs. NEVER say "comment [word]". NEVER mention apps, products, or tools.
-Just: he gives advice → link in bio. That's it. This counts toward the 30-word limit.
+Just: he gives advice → link in bio. That's it. This counts toward the word limit.
 
 ══════════════════════
 OPENING — VIDEO 2
@@ -148,11 +149,11 @@ Video 1 ended on a close-up — so this side view creates a clear cut when the t
 Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
-Take the CORE IDEA from the second half of the script. Distill to 25-35 words of dialogue (including CTA) — do NOT try to cover everything.
+Take the CORE IDEA from the second half of the script. Use EXACT lines from the script as dialogue — do NOT paraphrase. 60-100 words of dialogue (including CTA).
 3-4 camera changes. Calm delivery. End with quiet finality.
 
 Output the directorial description directly. No labels, no headers.
-25-35 words of dialogue in "quotes", ending with a nod. Start with the opening shot description.
+60-100 words of dialogue in "quotes" — taken word-for-word from the script, ending with a nod. Start with the opening shot description.
 
 ---
 
@@ -185,7 +186,7 @@ def generate_video_prompt(script_text: str) -> dict:
     # Step 1: Generate Video 1 (Hook + Tension)
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=600,
+        max_tokens=1000,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(script=script_text)}]
     )
@@ -206,7 +207,7 @@ def generate_video_prompt(script_text: str) -> dict:
     # Step 2: Generate Video 2 (Resolution)
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=600,
+        max_tokens=1000,
         system=SYSTEM_VIDEO2,
         messages=[{"role": "user", "content": USER_VIDEO2.format(script=script_text)}]
     )
