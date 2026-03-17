@@ -3,18 +3,18 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1">Find Viral TikTok Scripts</h1>
-    <p class="text-sm text-gray-500">Search trending TikTok videos, extract scripts, make them more provocative</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="dash.title">Find Viral TikTok Scripts</h1>
+    <p class="text-sm text-gray-500" data-i18n="dash.subtitle">Search trending TikTok videos, extract scripts, make them more provocative</p>
 </div>
 
 <!-- Search bar -->
 <div class="stat-card mb-6">
     <div class="flex gap-3">
-        <input type="text" id="search-input" class="input flex-1" placeholder="Search TikTok videos..."
+        <input type="text" id="search-input" class="input flex-1" placeholder="Search TikTok videos..." data-i18n-placeholder="dash.search_ph"
                onkeydown="if(event.key==='Enter') doSearch(this.value)">
         <button id="search-btn" class="btn btn-primary" onclick="doSearch(document.getElementById('search-input').value)">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            Search
+            <span data-i18n="dash.search_btn">Search</span>
         </button>
     </div>
 </div>
@@ -25,7 +25,7 @@
     <div class="stat-card">
         <div class="flex items-center gap-2 mb-3">
             <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
-            <span class="text-sm font-semibold text-gray-700">Artificial Intelligence</span>
+            <span class="text-sm font-semibold text-gray-700" data-i18n="dash.ai_label">Artificial Intelligence</span>
         </div>
         <div class="flex flex-wrap gap-2">
             {% for p in ai_presets %}
@@ -41,7 +41,7 @@
     <div class="stat-card">
         <div class="flex items-center gap-2 mb-3">
             <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
-            <span class="text-sm font-semibold text-gray-700">Money & Investing</span>
+            <span class="text-sm font-semibold text-gray-700" data-i18n="dash.finance_label">Money & Investing</span>
         </div>
         <div class="flex flex-wrap gap-2">
             {% for p in finance_presets %}
@@ -58,15 +58,15 @@
 <!-- Recent searches -->
 {% if recent_searches %}
 <div class="stat-card">
-    <h2 class="text-sm font-semibold text-gray-700 mb-3">Recent Searches</h2>
+    <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="dash.recent">Recent Searches</h2>
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead>
                 <tr class="border-b border-gray-100">
-                    <th class="th">Query</th>
-                    <th class="th">Category</th>
-                    <th class="th">Results</th>
-                    <th class="th">Date</th>
+                    <th class="th" data-i18n="th.query">Query</th>
+                    <th class="th" data-i18n="th.category">Category</th>
+                    <th class="th" data-i18n="th.results">Results</th>
+                    <th class="th" data-i18n="th.date">Date</th>
                     <th class="th"></th>
                 </tr>
             </thead>

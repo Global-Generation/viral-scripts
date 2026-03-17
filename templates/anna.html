@@ -13,8 +13,8 @@
             <thead>
                 <tr class="border-b border-gray-100">
                     <th class="th" style="width: 40px;">#</th>
-                    <th class="th">Video Title</th>
-                    <th class="th">Status</th>
+                    <th class="th" data-i18n="th.video_title">Video Title</th>
+                    <th class="th" data-i18n="th.status">Status</th>
                     <th class="th">TikTok</th>
                     <th class="th">Instagram</th>
                     <th class="th">YouTube</th>
@@ -30,9 +30,9 @@
                     <td class="td">
                         <select class="inline-select" onchange="annaUpdateStatus({{ v.id }}, this.value)" style="font-size: 10px; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; min-width: 70px;">
                             <option value="" {% if not v.production_status %}selected{% endif %}>—</option>
-                            <option value="ready" {% if v.production_status == 'ready' %}selected{% endif %}>Ready</option>
-                            <option value="filmed" {% if v.production_status == 'filmed' %}selected{% endif %}>Filmed</option>
-                            <option value="published" {% if v.production_status == 'published' %}selected{% endif %}>Published</option>
+                            <option value="ready" {% if v.production_status == 'ready' %}selected{% endif %} data-i18n="status.ready">Ready</option>
+                            <option value="filmed" {% if v.production_status == 'filmed' %}selected{% endif %} data-i18n="status.filmed">Filmed</option>
+                            <option value="published" {% if v.production_status == 'published' %}selected{% endif %} data-i18n="status.published">Published</option>
                         </select>
                     </td>
                     <td class="td">

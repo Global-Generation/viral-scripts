@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1">Search Presets</h1>
-    <p class="text-sm text-gray-500">Manage preset search queries for quick access</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="presets.title">Search Presets</h1>
+    <p class="text-sm text-gray-500" data-i18n="presets.subtitle">Manage preset search queries for quick access</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -12,7 +12,7 @@
     <div class="stat-card">
         <div class="flex items-center gap-2 mb-4">
             <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
-            <span class="text-sm font-semibold text-gray-700">AI Presets</span>
+            <span class="text-sm font-semibold text-gray-700" data-i18n="presets.ai">AI Presets</span>
         </div>
         <div id="ai-presets-list" class="space-y-2 mb-4">
             {% for p in grouped.ai %}
@@ -25,9 +25,9 @@
             {% endfor %}
         </div>
         <div class="flex gap-2">
-            <input type="text" id="ai-new-preset" class="input flex-1" placeholder="New AI preset query..."
+            <input type="text" id="ai-new-preset" class="input flex-1" placeholder="New AI preset query..." data-i18n-placeholder="presets.new_ai_ph"
                    onkeydown="if(event.key==='Enter') addPreset('ai')">
-            <button class="btn-sm btn-primary" onclick="addPreset('ai')">Add</button>
+            <button class="btn-sm btn-primary" onclick="addPreset('ai')" data-i18n="btn.add">Add</button>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
     <div class="stat-card">
         <div class="flex items-center gap-2 mb-4">
             <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
-            <span class="text-sm font-semibold text-gray-700">Finance Presets</span>
+            <span class="text-sm font-semibold text-gray-700" data-i18n="presets.finance">Finance Presets</span>
         </div>
         <div id="finance-presets-list" class="space-y-2 mb-4">
             {% for p in grouped.finance %}
@@ -48,9 +48,9 @@
             {% endfor %}
         </div>
         <div class="flex gap-2">
-            <input type="text" id="finance-new-preset" class="input flex-1" placeholder="New finance preset query..."
+            <input type="text" id="finance-new-preset" class="input flex-1" placeholder="New finance preset query..." data-i18n-placeholder="presets.new_fin_ph"
                    onkeydown="if(event.key==='Enter') addPreset('finance')">
-            <button class="btn-sm btn-primary" onclick="addPreset('finance')">Add</button>
+            <button class="btn-sm btn-primary" onclick="addPreset('finance')" data-i18n="btn.add">Add</button>
         </div>
     </div>
 </div>

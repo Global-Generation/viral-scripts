@@ -3,15 +3,15 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1">Scripts Library</h1>
-    <p class="text-sm text-gray-500">Unassigned scripts — assign to Boris, Daniel, or Thomas from script view</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="lib.title">Scripts Library</h1>
+    <p class="text-sm text-gray-500" data-i18n="lib.subtitle">Unassigned scripts — assign to Boris, Daniel, or Thomas from script view</p>
 </div>
 
 <!-- Category filter tabs -->
 <div class="flex gap-1 mb-4 border-b border-gray-200">
-    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}">All</a>
-    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
-    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}" data-i18n="tab.all">All</a>
+    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}" data-i18n="tab.ai">AI</a>
+    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}" data-i18n="tab.finance">Finance</a>
 </div>
 
 {% if not scripts %}
@@ -24,12 +24,12 @@
         <table class="w-full" id="scripts-table">
             <thead>
                 <tr class="border-b border-gray-100">
-                    <th class="th sortable" data-sort="text" data-col="0" style="cursor:pointer;">Script Preview <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;">Video <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="num" data-col="3" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Prompt <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="5" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="0" style="cursor:pointer;"><span data-i18n="th.script_preview">Script Preview</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;"><span data-i18n="th.video">Video</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;"><span data-i18n="th.category">Category</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="num" data-col="3" style="cursor:pointer;"><span data-i18n="th.score">Score</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;"><span data-i18n="th.prompt">Prompt</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="5" style="cursor:pointer;"><span data-i18n="th.status">Status</span> <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="date" data-col="7" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="date" data-col="8" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
@@ -77,9 +77,9 @@
                     <td class="td" id="status-cell-{{ script.id }}">
                         <select class="inline-select" onchange="inlineUpdateProduction({{ script.id }}, this.value)" style="font-size: 10px; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; min-width: 70px;">
                             <option value="" {% if not script.production_status %}selected{% endif %}>—</option>
-                            <option value="ready" {% if script.production_status == 'ready' %}selected{% endif %}>Ready</option>
-                            <option value="filmed" {% if script.production_status == 'filmed' %}selected{% endif %}>Filmed</option>
-                            <option value="published" {% if script.production_status == 'published' %}selected{% endif %}>Published</option>
+                            <option value="ready" {% if script.production_status == 'ready' %}selected{% endif %} data-i18n="status.ready">Ready</option>
+                            <option value="filmed" {% if script.production_status == 'filmed' %}selected{% endif %} data-i18n="status.filmed">Filmed</option>
+                            <option value="published" {% if script.production_status == 'published' %}selected{% endif %} data-i18n="status.published">Published</option>
                         </select>
                     </td>
                     <td class="td">
@@ -93,8 +93,8 @@
                     </td>
                     <td class="td">
                         <div class="flex gap-1">
-                            <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()">View</a>
-                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteScript({{ script.id }})">Del</button>
+                            <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
+                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteScript({{ script.id }})" data-i18n="btn.del">Del</button>
                         </div>
                     </td>
                 </tr>
@@ -103,7 +103,7 @@
                         <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <div style="display: flex; gap: 24px;">
                                 <div style="flex: 1; min-width: 0;">
-                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; letter-spacing: 0.5px;">Provocative Version</div>
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; letter-spacing: 0.5px;" data-i18n="sec.provocative">Provocative Version</div>
                                     <div style="font-size: 12px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ script.modified_text or '— not rewritten yet —' }}</div>
                                 </div>
                             </div>
