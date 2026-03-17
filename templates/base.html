@@ -8,12 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-    .lang-toggle { display: flex; gap: 2px; background: #f1f5f9; border-radius: 6px; padding: 2px; }
-    .lang-toggle button { font-size: 11px; font-weight: 600; padding: 3px 10px; border: none; border-radius: 4px; cursor: pointer; background: transparent; color: #94a3b8; transition: all 0.15s; }
-    .lang-toggle button.active { background: white; color: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-    .lang-toggle button:hover:not(.active) { color: #64748b; }
-    </style>
 </head>
 <body class="h-full font-sans" style="background: #f8fafc;">
     <!-- Mobile header -->
@@ -29,21 +23,8 @@
     <div class="flex h-full">
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar">
-            <div class="sidebar-logo">
-                <div class="sidebar-logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M10 8l12 8-12 8V8z" fill="white"/></svg>
-                </div>
-                <div>
-                    <div class="sidebar-logo-title" data-i18n="sidebar.title">Viral Scripts</div>
-                    <div class="sidebar-logo-sub" data-i18n="sidebar.sub">TikTok Script Analyzer</div>
-                </div>
-            </div>
             <nav class="sidebar-nav">
                 <div class="nav-section-label" data-i18n="nav.scripts">Scripts</div>
-                <a href="/" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <span data-i18n="nav.search">Search</span>
-                </a>
                 <a href="/scripts" class="nav-link {% if active_page == 'scripts' %}active{% endif %}">
                     <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span data-i18n="nav.scripts_library">Scripts Library</span>
@@ -91,13 +72,6 @@
                     <span data-i18n="nav.api_keys">API Keys & Usage</span>
                 </a>
 
-                <!-- Language toggle -->
-                <div style="margin-top: 16px; padding: 0 12px;">
-                    <div id="lang-toggle" class="lang-toggle">
-                        <button data-lang="en" class="active" onclick="i18nSetLang('en')">EN</button>
-                        <button data-lang="ru" onclick="i18nSetLang('ru')">RU</button>
-                    </div>
-                </div>
             </nav>
         </aside>
 
@@ -125,7 +99,6 @@
         link.addEventListener('click', function() { if (window.innerWidth < 1024) closeSidebar(); });
     });
     </script>
-    <script src="/static/js/i18n.js"></script>
     <script src="/static/js/app.js"></script>
     {% block scripts %}{% endblock %}
 </body>

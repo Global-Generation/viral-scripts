@@ -31,29 +31,25 @@ Three framing types. Alternate STRICTLY. Same framing twice in a row = FORBIDDEN
 CLOSE-UP:
 Face fills the entire frame. Camera at eye level.
 Background blurred or barely visible. Only face, neck, top of shoulders visible.
-Camera can be slightly angled — adds life.
 
 MEDIUM SHOT:
 Upper body — from waist/table to head.
 Hand gesticulation visible, object in hands, body posture. Background readable.
 
-WIDE 3/4:
-Camera pulled back and shifted to the side — lateral angle approximately 30-45°.
+SIDE VIEW:
+Camera shifted to the side — lateral angle approximately 30-45°.
 Entire setting visible: furniture, walls, decor + character in context.
 Character occupies ~40% of frame.
 
 ══════════════════════
 CAMERA CUTS (CRITICAL — NO SMOOTH MOVEMENTS!)
 ══════════════════════
-Two cameras shoot simultaneously from different fixed positions.
-The camera NEVER moves, orbits, tracks, drifts, or pushes in. Each camera is LOCKED on a tripod.
+Three angles — close-up (front), medium shot (front), side view (30-45° offset).
+All cameras are FIXED on tripods. The camera NEVER moves, orbits, tracks, drifts, or pushes in.
 All transitions are HARD CUTS — instant switch from one angle to another.
 
-CAMERA A: Front-facing, slightly off-center. Used for close-ups and medium shots.
-CAMERA B: Side angle, ~30-45° offset. Used for wide 3/4 and alternate medium shots.
-
-Every transition = CUT. Describe which camera/angle we CUT TO.
-Say "CUT TO close-up from Camera A" — NOT "camera pushes in" or "camera orbits."
+Every transition = CUT. Describe which angle we CUT TO.
+Say "CUT TO close-up" or "CUT TO side view" — NOT "camera pushes in" or "camera orbits."
 NEVER use words: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc.
 
 ══════════════════════
@@ -61,9 +57,9 @@ HOOK — FIRST 2 SECONDS
 ══════════════════════
 The opening should feel natural and confident, NOT screaming or panicking.
 Options (vary between scripts):
-- Start TIGHT on close-up (Camera A), then CUT TO wide 3/4 (Camera B)
-- Start on wide 3/4 (Camera B), then CUT TO close-up (Camera A)
-- Start on medium (Camera A), mid-gesture, then CUT TO side angle (Camera B)
+- Start on close-up, then CUT TO side view
+- Start on side view, then CUT TO close-up
+- Start on medium shot, mid-gesture, then CUT TO side view
 First CUT = quick angle switch. But the CHARACTER stays calm.
 
 ══════════════════════
@@ -103,7 +99,7 @@ End on a COMPLETE SENTENCE that creates intrigue. The sentence is finished, but 
 ENDING
 ══════════════════════
 Video 1 ends on a COMPLETE SENTENCE. The thought is finished grammatically, but the topic is left open — viewer wants to hear the resolution. Energy is elevated but controlled.
-The LAST shot of Video 1 must be a CLOSE-UP from Camera A — this is the splice point where Video 2 will be joined.
+The LAST shot of Video 1 must be a CLOSE-UP — this is the splice point where Video 2 will be joined.
 
 """
 
@@ -147,8 +143,8 @@ Just: he gives advice → link in bio. That's it. This counts toward the 30-word
 ══════════════════════
 OPENING — VIDEO 2
 ══════════════════════
-Start on WIDE 3/4 from Camera B. The character is in a neutral seated position, calm and composed.
-Video 1 ended on a close-up — so this wide shot creates a clear, energetic cut when the two are joined.
+Start on SIDE VIEW. The character is in a neutral seated position, calm and composed.
+Video 1 ended on a close-up — so this side view creates a clear cut when the two are joined.
 Do NOT reference the first half of the story — just deliver the resolution."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 (RESOLUTION) from this script.
@@ -165,9 +161,8 @@ SCRIPT:
 
 
 CAMERA_HEADER = """CAMERA SETUP:
-Camera A — Front-facing, slightly off-center. Close-ups and medium shots.
-Camera B — Side angle, ~30-45° offset. Wide 3/4 and alternate medium shots.
-Both cameras are FIXED on tripods. All transitions are HARD CUTS.
+Three angles — close-up (front), medium shot (front), side view (30-45° offset).
+All cameras are FIXED on tripods. All transitions are HARD CUTS.
 """
 
 
