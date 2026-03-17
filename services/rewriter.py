@@ -18,6 +18,7 @@ REWRITE_PROMPT = """Rewrite this TikTok script. Requirements:
 - Short sentences. No fluff. Say it once
 - Keep the same topic and key facts
 - LENGTH: cut to ~40% of the original word count. Ruthlessly trim. If a sentence doesn't add new information, delete it
+- CTA RULE: REMOVE any "Comment [word] for..." or "DM [word] for..." lines from the original. Replace with a simple ending like: "More on my page — link in bio." or just end naturally without a CTA. NEVER keep "Comment X", "DM me X", or any engagement-bait CTA
 
 Original script:
 {script}
