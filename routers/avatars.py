@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Avatar
 from services.higgsfield import (
-    generate_avatar_image, check_status,
+    generate_avatar_image, generate_variant_image, check_status,
     create_soul_id, check_soul_id_status, generate_with_soul_id,
 )
 
@@ -174,50 +174,13 @@ UGC_PREFIX = (
 
 @router.post("/api/avatars/{avatar_id}/generate-variants")
 def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depends(get_db)):
-    """Generate variant images using image-to-image to preserve face."""
+    """Generate variant images using image-to-image to preserve face and background."""
     parent = db.query(Avatar).get(avatar_id)
     if not parent:
         raise HTTPException(status_code=404, detail="Avatar not found")
 
     if not parent.image_url:
         raise HTTPException(status_code=400, detail="Avatar must have a generated image first")
-
-    # Auto-train Soul ID if not started yet (once)
-    if not parent.soul_id:
-        image_urls = [parent.image_url]
-        variants_with_img = db.query(Avatar).filter(
-            Avatar.parent_id == avatar_id,
-            Avatar.image_url != "",
-            Avatar.image_url.isnot(None),
-        ).all()
-        for v in variants_with_img:
-            if v.image_url:
-                image_urls.append(v.image_url)
-        soul_result = create_soul_id(name=parent.name, image_urls=image_urls)
-        if soul_result.get("soul_id"):
-            parent.soul_id = soul_result["soul_id"]
-            parent.soul_id_status = "training"
-            db.commit()
-        return {"ok": True, "status": "training_started",
-                "message": "Soul ID training started. Wait 3-5 minutes, then try again."}
-
-    # Check if Soul ID is still training
-    if parent.soul_id_status == "training":
-        soul_check = check_soul_id_status(parent.soul_id)
-        if soul_check["status"] == "ready":
-            parent.soul_id_status = "ready"
-            db.commit()
-        elif soul_check["status"] == "failed":
-            parent.soul_id_status = "failed"
-            db.commit()
-            return {"ok": False, "status": "soul_failed", "message": "Soul ID training failed. Try again."}
-        else:
-            return {"ok": True, "status": "training",
-                    "message": "Soul ID still training. Please wait..."}
-
-    base_prompt = parent.prompt or parent.description
-    if not base_prompt:
-        raise HTTPException(status_code=400, detail="Avatar has no prompt for variant generation")
 
     # Outfit styles to cycle through for variety
     OUTFIT_OPTIONS = [
@@ -233,28 +196,31 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         "outdoors on a city street with buildings behind",
     ]
 
+    # Strength per mode: lower = more preservation, higher = more change
+    STRENGTH_BY_MODE = {
+        "outfits": 0.4,
+        "location": 0.55,
+        "new_look": 0.55,
+    }
+
     count = min(data.count, 4)
+    strength = STRENGTH_BY_MODE.get(data.mode, 0.4)
     variants_created = []
 
     # Step 1: Build all variant prompts and save to DB
-    # NOTE: Soul ID preserves the face. Prompts must NOT re-describe the person's
-    # appearance — that conflicts with Soul ID and distorts the face. Only describe
-    # what should CHANGE (outfit, location) and tell it to keep everything else.
     variant_records = []
     for i in range(count):
         if data.mode == "outfits":
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             variant_prompt = (
-                f"{PORTRAIT_BASE}"
-                f"Same person from reference image, {outfit}. "
-                f"Keep the same face, background, and setting. Only change the clothes."
+                f"Same person, same background. {outfit}. "
+                f"Only the clothes are different."
             )
             label = f"outfit_{i+1}"
         elif data.mode == "location":
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"{PORTRAIT_BASE}"
-                f"Same person from reference image, same outfit and clothes. "
+                f"Same person, same outfit. "
                 f"New setting: {location}."
             )
             label = f"location_{i+1}"
@@ -262,8 +228,7 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
             outfit = OUTFIT_OPTIONS[i % len(OUTFIT_OPTIONS)]
             location = LOCATION_OPTIONS[i % len(LOCATION_OPTIONS)]
             variant_prompt = (
-                f"{PORTRAIT_BASE}"
-                f"Same person from reference image, {outfit}. "
+                f"Same person, {outfit}. "
                 f"Setting: {location}."
             )
             label = f"new_look_{i+1}"
@@ -281,20 +246,20 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
         db.refresh(variant)
         variant_records.append((variant, variant_prompt, label))
 
-    # Step 2: Submit all generation requests in parallel
+    # Step 2: Submit all generation requests in parallel (image-to-image)
     import concurrent.futures
 
-    def _submit_one(soul_id, prompt):
-        result = generate_with_soul_id(soul_id=soul_id, prompt=prompt)
+    def _submit_one(source_url, prompt, img_strength):
+        result = generate_variant_image(source_image_url=source_url, prompt=prompt, strength=img_strength)
         if not result.get("request_id"):
             import time
             time.sleep(2)
-            result = generate_with_soul_id(soul_id=soul_id, prompt=prompt)
+            result = generate_variant_image(source_image_url=source_url, prompt=prompt, strength=img_strength)
         return result
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = [
-            executor.submit(_submit_one, parent.soul_id, vp)
+            executor.submit(_submit_one, parent.image_url, vp, strength)
             for _, vp, _ in variant_records
         ]
         results = [f.result() for f in futures]
@@ -315,49 +280,12 @@ def generate_variants(avatar_id: int, data: VariantRequest, db: Session = Depend
 
 @router.post("/api/avatars/{avatar_id}/generate-custom-variant")
 def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Session = Depends(get_db)):
-    """Generate a single custom variant using user-provided text."""
+    """Generate a single custom variant using image-to-image with user-provided text."""
     parent = db.query(Avatar).get(avatar_id)
     if not parent:
         raise HTTPException(status_code=404, detail="Avatar not found")
     if not parent.image_url:
         raise HTTPException(status_code=400, detail="Avatar must have a generated image first")
-
-    # Auto-train Soul ID if not started yet
-    if not parent.soul_id:
-        image_urls = [parent.image_url]
-        variants_with_img = db.query(Avatar).filter(
-            Avatar.parent_id == avatar_id,
-            Avatar.image_url != "",
-            Avatar.image_url.isnot(None),
-        ).all()
-        for v in variants_with_img:
-            if v.image_url:
-                image_urls.append(v.image_url)
-        soul_result = create_soul_id(name=parent.name, image_urls=image_urls)
-        if soul_result.get("soul_id"):
-            parent.soul_id = soul_result["soul_id"]
-            parent.soul_id_status = "training"
-            db.commit()
-        return {"ok": True, "status": "training_started",
-                "message": "Soul ID training started. Wait 3-5 minutes, then try again."}
-
-    # Check if Soul ID is still training
-    if parent.soul_id_status == "training":
-        soul_check = check_soul_id_status(parent.soul_id)
-        if soul_check["status"] == "ready":
-            parent.soul_id_status = "ready"
-            db.commit()
-        elif soul_check["status"] == "failed":
-            parent.soul_id_status = "failed"
-            db.commit()
-            return {"ok": False, "status": "soul_failed", "message": "Soul ID training failed. Try again."}
-        else:
-            return {"ok": True, "status": "training",
-                    "message": "Soul ID still training. Please wait..."}
-
-    base_prompt = parent.prompt or parent.description
-    if not base_prompt:
-        raise HTTPException(status_code=400, detail="Avatar has no prompt for variant generation")
 
     # Count existing custom variants to number the label
     existing_custom = db.query(Avatar).filter(
@@ -366,12 +294,7 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     ).count()
     label = f"custom_{existing_custom + 1}"
 
-    variant_prompt = (
-        f"{PORTRAIT_BASE}"
-        f"Same person from reference image. "
-        f"Keep the same face, background, outfit, and pose. "
-        f"Only apply this change: {data.prompt}"
-    )
+    variant_prompt = f"Same person. Only apply this change: {data.prompt}"
 
     variant = Avatar(
         parent_id=parent.id,
@@ -385,11 +308,15 @@ def generate_custom_variant(avatar_id: int, data: CustomVariantRequest, db: Sess
     db.commit()
     db.refresh(variant)
 
-    result = generate_with_soul_id(soul_id=parent.soul_id, prompt=variant_prompt)
+    result = generate_variant_image(
+        source_image_url=parent.image_url, prompt=variant_prompt, strength=0.35
+    )
     if not result.get("request_id"):
         import time
         time.sleep(2)
-        result = generate_with_soul_id(soul_id=parent.soul_id, prompt=variant_prompt)
+        result = generate_variant_image(
+            source_image_url=parent.image_url, prompt=variant_prompt, strength=0.35
+        )
 
     if result.get("request_id"):
         variant.image_request_id = result["request_id"]
