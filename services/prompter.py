@@ -76,7 +76,7 @@ OUTPUT FORMAT
 Character, location, frame format, resolution — all from reference photo. Do NOT describe.
 Format — continuous text as a directorial scene description. No lists, no timecodes.
 DIALOGUE: Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue. Pick the strongest lines and quote them word-for-word.
-DIALOGUE LIMIT: 30-40 words of dialogue for Video 1 and Video 2. Video 3 gets whatever remains. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
+DIALOGUE LIMIT — HARD LIMIT: Video 1 and Video 2 must have EXACTLY 30-40 words of dialogue each. NOT 50, NOT 60 — count your words. If you exceed 40 words of dialogue in a video, you have FAILED. Video 3 gets whatever remains. 2-3 camera changes per video. Do NOT cut on every line — group multiple dialogue lines into one shot.
 Between camera changes: ONLY the dialogue in quotes. No descriptions of emotions, expressions, tone, posture, gaze, atmosphere, or body language. The ONLY allowed actions are: "He pauses.", "He nods.", "Silence." — nothing else. Example format:
 
 JUMP CUT TO three-quarter view.
