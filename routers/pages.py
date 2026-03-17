@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
-from models import Search, Video, Script, PresetQuery
+from models import Search, Video, Script, PresetQuery, VideoGeneration
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")

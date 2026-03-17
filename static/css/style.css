@@ -268,3 +268,34 @@ body {
 @media (max-width: 639px) {
     .stat-card { padding: 14px; }
 }
+
+/* ===== Avatar cards ===== */
+.avatar-card {
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.avatar-card:hover {
+    transform: translateY(-2px);
+}
+
+/* ===== Video player ===== */
+video {
+    border-radius: 8px;
+    background: #000;
+}
+
+/* ===== Checkbox style ===== */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #e6435b;
+    cursor: pointer;
+}
+
+/* ===== Settings table ===== */
+code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from database import init_db, SessionLocal
 import models  # noqa: F401 — register all models with Base.metadata
-from models import PresetQuery, NariVideo, AnnaVideo
+from models import PresetQuery, NariVideo, AnnaVideo, ApiKey
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Viral Scripts")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from routers import pages, search, scripts, presets, nari, anna, character
+from routers import pages, search, scripts, presets, nari, anna, character, avatars, videos, settings
 app.include_router(pages.router)
 app.include_router(search.router)
 app.include_router(scripts.router)
@@ -21,6 +21,9 @@ app.include_router(presets.router)
 app.include_router(nari.router)
 app.include_router(anna.router)
 app.include_router(character.router)
+app.include_router(avatars.router)
+app.include_router(videos.router)
+app.include_router(settings.router)
 
 
 @app.get("/health")
@@ -34,9 +37,11 @@ def startup():
     os.makedirs(os.getenv("DOWNLOADS_DIR", "./downloads"), exist_ok=True)
     init_db()
     _migrate_character_type()
+    _migrate_cinema_studio()
     _seed_presets()
     _seed_nari()
     _seed_anna()
+    _seed_api_keys()
 
 
 def _migrate_character_type():
@@ -71,6 +76,61 @@ def _migrate_character_type():
     except Exception:
         db.rollback()
     db.close()
+
+
+def _migrate_cinema_studio():
+    """Create cinema studio tables if they don't exist."""
+    from sqlalchemy import text, inspect
+    db = SessionLocal()
+    inspector = inspect(db.bind)
+    existing = inspector.get_table_names()
+    tables_needed = ["avatars", "video_generations", "api_keys", "api_usage"]
+    if all(t in existing for t in tables_needed):
+        db.close()
+        return
+    # Tables are created by init_db() via Base.metadata.create_all
+    # Just log which new tables appeared
+    for t in tables_needed:
+        if t not in existing:
+            logging.info(f"Cinema Studio migration: table '{t}' created")
+    db.close()
+
+
+def _seed_api_keys():
+    """Seed default API keys from .env if no keys exist yet."""
+    from config import ANTHROPIC_API_KEY, TAVILY_API_KEY, HF_API_KEY, HF_API_SECRET
+    db = SessionLocal()
+    try:
+        if db.query(ApiKey).count() > 0:
+            return
+        keys = []
+        if HF_API_KEY and HF_API_SECRET:
+            keys.append(ApiKey(
+                platform="higgsfield",
+                label="Default Higgsfield",
+                key_value=f"{HF_API_KEY}:{HF_API_SECRET}",
+                is_active=True,
+            ))
+        if ANTHROPIC_API_KEY:
+            keys.append(ApiKey(
+                platform="anthropic",
+                label="Default Anthropic",
+                key_value=ANTHROPIC_API_KEY,
+                is_active=True,
+            ))
+        if TAVILY_API_KEY:
+            keys.append(ApiKey(
+                platform="tavily",
+                label="Default Tavily",
+                key_value=TAVILY_API_KEY,
+                is_active=True,
+            ))
+        if keys:
+            db.add_all(keys)
+            db.commit()
+            logging.info(f"Seeded {len(keys)} default API keys")
+    finally:
+        db.close()
 
 
 def _seed_presets():

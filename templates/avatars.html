@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Avatar Gallery{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="avatars.title">Avatar Gallery</h1>
+    <p class="text-sm text-gray-500" data-i18n="avatars.subtitle">AI avatars for Cinema Studio video generation</p>
+</div>
+
+<div class="mb-4">
+    <button class="btn btn-primary" onclick="showCreateAvatarModal()">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+        Create Avatar
+    </button>
+</div>
+
+<!-- Avatar Grid -->
+<div id="avatar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for avatar in avatars %}
+    <div class="stat-card avatar-card" id="avatar-card-{{ avatar.id }}">
+        <div class="avatar-image-container mb-3" style="width: 100%; aspect-ratio: 1; background: #f1f5f9; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            {% if avatar.image_url %}
+            <img src="{{ avatar.image_url }}" alt="{{ avatar.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <div id="avatar-img-{{ avatar.id }}" style="text-align: center; color: #94a3b8;">
+                {% if avatar.image_request_id %}
+                <svg class="animate-spin mx-auto mb-1" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                <span class="text-xs">Generating...</span>
+                {% else %}
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span class="text-xs block mt-1">No image</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 class="font-semibold text-gray-900 text-sm">{{ avatar.name }}</h3>
+                {% if avatar.character_type %}
+                <span class="status-badge {% if avatar.character_type == 'grandpa' %}status-completed{% elif avatar.character_type == 'techguy' %}status-running{% else %}status-queued{% endif %}" style="margin-top: 4px;">{{ avatar.character_type }}</span>
+                {% endif %}
+            </div>
+            <div class="flex gap-1">
+                {% if not avatar.image_url %}
+                <button class="btn-sm btn-primary" id="gen-btn-{{ avatar.id }}" onclick="generateAvatarImage({{ avatar.id }})">Generate</button>
+                {% endif %}
+                <button class="btn-sm btn-danger" onclick="deleteAvatar({{ avatar.id }})">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+        </div>
+        {% if avatar.description %}
+        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ avatar.description }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not avatars %}
+    <div class="stat-card col-span-full text-center py-8">
+        <p class="text-gray-400 text-sm">No avatars yet. Create one to get started.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Avatar Modal -->
+<div id="create-avatar-modal" style="display:none;" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Create Avatar</h3>
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs font-medium text-gray-600 block mb-1">Name</label>
+                <input id="avatar-name" class="input w-full" placeholder="e.g. Wall Street Grandpa">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-600 block mb-1">Character Type</label>
+                <select id="avatar-type" class="input w-full">
+                    <option value="grandpa">Grandpa</option>
+                    <option value="techguy">Tech Guy</option>
+                    <option value="cartoon">Cartoon</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-600 block mb-1">Description</label>
+                <textarea id="avatar-desc" class="input w-full" rows="2" placeholder="Brief character description"></textarea>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-600 block mb-1">Image Prompt</label>
+                <textarea id="avatar-prompt" class="input w-full" rows="3" placeholder="Detailed prompt for reference image generation. E.g.: An elderly gentleman in his 70s, silver hair, wearing a navy blue suit, sitting in a leather chair in a luxurious office..."></textarea>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-4">
+            <button class="btn btn-primary flex-1 justify-center" onclick="createAvatar()">Create</button>
+            <button class="btn btn-secondary flex-1 justify-center" onclick="hideCreateAvatarModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'flex'; }
+function hideCreateAvatarModal() { document.getElementById('create-avatar-modal').style.display = 'none'; }
+
+async function createAvatar() {
+    const name = document.getElementById('avatar-name').value.trim();
+    const character_type = document.getElementById('avatar-type').value;
+    const description = document.getElementById('avatar-desc').value.trim();
+    const prompt = document.getElementById('avatar-prompt').value.trim();
+    if (!name) { toast('Name is required', 'error'); return; }
+
+    const result = await api('/api/avatars', 'POST', { name, character_type, description, prompt });
+    if (result && result.ok) {
+        toast('Avatar created!', 'success');
+        location.reload();
+    }
+}
+
+async function generateAvatarImage(avatarId) {
+    const btn = document.getElementById('gen-btn-' + avatarId);
+    if (btn) { btn.disabled = true; btn.textContent = 'Starting...'; }
+
+    const result = await api('/api/avatars/' + avatarId + '/generate-image', 'POST');
+    if (result && result.ok && result.request_id) {
+        toast('Image generation started', 'info');
+        pollAvatarStatus(avatarId);
+    } else {
+        toast('Generation failed: ' + (result?.error || 'Unknown error'), 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
+    }
+}
+
+function pollAvatarStatus(avatarId) {
+    const interval = setInterval(async () => {
+        const result = await api('/api/avatars/' + avatarId + '/status');
+        if (!result) return;
+
+        if (result.status === 'completed' && result.image_url) {
+            clearInterval(interval);
+            const container = document.getElementById('avatar-img-' + avatarId);
+            if (container) {
+                container.parentElement.innerHTML = '<img src="' + result.image_url + '" alt="" style="width:100%;height:100%;object-fit:cover;">';
+            }
+            const btn = document.getElementById('gen-btn-' + avatarId);
+            if (btn) btn.remove();
+            toast('Avatar image ready!', 'success');
+        } else if (result.status === 'failed' || result.status === 'nsfw') {
+            clearInterval(interval);
+            toast('Image generation failed: ' + (result.error || result.status), 'error');
+            const btn = document.getElementById('gen-btn-' + avatarId);
+            if (btn) { btn.disabled = false; btn.textContent = 'Retry'; }
+        }
+    }, 3000);
+}
+
+async function deleteAvatar(avatarId) {
+    if (!confirm('Delete this avatar?')) return;
+    const result = await api('/api/avatars/' + avatarId, 'DELETE');
+    if (result && result.ok) {
+        toast('Avatar deleted', 'success');
+        const card = document.getElementById('avatar-card-' + avatarId);
+        if (card) card.remove();
+    }
+}
+
+// Auto-poll for avatars that are still generating
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[id^="avatar-img-"]').forEach(el => {
+        if (el.querySelector('.animate-spin')) {
+            const avatarId = el.id.replace('avatar-img-', '');
+            pollAvatarStatus(avatarId);
+        }
+    });
+});
+</script>
+{% endblock %}

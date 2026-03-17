@@ -25,6 +25,18 @@ CLASSIFY_PROMPT = """Classify this TikTok script:
 {script}"""
 
 
+def _log_usage(request_type: str, status: str = "completed"):
+    try:
+        from database import SessionLocal
+        from models import ApiUsage
+        db = SessionLocal()
+        db.add(ApiUsage(platform="anthropic", model_id=CLAUDE_MODEL, request_type=request_type, status=status))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+
 def classify_script(text: str) -> str:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     response = client.messages.create(
@@ -33,6 +45,7 @@ def classify_script(text: str) -> str:
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": CLASSIFY_PROMPT.format(script=text[:500])}],
     )
+    _log_usage("classify")
     result = response.content[0].text.strip().lower()
     valid = {"grandpa", "techguy", "cartoon"}
     if result == "auntie":

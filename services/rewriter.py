@@ -26,6 +26,18 @@ Original script:
 Rewrite:"""
 
 
+def _log_usage(request_type: str, status: str = "completed"):
+    try:
+        from database import SessionLocal
+        from models import ApiUsage
+        db = SessionLocal()
+        db.add(ApiUsage(platform="anthropic", model_id=CLAUDE_MODEL, request_type=request_type, status=status))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+
 def rewrite_provocative(original_text: str) -> str:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -38,4 +50,5 @@ def rewrite_provocative(original_text: str) -> str:
             "content": REWRITE_PROMPT.format(script=original_text)
         }]
     )
+    _log_usage("rewrite")
     return response.content[0].text.strip()

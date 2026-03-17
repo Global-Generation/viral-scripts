@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Video, Script
+from models import Video, Script, Avatar, VideoGeneration
 from services.pipeline import extract_script_for_video
+from services.higgsfield import generate_video, check_status as hf_check_status
 from services.rewriter import rewrite_provocative
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
@@ -308,6 +309,130 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
             errors += 1
             logger.error(f"Prompt generation failed for script #{script.id}: {e}")
     return {"ok": True, "generated": count, "errors": errors, "total_queued": len(scripts)}
+
+
+class GenerateVideoRequest(BaseModel):
+    video_number: int = 1
+    avatar_id: int = None
+    model_id: str = "higgsfield-ai/dop/standard"
+    duration: int = 5
+    aspect_ratio: str = "9:16"
+    camera_movement: str = ""
+    sound: bool = False
+    slow_motion: bool = False
+
+
+@router.post("/{script_id}/generate-video")
+def generate_video_endpoint(script_id: int, data: GenerateVideoRequest, db: Session = Depends(get_db)):
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    # Get prompt text
+    prompt_text = ""
+    if data.video_number == 1:
+        prompt_text = script.video1_prompt or ""
+    else:
+        prompt_text = script.video2_prompt or ""
+    if not prompt_text:
+        raise HTTPException(status_code=400, detail=f"No video{data.video_number}_prompt available. Generate prompts first.")
+
+    # Get avatar image
+    image_url = ""
+    if data.avatar_id:
+        avatar = db.query(Avatar).get(data.avatar_id)
+        if avatar and avatar.image_url:
+            image_url = avatar.image_url
+
+    if not image_url:
+        raise HTTPException(status_code=400, detail="Avatar image is required. Select an avatar with a generated image.")
+
+    # Call Higgsfield
+    result = generate_video(
+        image_url=image_url,
+        prompt=prompt_text,
+        duration=data.duration,
+        aspect_ratio=data.aspect_ratio,
+        camera_movement=data.camera_movement,
+        sound=data.sound,
+        slow_motion=data.slow_motion,
+        model_id=data.model_id,
+    )
+
+    # Save generation record
+    gen = VideoGeneration(
+        script_id=script_id,
+        avatar_id=data.avatar_id,
+        video_number=data.video_number,
+        model_id=data.model_id,
+        prompt=prompt_text,
+        image_url=image_url,
+        request_id=result.get("request_id", ""),
+        status=result.get("status", "failed"),
+        duration=data.duration,
+        aspect_ratio=data.aspect_ratio,
+        camera_movement=data.camera_movement,
+        sound_enabled=data.sound,
+        slow_motion=data.slow_motion,
+        error_message=result.get("error", ""),
+    )
+    db.add(gen)
+    db.commit()
+    db.refresh(gen)
+
+    return {"ok": True, "generation_id": gen.id, **result}
+
+
+@router.get("/{script_id}/video-status/{generation_id}")
+def video_status(script_id: int, generation_id: int, db: Session = Depends(get_db)):
+    gen = db.query(VideoGeneration).get(generation_id)
+    if not gen or gen.script_id != script_id:
+        raise HTTPException(status_code=404, detail="Generation not found")
+
+    if gen.status == "completed" and gen.video_url:
+        return {"status": "completed", "video_url": gen.video_url}
+
+    if gen.status in ("failed", "nsfw", "cancelled"):
+        return {"status": gen.status, "error": gen.error_message}
+
+    if not gen.request_id:
+        return {"status": "failed", "error": "No request ID"}
+
+    result = hf_check_status(gen.request_id)
+    if result["status"] == "completed":
+        gen.status = "completed"
+        gen.video_url = result.get("url", "")
+        db.commit()
+        return {"status": "completed", "video_url": gen.video_url}
+    elif result["status"] in ("failed", "nsfw"):
+        gen.status = result["status"]
+        gen.error_message = result.get("error", "")
+        db.commit()
+        return {"status": gen.status, "error": gen.error_message}
+
+    gen.status = result.get("status", "in_progress")
+    db.commit()
+    return {"status": gen.status}
+
+
+@router.get("/{script_id}/video-generations")
+def list_video_generations(script_id: int, db: Session = Depends(get_db)):
+    gens = db.query(VideoGeneration).filter(
+        VideoGeneration.script_id == script_id
+    ).order_by(VideoGeneration.created_at.desc()).all()
+    return [
+        {
+            "id": g.id,
+            "video_number": g.video_number,
+            "model_id": g.model_id,
+            "status": g.status,
+            "video_url": g.video_url or "",
+            "duration": g.duration,
+            "aspect_ratio": g.aspect_ratio,
+            "created_at": g.created_at.isoformat() if g.created_at else None,
+        }
+        for g in gens
+    ]
 
 
 @router.delete("/{script_id}")

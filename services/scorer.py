@@ -26,6 +26,18 @@ SCORE_PROMPT = """Score this TikTok script's viral potential (0-100):
 {script}"""
 
 
+def _log_usage(request_type: str, status: str = "completed"):
+    try:
+        from database import SessionLocal
+        from models import ApiUsage
+        db = SessionLocal()
+        db.add(ApiUsage(platform="anthropic", model_id=CLAUDE_MODEL, request_type=request_type, status=status))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+
 def score_viral_potential(text: str) -> int:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     response = client.messages.create(
@@ -34,6 +46,7 @@ def score_viral_potential(text: str) -> int:
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": SCORE_PROMPT.format(script=text[:500])}],
     )
+    _log_usage("score")
     result = response.content[0].text.strip()
     match = re.search(r'\d+', result)
     if match:

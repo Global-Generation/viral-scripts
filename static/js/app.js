@@ -237,6 +237,105 @@ async function generatePrompt(scriptId) {
     btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Generate Prompts';
 }
 
+// === Cinema Studio: Generate Video ===
+async function generateVideo(scriptId, videoNumber) {
+    const avatarId = document.getElementById('cs-avatar')?.value;
+    if (!avatarId) { toast('Select an avatar first', 'error'); return; }
+
+    const btn = document.getElementById('cs-gen-v' + videoNumber);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<svg class="animate-spin w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Starting...'; }
+
+    const body = {
+        video_number: videoNumber,
+        avatar_id: parseInt(avatarId),
+        model_id: document.getElementById('cs-model')?.value || 'higgsfield-ai/dop/standard',
+        duration: parseInt(document.getElementById('cs-duration')?.value || '5'),
+        aspect_ratio: document.getElementById('cs-ratio')?.value || '9:16',
+        camera_movement: document.getElementById('cs-camera')?.value || '',
+        sound: document.getElementById('cs-sound')?.checked || false,
+        slow_motion: document.getElementById('cs-slowmo')?.checked || false,
+    };
+
+    const result = await api('/api/scripts/' + scriptId + '/generate-video', 'POST', body);
+    if (result && result.ok && result.generation_id) {
+        toast('Video ' + videoNumber + ' generation started!', 'info');
+        const area = document.getElementById('cs-v' + videoNumber + '-area');
+        if (area) area.style.display = 'block';
+        updateVideoStatus(videoNumber, 'queued');
+        pollVideoStatus(scriptId, result.generation_id, videoNumber);
+    } else {
+        toast('Generation failed: ' + (result?.detail || result?.error || 'Unknown error'), 'error');
+    }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>Generate Video ' + videoNumber; }
+}
+
+function updateVideoStatus(videoNumber, status) {
+    const badge = document.getElementById('cs-v' + videoNumber + '-status');
+    if (!badge) return;
+    badge.textContent = status;
+    badge.className = 'status-badge ' + (
+        status === 'completed' ? 'status-completed' :
+        status === 'failed' || status === 'nsfw' ? 'status-failed' :
+        status === 'in_progress' ? 'status-running' : 'status-queued'
+    );
+}
+
+function pollVideoStatus(scriptId, generationId, videoNumber) {
+    const interval = setInterval(async () => {
+        const result = await api('/api/scripts/' + scriptId + '/video-status/' + generationId);
+        if (!result) return;
+
+        updateVideoStatus(videoNumber, result.status);
+
+        if (result.status === 'completed' && result.video_url) {
+            clearInterval(interval);
+            const player = document.getElementById('cs-v' + videoNumber + '-player');
+            const video = document.getElementById('cs-v' + videoNumber + '-video');
+            const download = document.getElementById('cs-v' + videoNumber + '-download');
+            if (player) player.style.display = 'block';
+            if (video) video.src = result.video_url;
+            if (download) download.href = result.video_url;
+            toast('Video ' + videoNumber + ' ready!', 'success');
+        } else if (result.status === 'failed' || result.status === 'nsfw') {
+            clearInterval(interval);
+            toast('Video ' + videoNumber + ' failed: ' + (result.error || result.status), 'error');
+        }
+    }, 3000);
+}
+
+// === Cinema Studio: Load Avatars dropdown ===
+async function loadAvatarsDropdown() {
+    const select = document.getElementById('cs-avatar');
+    if (!select) return;
+    const data = await api('/api/avatars');
+    if (!data || !Array.isArray(data)) return;
+    data.forEach(a => {
+        if (a.image_url) {
+            const opt = document.createElement('option');
+            opt.value = a.id;
+            opt.textContent = a.name + (a.character_type ? ' (' + a.character_type + ')' : '');
+            select.appendChild(opt);
+        }
+    });
+}
+
+// === Cinema Studio: Load previous generations ===
+async function loadVideoGenerations(scriptId) {
+    const data = await api('/api/scripts/' + scriptId + '/video-generations');
+    if (!data || !Array.isArray(data) || data.length === 0) return;
+    const container = document.getElementById('cs-history');
+    const list = document.getElementById('cs-history-list');
+    if (!container || !list) return;
+    container.style.display = 'block';
+    list.innerHTML = data.map(g => {
+        const statusClass = g.status === 'completed' ? 'status-completed' : g.status === 'failed' ? 'status-failed' : 'status-queued';
+        return '<div class="flex items-center justify-between text-xs p-2 bg-gray-50 rounded-lg">' +
+            '<div><span class="font-medium text-gray-700">Video ' + g.video_number + '</span> <span class="status-badge ' + statusClass + '">' + g.status + '</span></div>' +
+            '<div class="text-gray-400">' + (g.video_url ? '<a href="' + g.video_url + '" target="_blank" class="text-blue-500 hover:underline mr-2">Watch</a>' : '') + g.model_id.split('/').pop() + ' / ' + g.duration + 's</div>' +
+            '</div>';
+    }).join('');
+}
+
 // === Presets ===
 async function addPreset(category) {
     const input = document.getElementById(category + '-new-preset');

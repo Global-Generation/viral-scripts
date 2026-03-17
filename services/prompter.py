@@ -171,6 +171,18 @@ Both cameras are FIXED on tripods. All transitions are HARD CUTS.
 """
 
 
+def _log_usage(request_type: str, status: str = "completed"):
+    try:
+        from database import SessionLocal
+        from models import ApiUsage
+        db = SessionLocal()
+        db.add(ApiUsage(platform="anthropic", model_id=CLAUDE_MODEL, request_type=request_type, status=status))
+        db.commit()
+        db.close()
+    except Exception:
+        pass
+
+
 def generate_video_prompt(script_text: str) -> dict:
     """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -211,6 +223,8 @@ def generate_video_prompt(script_text: str) -> dict:
             video2_text = video2_text[len(prefix):].strip()
             break
 
+    _log_usage("prompt")
+    _log_usage("prompt")  # two Claude calls per generation
     return {
         "video1": f"{CAMERA_HEADER}\n{video1_text}",
         "video2": f"{CAMERA_HEADER}\n{video2_text}",

@@ -9,3 +9,4 @@ yt-dlp>=2024.12.23
 # openai-whisper installed separately in Dockerfile (needs setuptools first)
 anthropic==0.40.0
 aiofiles==24.1.0
+higgsfield-client

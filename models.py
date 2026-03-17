@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -87,4 +87,64 @@ class PresetQuery(Base):
     category = Column(String, nullable=False, index=True)
     query = Column(String, nullable=False)
     sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class Avatar(Base):
+    __tablename__ = "avatars"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, default="")
+    prompt = Column(Text, default="")
+    image_url = Column(Text, default="")
+    image_request_id = Column(String, default="")
+    character_type = Column(String, default="")
+    created_at = Column(DateTime, default=utcnow)
+
+    video_generations = relationship("VideoGeneration", back_populates="avatar")
+
+
+class VideoGeneration(Base):
+    __tablename__ = "video_generations"
+    id = Column(Integer, primary_key=True, index=True)
+    script_id = Column(Integer, ForeignKey("scripts.id"), nullable=False)
+    avatar_id = Column(Integer, ForeignKey("avatars.id"), nullable=True)
+    video_number = Column(Integer, default=1)
+    model_id = Column(String, default="higgsfield-ai/dop/standard")
+    prompt = Column(Text, default="")
+    image_url = Column(Text, default="")
+    video_url = Column(Text, default="")
+    request_id = Column(String, default="")
+    status = Column(String, default="queued")
+    duration = Column(Integer, default=5)
+    aspect_ratio = Column(String, default="9:16")
+    camera_movement = Column(String, default="")
+    sound_enabled = Column(Boolean, default=False)
+    slow_motion = Column(Boolean, default=False)
+    error_message = Column(Text, default="")
+    created_at = Column(DateTime, default=utcnow)
+
+    script = relationship("Script", backref="video_generations")
+    avatar = relationship("Avatar", back_populates="video_generations")
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+    id = Column(Integer, primary_key=True, index=True)
+    platform = Column(String, nullable=False)
+    label = Column(String, default="")
+    key_value = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class ApiUsage(Base):
+    __tablename__ = "api_usage"
+    id = Column(Integer, primary_key=True, index=True)
+    api_key_id = Column(Integer, ForeignKey("api_keys.id"), nullable=True)
+    platform = Column(String, nullable=False)
+    model_id = Column(String, default="")
+    request_type = Column(String, default="")
+    request_id = Column(String, default="")
+    status = Column(String, default="")
     created_at = Column(DateTime, default=utcnow)

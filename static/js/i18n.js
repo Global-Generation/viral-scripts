@@ -1,11 +1,16 @@
 // === i18n: EN/RU translation system ===
 const I18N = {
     // Sidebar
-    'nav.main':             { en: 'Main',               ru: 'Основное' },
+    'nav.scripts':          { en: 'Scripts',            ru: 'Сценарии' },
     'nav.search':           { en: 'Search',             ru: 'Поиск' },
     'nav.scripts_library':  { en: 'Scripts Library',    ru: 'Библиотека скриптов' },
+    'nav.avatars_section':  { en: 'Avatars',            ru: 'Аватары' },
+    'nav.avatar_gallery':   { en: 'Avatar Gallery',     ru: 'Галерея аватаров' },
+    'nav.videos_section':   { en: 'Videos',             ru: 'Видео' },
+    'nav.all_videos':       { en: 'All Videos',         ru: 'Все видео' },
     'nav.settings':         { en: 'Settings',           ru: 'Настройки' },
     'nav.presets':          { en: 'Presets',             ru: 'Пресеты' },
+    'nav.api_keys':         { en: 'API Keys & Usage',   ru: 'API ключи и использование' },
     'sidebar.title':        { en: 'Viral Scripts',      ru: 'Viral Scripts' },
     'sidebar.sub':          { en: 'TikTok Script Analyzer', ru: 'Анализатор TikTok скриптов' },
 
@@ -133,6 +138,18 @@ const I18N = {
     'sr.no_results':        { en: 'No TikTok videos found for this query. Try a different search term.', ru: 'TikTok видео не найдены. Попробуйте другой запрос.' },
     'sr.view_script':       { en: 'View Script',        ru: 'Открыть скрипт' },
     'sr.extract':           { en: 'Extract Script',     ru: 'Извлечь скрипт' },
+
+    // Avatars page
+    'avatars.title':        { en: 'Avatar Gallery',     ru: 'Галерея аватаров' },
+    'avatars.subtitle':     { en: 'AI avatars for Cinema Studio video generation', ru: 'AI аватары для генерации видео в Cinema Studio' },
+
+    // Videos page
+    'videos.title':         { en: 'All Videos',         ru: 'Все видео' },
+    'videos.subtitle':      { en: 'Generated videos from Cinema Studio', ru: 'Сгенерированные видео из Cinema Studio' },
+
+    // Settings page
+    'settings.title':       { en: 'API Keys & Usage',   ru: 'API ключи и использование' },
+    'settings.subtitle':    { en: 'Manage API keys and view usage statistics', ru: 'Управление API ключами и просмотр статистики использования' },
 };
 
 // --- Core functions ---
