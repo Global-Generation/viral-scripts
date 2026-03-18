@@ -820,6 +820,7 @@ class TrimRequest(BaseModel):
     v1_end: float = 0
     v2_start: float = 0
     v2_end: float = 0
+    swap: bool = False
 
 
 @router.post("/{script_id}/trim-concat")
@@ -836,6 +837,12 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
     raw2 = script.raw_video2_path
     if not raw1 or not os.path.exists(raw1) or not raw2 or not os.path.exists(raw2):
         raise HTTPException(status_code=400, detail="Raw videos not available. Upload videos first.")
+
+    # If swapped, flip the raw sources and trim params
+    if data.swap:
+        raw1, raw2 = raw2, raw1
+        data.v1_start, data.v2_start = data.v2_start, data.v1_start
+        data.v1_end, data.v2_end = data.v2_end, data.v1_end
 
     downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
     trimmed_v1 = os.path.join(downloads_dir, f"trimmed_{script_id}_v1.mp4")

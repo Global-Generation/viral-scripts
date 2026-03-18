@@ -240,7 +240,7 @@
     <!-- 2. Trim Editor (shows after upload) -->
     <div id="trim-editor" class="stat-card mb-4" style="display: none;">
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Trim Editor</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: start;">
             <!-- Video 1 Trim -->
             <div>
                 <h3 style="font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">Video 1</h3>
@@ -264,9 +264,13 @@
                 <input type="hidden" id="trim-v1-start" value="0">
                 <input type="hidden" id="trim-v1-end" value="0">
                 <div class="flex gap-2 mt-2">
-                    <button onclick="playSelection(1)" class="btn-sm btn-secondary flex-1 justify-center" style="font-size: 11px;">Play Selection</button>
+                    <button id="play-btn-1" onclick="togglePlay(1)" class="btn-sm btn-secondary" style="font-size: 11px; min-width: 32px;" title="Play/Pause">&#9654;</button>
                     <button onclick="resetTrim(1)" class="btn-sm btn-secondary" style="font-size: 11px;">Reset</button>
                 </div>
+            </div>
+            <!-- Swap Button (center column) -->
+            <div style="display: flex; align-items: center; justify-content: center; padding-top: 100px;">
+                <button onclick="swapVideos()" class="btn-sm btn-secondary" style="font-size: 11px; white-space: nowrap; padding: 6px 10px;" title="Swap V1 and V2">&#8644; Swap</button>
             </div>
             <!-- Video 2 Trim -->
             <div>
@@ -291,19 +295,16 @@
                 <input type="hidden" id="trim-v2-start" value="0">
                 <input type="hidden" id="trim-v2-end" value="0">
                 <div class="flex gap-2 mt-2">
-                    <button onclick="playSelection(2)" class="btn-sm btn-secondary flex-1 justify-center" style="font-size: 11px;">Play Selection</button>
+                    <button id="play-btn-2" onclick="togglePlay(2)" class="btn-sm btn-secondary" style="font-size: 11px; min-width: 32px;" title="Play/Pause">&#9654;</button>
                     <button onclick="resetTrim(2)" class="btn-sm btn-secondary" style="font-size: 11px;">Reset</button>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Button -->
         <div class="flex gap-2 mt-4">
-            <button id="trim-process-btn" onclick="trimAndProcess({{ script.id }})" class="btn btn-secondary flex-1 justify-center" style="font-size: 13px; font-weight: 700;">
-                Trim & Concat
-            </button>
-            <button id="add-subtitles-btn" onclick="addSubtitles({{ script.id }})" class="btn btn-primary flex-1 justify-center" style="font-size: 13px; font-weight: 700;">
-                Add Subtitles
+            <button id="process-video-btn" onclick="processVideo({{ script.id }})" class="btn btn-primary flex-1 justify-center" style="font-size: 13px; font-weight: 700;">
+                Process Video
             </button>
         </div>
     </div>
@@ -809,19 +810,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function playSelection(num) {
+let _playStopHandlers = {}; // track timeupdate handlers per video num
+
+function togglePlay(num) {
     const video = document.getElementById('trim-v' + num);
+    const btn = document.getElementById('play-btn-' + num);
     const s = trimState[num];
     if (!video || s.end <= s.start) return;
+
+    if (!video.paused) {
+        // Currently playing — pause
+        video.pause();
+        if (_playStopHandlers[num]) {
+            video.removeEventListener('timeupdate', _playStopHandlers[num]);
+            _playStopHandlers[num] = null;
+        }
+        btn.innerHTML = '&#9654;'; // ▶
+        return;
+    }
+
+    // Start playing from trim start
     video.currentTime = s.start;
+    btn.innerHTML = '&#9208;'; // ⏸
     video.play();
+
     const stopAt = () => {
         if (video.currentTime >= s.end) {
             video.pause();
             video.removeEventListener('timeupdate', stopAt);
+            _playStopHandlers[num] = null;
+            btn.innerHTML = '&#9654;'; // ▶
         }
     };
+    _playStopHandlers[num] = stopAt;
     video.addEventListener('timeupdate', stopAt);
+}
+
+let _swapped = false;
+
+function swapVideos() {
+    const v1 = document.getElementById('trim-v1');
+    const v2 = document.getElementById('trim-v2');
+    if (!v1 || !v2) return;
+
+    // Swap video sources
+    const src1 = v1.src;
+    const src2 = v2.src;
+    v1.src = src2;
+    v2.src = src1;
+
+    // Swap trim state
+    const tmp = { ...trimState[1] };
+    trimState[1] = { ...trimState[2] };
+    trimState[2] = tmp;
+
+    // Toggle swapped flag
+    _swapped = !_swapped;
+
+    // Re-render timelines after metadata loads
+    [1, 2].forEach(num => {
+        const video = document.getElementById('trim-v' + num);
+        const reInit = () => {
+            trimState[num].duration = video.duration || trimState[num].duration;
+            renderTimeline(num);
+        };
+        if (video.readyState >= 1) reInit();
+        else video.addEventListener('loadedmetadata', reInit, { once: true });
+    });
+
+    toast('Videos swapped', 'success');
 }
 
 function resetTrim(num) {
@@ -833,8 +890,8 @@ function resetTrim(num) {
     if (video) video.currentTime = 0;
 }
 
-async function trimAndProcess(scriptId) {
-    const btn = document.getElementById('trim-process-btn');
+async function processVideo(scriptId) {
+    const btn = document.getElementById('process-video-btn');
     btn.disabled = true;
     btn.textContent = 'Trimming...';
 
@@ -843,34 +900,28 @@ async function trimAndProcess(scriptId) {
         v1_end: parseFloat(document.getElementById('trim-v1-end').value) || 0,
         v2_start: parseFloat(document.getElementById('trim-v2-start').value) || 0,
         v2_end: parseFloat(document.getElementById('trim-v2-end').value) || 0,
+        swap: _swapped,
     };
 
-    const result = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
-    btn.disabled = false;
-    btn.textContent = 'Trim & Concat';
-
-    if (result && result.ok) {
-        toast('Trimmed & concatenated! Reloading...', 'success');
-        setTimeout(() => location.reload(), 1200);
-    } else {
-        toast('Trim failed: ' + (result?.detail || 'error'), 'error');
+    const trimResult = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
+    if (!trimResult || !trimResult.ok) {
+        toast('Trim failed: ' + (trimResult?.detail || 'error'), 'error');
+        btn.disabled = false;
+        btn.textContent = 'Process Video';
+        return;
     }
-}
 
-async function addSubtitles(scriptId) {
-    const btn = document.getElementById('add-subtitles-btn');
-    btn.disabled = true;
-    btn.textContent = 'Processing...';
-
-    const result = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
-    if (result && result.ok) {
-        toast('Subtitles processing...', 'success');
+    // Step 2: auto-start subtitles
+    btn.textContent = 'Adding subtitles...';
+    const subResult = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
+    if (subResult && subResult.ok) {
+        toast('Processing subtitles...', 'success');
         pollSubtitleStatus(scriptId);
     } else {
-        toast('Failed: ' + (result?.detail || 'error'), 'error');
+        toast('Trim done but subtitles failed: ' + (subResult?.detail || 'error'), 'error');
     }
     btn.disabled = false;
-    btn.textContent = 'Add Subtitles';
+    btn.textContent = 'Process Video';
 }
 
 // Auto-check for raw videos on page load
