@@ -11,11 +11,17 @@ router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
-CREATORS = ["daniel", "boris", "thomas"]
+CREATORS = ["daniel", "boris", "thomas", "sophia", "ava"]
 PUB_OFFSETS = {"tiktok": 0, "instagram": 7, "youtube": 14}
 
-# Base date for scheduling (start assigning from this date)
-SCHEDULE_START = date(2026, 3, 18)
+# Per-creator start dates
+SCHEDULE_STARTS = {
+    "daniel": date(2026, 3, 18),
+    "boris": date(2026, 3, 18),
+    "thomas": date(2026, 3, 18),
+    "sophia": date(2026, 3, 16),
+    "ava": date(2026, 3, 16),
+}
 
 
 @router.get("/videos", response_class=HTMLResponse)
@@ -43,8 +49,9 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
 
         # Assign dates: 1 script per day per creator
         script_dates = []
+        start = SCHEDULE_STARTS.get(creator, date(2026, 3, 18))
         for i, script in enumerate(scripts):
-            base_date = SCHEDULE_START + timedelta(days=i)
+            base_date = start + timedelta(days=i)
             tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
             ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
             yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])

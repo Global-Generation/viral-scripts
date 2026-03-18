@@ -22,7 +22,7 @@
                 {% elif task.platform == 'Instagram' %}color: #E1306C;
                 {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
             <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
-                {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% else %}#16a34a{% endif %}; min-width: 60px;">{{ task.creator }}</span>
+                {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
             <a href="/scripts/{{ task.script.id }}" class="text-xs text-blue-500 hover:underline truncate">
                 {{ task.script.video.title[:60] if task.script.video else ('Script #' ~ task.script.id) }}
             </a>
@@ -69,7 +69,9 @@
                 <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50; margin-right: 6px;
                     {% if creator == 'daniel' %}background: #ea580c;
                     {% elif creator == 'boris' %}background: #2563EB;
-                    {% elif creator == 'thomas' %}background: #16a34a;{% endif %}"></span>
+                    {% elif creator == 'thomas' %}background: #16a34a;
+                    {% elif creator == 'sophia' %}background: #9333ea;
+                    {% elif creator == 'ava' %}background: #db2777;{% endif %}"></span>
                 {{ creator }}
             </h2>
             <span class="text-xs text-gray-400">{{ data.count }} ready scripts</span>
