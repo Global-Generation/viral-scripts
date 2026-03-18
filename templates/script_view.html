@@ -310,6 +310,15 @@
                 Process Video
             </button>
         </div>
+        <div id="process-status" style="display: none; margin-top: 10px; padding: 8px 12px; background: #eff6ff; border-radius: 8px;">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="animate-spin w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                <span id="process-status-text" style="font-size: 12px; color: #3b82f6; font-weight: 600;">Trimming video...</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: #dbeafe; border-radius: 3px; overflow: hidden;">
+                <div id="process-progress-bar" style="width: 0%; height: 100%; background: #3b82f6; border-radius: 3px; transition: width 0.3s;"></div>
+            </div>
+        </div>
     </div>
 
     <!-- 3. Final Video + Status (hidden until processing or ready) -->
@@ -725,6 +734,7 @@ function showTrimEditor() {
         if (tl) {
             tl.addEventListener('click', (e) => {
                 if (_dragging) return;
+                if (e.target.classList.contains('trim-handle')) return;
                 const rect = tl.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 video.currentTime = pct * trimState[num].duration;
@@ -909,8 +919,20 @@ function resetTrim(num) {
 
 async function processVideo(scriptId) {
     const btn = document.getElementById('process-video-btn');
+    const pStatus = document.getElementById('process-status');
+    const pText = document.getElementById('process-status-text');
+    const pBar = document.getElementById('process-progress-bar');
     btn.disabled = true;
-    btn.textContent = 'Trimming...';
+    btn.textContent = 'Processing...';
+    pStatus.style.display = 'block';
+    pText.textContent = 'Trimming video...';
+    pBar.style.width = '0%';
+
+    // Animate progress gradually during trim (0→45% over ~15s)
+    let _pct = 0;
+    const _ticker = setInterval(() => {
+        if (_pct < 45) { _pct += 1; pBar.style.width = _pct + '%'; }
+    }, 333);
 
     const body = {
         v1_start: parseFloat(document.getElementById('trim-v1-start').value) || 0,
@@ -921,9 +943,11 @@ async function processVideo(scriptId) {
     };
 
     const trimResult = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
+    clearInterval(_ticker);
     if (!trimResult || !trimResult.ok) {
         const errMsg = trimResult?.detail || 'Trim failed';
         toast(errMsg, 'error');
+        pStatus.style.display = 'none';
         showFinalSection();
         updateStatusBar('failed', 'Trim failed: ' + errMsg);
         document.getElementById('retry-sub-btn').style.display = 'none';
@@ -933,16 +957,29 @@ async function processVideo(scriptId) {
     }
 
     // Step 2: auto-start subtitles
+    pBar.style.width = '50%';
+    pText.textContent = 'Adding subtitles...';
     btn.textContent = 'Adding subtitles...';
+
+    // Animate 50→80%
+    let _pct2 = 50;
+    const _ticker2 = setInterval(() => {
+        if (_pct2 < 80) { _pct2 += 1; pBar.style.width = _pct2 + '%'; }
+    }, 500);
+
     showFinalSection();
     updateStatusBar('processing', 'Adding subtitles...');
     const subResult = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
+    clearInterval(_ticker2);
     if (subResult && subResult.ok) {
+        pBar.style.width = '85%';
+        pText.textContent = 'Subtitles processing...';
         pollSubtitleStatus(scriptId);
     } else {
         updateStatusBar('failed', 'Subtitles failed to start');
         toast('Subtitles failed: ' + (subResult?.detail || 'error'), 'error');
     }
+    pStatus.style.display = 'none';
     btn.disabled = false;
     btn.textContent = 'Process Video';
 }
