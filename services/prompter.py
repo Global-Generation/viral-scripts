@@ -21,27 +21,31 @@ GESTICULATION BY EMOTION:
 - Empathy → open palms, lean forward
 - Impact → pause, direct gaze, nod
 
-CAMERA — THREE SHOT TYPES
+CAMERA — EXACTLY THREE SHOT TYPES (NO OTHERS!)
+Only these 3 angles exist. No other angles, no variations, no invented shots.
 Alternate STRICTLY. Same angle twice in a row = FORBIDDEN.
 
 CLOSE-UP:
-Face fills the entire frame. Camera strictly frontal, at eye level.
-Background blurred or barely visible. Only face, neck, top of shoulders visible.
-Used for emotional hits, pauses, direct eye contact with camera.
+Face fills the entire frame. Camera frontal, at eye level.
+Only face, neck, top of shoulders visible. Background out of focus — bookshelves/diplomas barely readable.
+Direct eye contact with camera. Used for emotional hits, pauses, main point delivery.
 
 MEDIUM SHOT:
-Upper body — waist/table to head. Camera frontal.
-Hand gestures visible, object in hands, body posture. Background readable.
-Main working angle for dialogue.
+Upper body — chest to head. Camera frontal, slightly wider than close-up.
+Hands visible — pen in hand, gesticulation, pointing. Background readable (diplomas, lamp, bookshelves).
+Main working angle for dialogue and active gesturing.
 
 WIDE THREE-QUARTER:
-Camera pulled back and shifted to the side — approximately 30-45° angle.
-Full setting visible: furniture, walls, decor + character in context.
-Character occupies ~40% of frame. Used for lists, pauses, "exhale" moments.
+Camera shifted to the side — approximately 30-45° angle, pulled back.
+Full setting visible: armchair, side table, bookshelves, window with city view.
+Character occupies ~40% of frame, seated in armchair. Used for lists, pauses, "exhale" moments.
 
-TRANSITIONS — describe as live camera movement:
-"Camera slowly pushes in to his face" / "Camera pulls back revealing the room, side angle three-quarter" / "Close-up again — face fills the frame"
-Every transition = physical camera movement, NOT an editing cut.
+CAMERA CUTS (CRITICAL — NO SMOOTH CAMERA MOVEMENTS!)
+All three cameras are FIXED on tripods. COMPLETELY STATIC. Zero movement within any shot.
+All transitions are HARD CUTS — instant switch from one static angle to another.
+Every transition = "JUMP CUT TO close-up." or "JUMP CUT TO medium shot." or "JUMP CUT TO three-quarter view." — PERIOD.
+NEVER use these words FOR THE CAMERA: orbit, dolly, drift, push-in, pull-out, track, pan, slide, creep, arc, zoom, push, pull, glide, sweep, follow, close in, move closer, slowly pushes, pulls back.
+The CAMERA does not move. The CHARACTER moves freely (gestures, lean, nod, turn, expressions).
 
 STRUCTURE OF EACH VIDEO:
 HOOK (opening) — medium shot, direct gaze, first phrase
@@ -104,8 +108,8 @@ pose, and energy level clearly — Video 2 must start from this exact state.
 USER_VIDEO1 = """Generate Video 1 of 2 (HOOK + DEVELOPMENT) from this script.
 Use ONLY the first ~50% of the script as dialogue. STOP at the halfway point — leave the rest for Video 2.
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
-2-3 camera changes. Energy rises from calm to peak tension.
-Describe body language, expressions, and smooth camera movements between dialogue lines.
+2-3 camera changes (HARD CUTS only — static tripod angles). Energy rises from calm to peak tension.
+Describe body language, expressions, and energy between dialogue lines — be specific and visual.
 
 CRITICAL: EXACTLY 40-50 words of dialogue total in this video. Count every word inside "quotes".
 If you write more than 50 words of dialogue, DELETE lines until 40-50.
@@ -127,7 +131,7 @@ ENERGY — VIDEO 2 = SOLUTION
 Energy does NOT reset at start.
 First 1-2 seconds — SAME high energy as Video 1 ending.
 Character continues from the same tension, same pose, same tone.
-Then SMOOTH transition: exhale, leans back, tone lowers, pace slows.
+Then gradual transition: exhale, leans back, tone lowers, pace slows.
 Energy changes quality — from tension to confidence.
 Middle — calm listing, open palms.
 End — HIT: main point, close-up, direct gaze, nod, silence. Feeling of PERIOD. Everything said.
@@ -139,7 +143,7 @@ Video 2 STARTS from the EXACT SAME STATE as Video 1 ended:
 - SAME energy level (do NOT reset, do NOT restart)
 - SAME facial expression (same emotion, same gaze)
 The character CONTINUES speaking from the same tension level.
-Only THEN does energy begin to change — smoothly transitioning to resolution.
+Only THEN does energy begin to change — gradually transitioning to resolution.
 In your prompt, EXPLICITLY describe the starting state: which angle, which pose, which energy.
 
 CTA (MANDATORY — EXACT PATTERN!):
@@ -156,8 +160,8 @@ End with quiet finality. The LAST shot should be a CLOSE-UP with a nod after CTA
 USER_VIDEO2 = """Generate Video 2 of 2 (CONCLUSION + CTA) from this script.
 Pick up EXACTLY where Video 1 left off. Do NOT repeat ANY line from Video 1. Zero overlap.
 Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. End with CTA.
-2-3 camera changes. Start from the SAME state as Video 1 ended, then smoothly resolve.
-Describe body language, expressions, and smooth camera movements between dialogue lines.
+2-3 camera changes (HARD CUTS only — static tripod angles). Start from the SAME state as Video 1 ended, then resolve.
+Describe body language, expressions, and energy between dialogue lines — be specific and visual.
 
 CRITICAL: EXACTLY 40-50 words of dialogue total in this video — SAME amount as Video 1. Count every word inside "quotes".
 CTA counts toward the word limit. If you write more than 50 words of dialogue, DELETE lines until 40-50.
