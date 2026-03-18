@@ -806,7 +806,7 @@ def retry_subtitles(script_id: int, db: Session = Depends(get_db)):
     if script.subtitle_status == "processing":
         return {"ok": True, "status": "processing", "message": "Already processing"}
 
-    script.subtitle_status = ""
+    script.subtitle_status = "processing"
     script.subtitle_error = ""
     script.final_subtitled_path = ""
     db.commit()

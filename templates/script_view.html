@@ -310,7 +310,7 @@
     </div>
 
     <!-- 3. Final Video + Status (hidden until processing or ready) -->
-    <div id="final-video-section" class="stat-card" style="display: {% if script.final_subtitled_path or script.subtitle_status == 'processing' or script.subtitle_status == 'failed' %}block{% else %}none{% endif %};">
+    <div id="final-video-section" class="stat-card" style="display: {% if script.final_subtitled_path or script.subtitle_status == 'processing' or script.subtitle_status == 'failed' or script.final_video_path %}block{% else %}none{% endif %};">
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Final Video</h2>
 
         <!-- Status Bar -->
@@ -318,12 +318,11 @@
             {% if script.final_subtitled_path %}status-ready
             {% elif script.subtitle_status == 'processing' %}status-processing
             {% elif script.subtitle_status == 'failed' %}status-failed
+            {% elif script.final_video_path %}status-processing
             {% else %}status-processing{% endif %}">
             <span id="subtitle-status-icon">
                 {% if script.final_subtitled_path %}
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
-                {% elif script.subtitle_status == 'processing' %}
-                    <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                 {% elif script.subtitle_status == 'failed' %}
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 {% else %}
@@ -332,8 +331,8 @@
             </span>
             <span id="subtitle-status-text">
                 {% if script.final_subtitled_path %}Subtitles ready
-                {% elif script.subtitle_status == 'processing' %}Processing subtitles...
                 {% elif script.subtitle_status == 'failed' %}Subtitles failed
+                {% elif script.subtitle_status == 'processing' or script.final_video_path %}Processing subtitles...
                 {% else %}Processing...{% endif %}
             </span>
             <button id="retry-sub-btn" onclick="retrySubtitles({{ script.id }})" style="display: {% if script.subtitle_status == 'failed' %}inline-flex{% else %}none{% endif %}; margin-left: auto; font-size: 11px; font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.1); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
@@ -703,6 +702,9 @@ function showTrimEditor() {
                 const rect = tl.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 video.currentTime = pct * trimState[num].duration;
+                // Update playhead immediately (timeupdate only fires while playing)
+                const ph = document.getElementById('playhead-' + num);
+                if (ph) ph.style.left = (pct * 100) + '%';
             });
         }
     });
@@ -894,7 +896,11 @@ async function processVideo(scriptId) {
 
     const trimResult = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
     if (!trimResult || !trimResult.ok) {
-        toast('Trim failed: ' + (trimResult?.detail || 'error'), 'error');
+        const errMsg = trimResult?.detail || 'Trim failed';
+        toast(errMsg, 'error');
+        showFinalSection();
+        updateStatusBar('failed', 'Trim failed: ' + errMsg);
+        document.getElementById('retry-sub-btn').style.display = 'none';
         btn.disabled = false;
         btn.textContent = 'Process Video';
         return;
@@ -902,12 +908,14 @@ async function processVideo(scriptId) {
 
     // Step 2: auto-start subtitles
     btn.textContent = 'Adding subtitles...';
+    showFinalSection();
+    updateStatusBar('processing', 'Adding subtitles...');
     const subResult = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
     if (subResult && subResult.ok) {
-        toast('Processing subtitles...', 'success');
         pollSubtitleStatus(scriptId);
     } else {
-        toast('Trim done but subtitles failed: ' + (subResult?.detail || 'error'), 'error');
+        updateStatusBar('failed', 'Subtitles failed to start');
+        toast('Subtitles failed: ' + (subResult?.detail || 'error'), 'error');
     }
     btn.disabled = false;
     btn.textContent = 'Process Video';
