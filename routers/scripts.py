@@ -850,18 +850,18 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
     output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
 
     try:
-        # Trim video 1
-        cmd1 = ["ffmpeg", "-y", "-i", raw1, "-ss", str(data.v1_start)]
+        # Trim video 1 (stream copy — no re-encode, near-instant)
+        cmd1 = ["ffmpeg", "-y", "-ss", str(data.v1_start), "-i", raw1]
         if data.v1_end > data.v1_start:
-            cmd1 += ["-to", str(data.v1_end)]
-        cmd1 += ["-c:v", "libx264", "-c:a", "aac", "-preset", "fast", trimmed_v1]
+            cmd1 += ["-t", str(data.v1_end - data.v1_start)]
+        cmd1 += ["-c", "copy", trimmed_v1]
         sp.run(cmd1, check=True, capture_output=True)
 
-        # Trim video 2
-        cmd2 = ["ffmpeg", "-y", "-i", raw2, "-ss", str(data.v2_start)]
+        # Trim video 2 (stream copy — no re-encode, near-instant)
+        cmd2 = ["ffmpeg", "-y", "-ss", str(data.v2_start), "-i", raw2]
         if data.v2_end > data.v2_start:
-            cmd2 += ["-to", str(data.v2_end)]
-        cmd2 += ["-c:v", "libx264", "-c:a", "aac", "-preset", "fast", trimmed_v2]
+            cmd2 += ["-t", str(data.v2_end - data.v2_start)]
+        cmd2 += ["-c", "copy", trimmed_v2]
         sp.run(cmd2, check=True, capture_output=True)
 
         # Concatenate

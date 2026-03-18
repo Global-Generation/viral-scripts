@@ -969,8 +969,18 @@ async function processVideo(scriptId) {
 
     const trimResult = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
     clearInterval(_ticker);
-    if (!trimResult || !trimResult.ok) {
-        const errMsg = trimResult?.detail || 'Trim failed';
+    if (!trimResult) {
+        toast('Process timed out or network error. Try again.', 'error');
+        pStatus.style.display = 'none';
+        showFinalSection();
+        updateStatusBar('failed', 'Network error or timeout');
+        document.getElementById('retry-sub-btn').style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = 'Process Video';
+        return;
+    }
+    if (!trimResult.ok) {
+        const errMsg = trimResult.detail || 'Unknown error';
         toast(errMsg, 'error');
         pStatus.style.display = 'none';
         showFinalSection();
