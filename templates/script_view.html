@@ -269,6 +269,7 @@
                 <div class="flex gap-2 mt-2">
                     <button id="play-btn-1" onclick="togglePlay(1)" class="btn-sm btn-secondary" style="font-size: 11px; min-width: 32px;" title="Play/Pause">&#9654;</button>
                     <button onclick="resetTrim(1)" class="btn-sm btn-secondary" style="font-size: 11px;">Reset</button>
+                    <button onclick="deleteVideo({{ script.id }}, 1)" class="btn-sm" style="font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; margin-left: auto;" title="Delete Video 1">&#10005;</button>
                 </div>
             </div>
             <!-- Swap Button (center column) -->
@@ -300,6 +301,7 @@
                 <div class="flex gap-2 mt-2">
                     <button id="play-btn-2" onclick="togglePlay(2)" class="btn-sm btn-secondary" style="font-size: 11px; min-width: 32px;" title="Play/Pause">&#9654;</button>
                     <button onclick="resetTrim(2)" class="btn-sm btn-secondary" style="font-size: 11px;">Reset</button>
+                    <button onclick="deleteVideo({{ script.id }}, 2)" class="btn-sm" style="font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; margin-left: auto;" title="Delete Video 2">&#10005;</button>
                 </div>
             </div>
         </div>
@@ -919,6 +921,22 @@ function resetTrim(num) {
     renderTimeline(num);
     const video = document.getElementById('trim-v' + num);
     if (video) video.currentTime = 0;
+}
+
+async function deleteVideo(scriptId, num) {
+    if (!confirm('Delete Video ' + num + '? This will also remove the final processed video.')) return;
+    try {
+        const resp = await fetch('/api/scripts/' + scriptId + '/raw-video/' + num, { method: 'DELETE' });
+        const data = await resp.json();
+        if (data.ok) {
+            toast('Video ' + num + ' deleted', 'success');
+            location.reload();
+        } else {
+            toast(data.detail || 'Delete failed', 'error');
+        }
+    } catch (e) {
+        toast('Delete failed: ' + e.message, 'error');
+    }
 }
 
 async function processVideo(scriptId) {

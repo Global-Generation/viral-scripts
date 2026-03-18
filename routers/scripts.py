@@ -961,6 +961,41 @@ async def upload_videos(
                 pass
 
 
+@router.delete("/{script_id}/raw-video/{num}")
+def delete_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
+    """Delete raw video 1 or 2 and its related final/subtitled files."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if num == 1:
+        path = script.raw_video1_path
+        script.raw_video1_path = ""
+    elif num == 2:
+        path = script.raw_video2_path
+        script.raw_video2_path = ""
+    else:
+        raise HTTPException(status_code=400, detail="num must be 1 or 2")
+    # Delete file from disk
+    if path:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+    # Also clear final video since it's now invalid
+    for p in [script.final_video_path, script.final_subtitled_path]:
+        if p:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+    script.final_video_path = ""
+    script.final_subtitled_path = ""
+    script.subtitle_status = ""
+    script.subtitle_error = ""
+    db.commit()
+    return {"ok": True, "message": f"Video {num} deleted"}
+
+
 @router.post("/{script_id}/generate-metadata")
 def generate_metadata(script_id: int, db: Session = Depends(get_db)):
     """Generate publication metadata (title, description, tags) per platform using Claude."""
