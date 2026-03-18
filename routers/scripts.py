@@ -14,7 +14,6 @@ from services.rewriter import rewrite_provocative
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
 from services.prompter import generate_video_prompt
-from services.subtitle_extractor import extract_dialogue
 from services.subtitler import add_subtitles
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
@@ -677,13 +676,8 @@ def concat_videos_endpoint(script_id: int, db: Session = Depends(get_db)):
 
 
 def _add_final_subtitles_safe(script_id: int):
-    """Add subtitles to the final concatenated video.
-
-    If extract_dialogue finds quoted text, aligns it with Whisper timing.
-    Otherwise falls back to using Whisper transcription words directly.
-    """
-    from services.subtitle_extractor import extract_dialogue
-    from services.subtitler import _get_whisper_model, _align_words, _burn_subtitles
+    """Add subtitles to the final concatenated video using Whisper transcription."""
+    from services.subtitler import _get_whisper_model, _burn_subtitles
 
     db = SessionLocal()
     try:
@@ -697,8 +691,6 @@ def _add_final_subtitles_safe(script_id: int):
         db.commit()
 
         source_path = script.final_video_path
-        dialogue_text = extract_dialogue(script.modified_text or script.original_text or "")
-
         downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
         audio_path = os.path.join(downloads_dir, f"final_{script_id}_audio.wav")
         output_path = os.path.join(downloads_dir, f"final_{script_id}_subtitled.mp4")
@@ -712,22 +704,14 @@ def _add_final_subtitles_safe(script_id: int):
 
         model = _get_whisper_model()
         result = model.transcribe(audio_path)
-        whisper_words = []
+        timed_words = []
         for segment in result.segments:
             for word in segment.words:
-                whisper_words.append({
+                timed_words.append({
                     "word": word.word.strip(),
                     "start": word.start,
                     "end": word.end,
                 })
-
-        if dialogue_text:
-            known_words = dialogue_text.split()
-            timed_words = _align_words(known_words, whisper_words)
-        else:
-            # No quoted dialogue found — use Whisper transcription directly
-            logger.info(f"No quoted dialogue for script {script_id}, using Whisper transcription")
-            timed_words = whisper_words
 
         if not timed_words:
             script.subtitle_status = "failed"

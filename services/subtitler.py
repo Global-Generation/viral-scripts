@@ -9,7 +9,6 @@ from moviepy import VideoFileClip
 
 from database import SessionLocal
 from models import VideoGeneration
-from services.subtitle_extractor import extract_dialogue
 
 logger = logging.getLogger(__name__)
 
@@ -159,36 +158,6 @@ def _render_chunk(words, active_idx, video_w, video_h, anim, base_size):
     return np.array(img)
 
 
-def _align_words(known_words: list[str], whisper_words: list[dict]) -> list[dict]:
-    if not known_words:
-        return []
-
-    if not whisper_words:
-        duration = 5.0
-        per_word = duration / len(known_words)
-        return [
-            {"word": w, "start": i * per_word, "end": (i + 1) * per_word}
-            for i, w in enumerate(known_words)
-        ]
-
-    total_start = whisper_words[0]["start"]
-    total_end = whisper_words[-1]["end"]
-
-    if len(known_words) == len(whisper_words):
-        return [
-            {"word": known_words[i], "start": whisper_words[i]["start"], "end": whisper_words[i]["end"]}
-            for i in range(len(known_words))
-        ]
-
-    duration = total_end - total_start
-    if duration <= 0:
-        duration = 5.0
-    per_word = duration / len(known_words)
-    return [
-        {"word": w, "start": total_start + i * per_word, "end": total_start + (i + 1) * per_word}
-        for i, w in enumerate(known_words)
-    ]
-
 
 def _burn_subtitles(source_path: str, timed_words: list[dict], output_path: str):
     """Burn animated subtitles: Arial Rounded Bold, Pop animation, 72fps.
@@ -276,16 +245,6 @@ def add_subtitles(generation_id: int):
         gen.subtitle_status = "processing"
         db.commit()
 
-        dialogue_text = extract_dialogue(gen.prompt)
-        if not dialogue_text:
-            gen.subtitle_status = "failed"
-            gen.subtitle_error = "No dialogue found in prompt"
-            db.commit()
-            return
-
-        gen.subtitle_text = dialogue_text
-        db.commit()
-
         base = os.path.join(DOWNLOADS_DIR, f"gen_{generation_id}")
         source_path = base + "_source.mp4"
         audio_path = base + "_audio.wav"
@@ -305,17 +264,23 @@ def add_subtitles(generation_id: int):
         model = _get_whisper_model()
         result = model.transcribe(audio_path)
 
-        whisper_words = []
+        timed_words = []
         for segment in result.segments:
             for word in segment.words:
-                whisper_words.append({
+                timed_words.append({
                     "word": word.word.strip(),
                     "start": word.start,
                     "end": word.end,
                 })
 
-        known_words = dialogue_text.split()
-        timed_words = _align_words(known_words, whisper_words)
+        if not timed_words:
+            gen.subtitle_status = "failed"
+            gen.subtitle_error = "No speech detected in video"
+            db.commit()
+            return
+
+        gen.subtitle_text = " ".join(w["word"] for w in timed_words)
+        db.commit()
 
         logger.info(f"Subtitle: burning subtitles for gen {generation_id}")
         _burn_subtitles(source_path, timed_words, output_path)
