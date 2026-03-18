@@ -4,12 +4,12 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Publication Schedule</h1>
-    <p class="text-sm text-gray-500">Ready scripts with auto-assigned dates. TT +0, Instagram +7, YouTube +14 days. One per day per creator.</p>
+    <p class="text-sm text-gray-500">TT +0, Instagram +7, YouTube +14 days. One per day per creator.</p>
 </div>
 
 <!-- Today's Tasks -->
 {% if todays_tasks %}
-<div class="stat-card mb-6" style="border-left: 4px solid #3b82f6;">
+<div class="stat-card mb-6">
     <div class="flex items-center gap-2 mb-3">
         <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <h2 class="text-sm font-bold text-gray-900">Today — {{ today.strftime('%B %d, %Y') }}</h2>
@@ -23,19 +23,77 @@
                 {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
             <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
                 {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
-            <span class="text-xs text-gray-700 truncate">{{ task.title }}</span>
+            <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
+            <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
         </div>
         {% endfor %}
     </div>
 </div>
 {% else %}
-<div class="stat-card mb-6" style="border-left: 4px solid #d1d5db;">
+<div class="stat-card mb-6">
     <div class="flex items-center gap-2">
         <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         <span class="text-sm text-gray-400">No publications scheduled for today ({{ today.strftime('%B %d') }})</span>
     </div>
 </div>
 {% endif %}
+
+<!-- Calendar Plan/Fact -->
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-2 mb-3">
+        <svg width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <h2 class="text-sm font-bold text-gray-700">TikTok Calendar — Plan</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full" style="font-size: 11px; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="font-size: 10px; padding: 4px 6px; text-align: left; color: #9ca3af; width: 70px;">Creator</th>
+                    {% for day in cal_days %}
+                    <th style="font-size: 9px; padding: 4px 3px; text-align: center; color: {% if day == today %}#3b82f6{% elif day.weekday() >= 5 %}#d1d5db{% else %}#9ca3af{% endif %}; font-weight: {% if day == today %}700{% else %}500{% endif %}; min-width: 32px;">
+                        {{ day.strftime('%d') }}<br>{{ day.strftime('%a')[:2] }}
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for creator in creators %}
+                <tr>
+                    <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
+                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{{ creator }}</td>
+                    {% for day in cal_days %}
+                    {% set entry = cal_data[creator].get(day) %}
+                    <td style="padding: 3px 2px; text-align: center;">
+                        {% if entry %}
+                            {% if day < today %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 9px; line-height: 20px; font-weight: 700;" title="{{ entry.title }}">&#10003;</span>
+                            {% elif day == today %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; color: #fff; font-size: 9px; line-height: 20px; font-weight: 700;" title="{{ entry.title }}">&#9679;</span>
+                            {% else %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #f3f4f6; color: #9ca3af; font-size: 9px; line-height: 20px;" title="{{ entry.title }}">&#9679;</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #e5e7eb;">—</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex items-center gap-4 mt-3" style="font-size: 10px; color: #9ca3af;">
+        <div class="flex items-center gap-1">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #dcfce7; border: 1px solid #16a34a;"></span> Done
+        </div>
+        <div class="flex items-center gap-1">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span> Today
+        </div>
+        <div class="flex items-center gap-1">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f3f4f6; border: 1px solid #d1d5db;"></span> Planned
+        </div>
+    </div>
+</div>
 
 <!-- Legend -->
 <div class="stat-card mb-4" style="padding: 10px 16px;">
@@ -64,7 +122,7 @@
     <div class="stat-card">
         <div class="flex items-center justify-between mb-3">
             <h2 class="text-sm font-semibold text-gray-700" style="text-transform: capitalize;">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50; margin-right: 6px;
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
                     {% if creator == 'daniel' %}background: #ea580c;
                     {% elif creator == 'boris' %}background: #2563EB;
                     {% elif creator == 'thomas' %}background: #16a34a;
@@ -72,7 +130,7 @@
                     {% elif creator == 'ava' %}background: #db2777;{% endif %}"></span>
                 {{ creator }}
             </h2>
-            <span class="text-xs text-gray-400">{{ data.count }} ready scripts</span>
+            <span class="text-xs text-gray-400">{{ data.count }} videos</span>
         </div>
 
         {% if data.scripts %}
@@ -86,6 +144,7 @@
                         <th class="th" style="font-size: 10px;">TikTok</th>
                         <th class="th" style="font-size: 10px;">Instagram</th>
                         <th class="th" style="font-size: 10px;">YouTube</th>
+                        <th class="th" style="font-size: 10px; width: 40px;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -134,13 +193,16 @@
                             <span style="font-size: 8px; color: #9ca3af;">done</span>
                             {% endif %}
                         </td>
+                        <td class="td">
+                            <a href="{{ entry.link }}" style="font-size: 9px; font-weight: 600; color: #3b82f6; background: #eff6ff; padding: 2px 8px; border-radius: 4px; text-decoration: none;">Open</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <p class="text-xs text-gray-400">No scripts with ready prompts</p>
+        <p class="text-xs text-gray-400">No videos yet</p>
         {% endif %}
     </div>
     {% endfor %}

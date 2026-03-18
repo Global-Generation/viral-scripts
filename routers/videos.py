@@ -1,11 +1,14 @@
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Script, Video, NariVideo, AnnaVideo
+
+# US Eastern = UTC-4 (EDT) / UTC-5 (EST). Using EDT for now.
+EDT = timezone(timedelta(hours=-4))
 
 router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
@@ -58,11 +61,13 @@ def _build_script_schedule(db, creator, today):
             "has_pub_meta": bool(script.pub_title_tiktok),
         })
 
+        link = f"/scripts/{script.id}"
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 tasks.append({
                     "creator": creator,
                     "title": script.video.title[:60] if script.video else f"Script #{script.id}",
+                    "link": link,
                     "platform": platform,
                     "date": d,
                 })
@@ -96,6 +101,7 @@ def _build_nari_schedule(db, today):
                 tasks.append({
                     "creator": "sophia",
                     "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "link": "/nari",
                     "platform": platform,
                     "date": d,
                 })
@@ -129,6 +135,7 @@ def _build_anna_schedule(db, today):
                 tasks.append({
                     "creator": "ava",
                     "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "link": "/anna",
                     "platform": platform,
                     "date": d,
                 })
@@ -138,7 +145,7 @@ def _build_anna_schedule(db, today):
 
 @router.get("/videos", response_class=HTMLResponse)
 def videos_page(request: Request, db: Session = Depends(get_db)):
-    today = date.today()
+    today = datetime.now(EDT).date()
 
     schedule = {}
     todays_tasks = []
@@ -157,6 +164,20 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "count": len(entries),
         }
 
+    # Build calendar: 21 days starting from earliest start date
+    cal_start = min(SCHEDULE_STARTS.values())
+    cal_days = []
+    for d in range(28):
+        cal_days.append(cal_start + timedelta(days=d))
+
+    # For each creator, map date → entry for the calendar
+    cal_data = {}
+    for creator in CREATORS:
+        day_map = {}
+        for entry in schedule[creator]["scripts"]:
+            day_map[entry["tiktok_date"]] = entry
+        cal_data[creator] = day_map
+
     return templates.TemplateResponse(
         "videos.html",
         {
@@ -167,5 +188,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "pub_offsets": PUB_OFFSETS,
             "todays_tasks": todays_tasks,
             "today": today,
+            "cal_days": cal_days,
+            "cal_data": cal_data,
         }
     )
