@@ -55,15 +55,15 @@ HIT — close-up, main point, pause, direct gaze
 FINALE — medium or wide 3/4 (vary each time)
 
 TEXT RULES:
-- ~40-50 words of dialogue per video. If script text is longer — shorten, preserve meaning
+- ~20-25 words of dialogue per video. If script text is longer — shorten, preserve meaning
 - Dialogue chunks between camera changes must be EQUAL LENGTH (1-2 sentences each)
 - Use EXACT phrases from the original script. Do NOT paraphrase, rewrite, or invent new dialogue
 
 DIALOGUE WORD LIMIT:
-Each video gets EXACTLY 40-50 words of dialogue. NOT 60. NOT 70.
-After writing, COUNT every word inside "quotes". If more than 50 — DELETE lines until 40-50.
+Each video gets EXACTLY 20-25 words of dialogue. NOT 30. NOT 40.
+After writing, COUNT every word inside "quotes". If more than 25 — DELETE lines until 20-25.
 VERIFICATION: write at the end: [DIALOGUE WORD COUNT: XX]
-If XX > 50, you have FAILED. Go back and cut.
+If XX > 25, you have FAILED. Go back and cut.
 
 OUTPUT FORMAT:
 Each prompt contains:
@@ -80,7 +80,7 @@ The script is split into 2 videos SEQUENTIALLY, with EQUAL text in each:
 1. Video 1 = first ~50% of the script words (HOOK + DEVELOPMENT)
 2. Video 2 = remaining ~50% of the script words (CONCLUSION + CTA)
 Each video uses EXACT lines from the script in order. No skipping, no rearranging.
-The two halves must be APPROXIMATELY EQUAL in dialogue word count (within 5 words of each other)."""
+The two halves must be APPROXIMATELY EQUAL in dialogue word count (within 3 words of each other)."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
 
@@ -114,8 +114,8 @@ Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes (HARD CUTS only — static tripod angles). Energy rises from calm to peak tension.
 Describe body language, expressions, and energy between dialogue lines — be specific and visual.
 
-CRITICAL: EXACTLY 40-50 words of dialogue total in this video. Count every word inside "quotes".
-If you write more than 50 words of dialogue, DELETE lines until 40-50.
+CRITICAL: EXACTLY 20-25 words of dialogue total in this video. Count every word inside "quotes".
+If you write more than 25 words of dialogue, DELETE lines until 20-25.
 At the end of your output, write: [DIALOGUE WORD COUNT: XX]
 
 ---
@@ -164,8 +164,8 @@ Use EXACT remaining lines from the script as dialogue — do NOT paraphrase. End
 2-3 camera changes (HARD CUTS only — static tripod angles). Start from the SAME state as Video 1 ended, then resolve.
 Describe body language, expressions, and energy between dialogue lines — be specific and visual.
 
-CRITICAL: EXACTLY 40-50 words of dialogue total in this video — SAME amount as Video 1. Count every word inside "quotes".
-CTA counts toward the word limit. If you write more than 50 words of dialogue, DELETE lines until 40-50.
+CRITICAL: EXACTLY 20-25 words of dialogue total in this video — SAME amount as Video 1. Count every word inside "quotes".
+CTA counts toward the word limit. If you write more than 25 words of dialogue, DELETE lines until 20-25.
 At the end of your output, write: [DIALOGUE WORD COUNT: XX]
 
 ---
