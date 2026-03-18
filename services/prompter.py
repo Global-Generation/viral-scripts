@@ -94,14 +94,17 @@ Energy RISES from start to end.
 Start — calm tone, minimal gestures, direct gaze.
 Middle — voice strengthens, gesticulation appears, lean forward.
 End — energy at peak, body tense, leaning forward.
-Thought NOT finished. Phrase hangs. Feeling: "and then what?"
 Speech pace accelerates toward the end.
+The LAST line of dialogue must be a COMPLETE sentence — no mid-word or mid-phrase cuts.
 
 SPLICE POINT (CRITICAL — VIDEO 1 ENDING):
-Video 1 ends MID-THOUGHT — the character is still speaking, energy is high,
-body leaned forward, gaze into camera.
-The LAST SHOT establishes the splice state: describe the exact angle,
-pose, and energy level clearly — Video 2 must start from this exact state.
+Video 1 ends with the last thought FINISHED — the sentence lands cleanly.
+After the final word, describe a PAUSE BEAT (1-2 seconds of silence):
+- Character holds direct gaze into camera
+- Slight nod or settled expression — energy is high but the moment lands
+- Body still, leaning forward, no movement
+This pause IS the splice point. Describe the EXACT angle, pose, and energy
+level during the pause — Video 2 must open from this identical state.
 
 """
 
@@ -129,22 +132,20 @@ You generate a SINGLE video prompt — Video 2 of 2 (CONCLUSION + CTA).
 
 ENERGY — VIDEO 2 = SOLUTION
 Energy does NOT reset at start.
-First 1-2 seconds — SAME high energy as Video 1 ending.
-Character continues from the same tension, same pose, same tone.
-Then gradual transition: exhale, leans back, tone lowers, pace slows.
-Energy changes quality — from tension to confidence.
+Energy stays elevated but shifts quality — from tension to confidence.
 Middle — calm listing, open palms.
 End — HIT: main point, close-up, direct gaze, nod, silence. Feeling of PERIOD. Everything said.
 
 SPLICE POINT (CRITICAL — VIDEO 2 OPENING):
-Video 2 STARTS from the EXACT SAME STATE as Video 1 ended:
-- SAME camera angle (match V1's last shot)
+Video 2 opens with a PAUSE BEAT (1-2 seconds of silence) that matches V1's ending:
+- SAME camera angle (match V1's last shot exactly)
 - SAME body pose (same position, same lean)
 - SAME energy level (do NOT reset, do NOT restart)
 - SAME facial expression (same emotion, same gaze)
-The character CONTINUES speaking from the same tension level.
-Only THEN does energy begin to change — gradually transitioning to resolution.
-In your prompt, EXPLICITLY describe the starting state: which angle, which pose, which energy.
+During this opening pause the character is still, settled, holding the beat.
+THEN the character begins speaking — launching into the resolution.
+The transition is: pause → exhale → first word. Energy gradually shifts from tension to confidence.
+In your prompt, EXPLICITLY describe the opening pause state: which angle, which pose, which energy.
 
 CTA (MANDATORY — EXACT PATTERN!):
 The LAST thing he says is a simple CTA. Use ONLY one of these patterns:
