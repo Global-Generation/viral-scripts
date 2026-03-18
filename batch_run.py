@@ -1,32 +1,42 @@
-"""Batch generate video prompts (and optionally rewrite scripts) for all assigned scripts.
+"""Batch generate video prompts, metadata (and optionally rewrite scripts) for assigned scripts.
 
 Usage:
     python batch_run.py              # only scripts missing prompts
-    python batch_run.py --force      # regenerate ALL video prompts
-    python batch_run.py --rewrite    # rewrite modified_text + regenerate video prompts
+    python batch_run.py --force      # regenerate ALL video prompts + metadata
+    python batch_run.py --rewrite    # rewrite modified_text + regenerate video prompts + metadata
+    python batch_run.py --daniel     # only Daniel's scripts
+    python batch_run.py --rewrite --daniel --force  # full regeneration for Daniel
 """
 import sys
+import json
 import logging
+import anthropic
 from database import SessionLocal
 from models import Script
 from services.prompter import generate_video_prompt
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 force = "--force" in sys.argv
 rewrite = "--rewrite" in sys.argv
+daniel_only = "--daniel" in sys.argv
 
 db = SessionLocal()
 q = db.query(Script).filter(
     Script.assigned_to != "",
     Script.assigned_to.isnot(None),
 )
+
+if daniel_only:
+    q = q.filter(Script.assigned_to == "daniel")
+
 if not force and not rewrite:
     q = q.filter((Script.video1_prompt == "") | (Script.video1_prompt.is_(None)))
 
 scripts = q.all()
-logger.info(f"Found {len(scripts)} scripts to process (force={force}, rewrite={rewrite})")
+logger.info(f"Found {len(scripts)} scripts to process (force={force}, rewrite={rewrite}, daniel_only={daniel_only})")
 
 # Step 1: Rewrite modified_text if --rewrite
 if rewrite:
@@ -60,10 +70,74 @@ for s in scripts:
         s.video_prompt = result["video1"] + "\n\n" + result["video2"]
         db.commit()
         count += 1
-        logger.info(f"Done #{s.id} ({count}/{len(scripts)})")
+        logger.info(f"Prompts #{s.id} ({count}/{len(scripts)})")
     except Exception as e:
         errors += 1
-        logger.error(f"Failed #{s.id}: {e}")
+        logger.error(f"Prompts failed #{s.id}: {e}")
+
+logger.info(f"PROMPTS DONE: generated={count}, errors={errors}")
+
+# Step 3: Generate metadata (title, description, tags per platform)
+meta_count = 0
+meta_errors = 0
+client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+for s in scripts:
+    text = s.modified_text or s.original_text
+    if not text:
+        continue
+    try:
+        prompt = f"""You are a social media expert. Given this video script, generate publication metadata for 3 platforms.
+
+SCRIPT:
+{text[:3000]}
+
+Generate JSON with this exact structure (no markdown, just raw JSON):
+{{
+  "tiktok": {{
+    "title": "short catchy title under 60 chars with hooks",
+    "description": "2-3 sentences with emojis, call-to-action, under 150 chars",
+    "tags": "#hashtag1 #hashtag2 #hashtag3 (10-15 relevant trending hashtags)"
+  }},
+  "instagram": {{
+    "title": "catchy title under 60 chars",
+    "description": "3-4 sentences with emojis, storytelling hook, call-to-action, under 300 chars",
+    "tags": "#hashtag1 #hashtag2 (15-20 relevant hashtags)"
+  }},
+  "youtube": {{
+    "title": "SEO-optimized title under 70 chars",
+    "description": "5-7 sentences with SEO keywords, call-to-action, links placeholder, under 500 chars",
+    "tags": "tag1, tag2, tag3 (10-15 comma-separated SEO tags)"
+  }}
+}}"""
+
+        response = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw)
+
+        s.pub_title_tiktok = data.get("tiktok", {}).get("title", "")
+        s.pub_desc_tiktok = data.get("tiktok", {}).get("description", "")
+        s.pub_tags_tiktok = data.get("tiktok", {}).get("tags", "")
+        s.pub_title_instagram = data.get("instagram", {}).get("title", "")
+        s.pub_desc_instagram = data.get("instagram", {}).get("description", "")
+        s.pub_tags_instagram = data.get("instagram", {}).get("tags", "")
+        s.pub_title_youtube = data.get("youtube", {}).get("title", "")
+        s.pub_desc_youtube = data.get("youtube", {}).get("description", "")
+        s.pub_tags_youtube = data.get("youtube", {}).get("tags", "")
+        db.commit()
+        meta_count += 1
+        logger.info(f"Metadata #{s.id} ({meta_count}/{len(scripts)})")
+    except Exception as e:
+        meta_errors += 1
+        logger.error(f"Metadata failed #{s.id}: {e}")
 
 db.close()
-print(f"DONE: generated={count}, errors={errors}")
+print(f"DONE: prompts={count}, metadata={meta_count}, errors(prompts={errors}, metadata={meta_errors})")
