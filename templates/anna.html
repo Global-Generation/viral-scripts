@@ -13,8 +13,8 @@
             <thead>
                 <tr class="border-b border-gray-100">
                     <th class="th" style="width: 40px;">#</th>
-                    <th class="th" data-i18n="th.video_title">Video Title</th>
-                    <th class="th" data-i18n="th.status">Status</th>
+                    <th class="th">Video Title</th>
+                    <th class="th">Status</th>
                     <th class="th">TikTok</th>
                     <th class="th">Instagram</th>
                     <th class="th">YouTube</th>
@@ -22,27 +22,56 @@
             </thead>
             <tbody>
                 {% for v in videos %}
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50" style="cursor: pointer;" onclick="togglePub({{ v.id }})">
                     <td class="td" style="color: #9ca3af; font-size: 11px;">{{ loop.index }}</td>
                     <td class="td" style="max-width: 500px;">
                         <p class="text-xs text-gray-800 font-medium">{{ v.title }}</p>
                     </td>
-                    <td class="td">
+                    <td class="td" onclick="event.stopPropagation()">
                         <select class="inline-select" onchange="annaUpdateStatus({{ v.id }}, this.value)" style="font-size: 10px; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; min-width: 70px;">
                             <option value="" {% if not v.production_status %}selected{% endif %}>—</option>
-                            <option value="ready" {% if v.production_status == 'ready' %}selected{% endif %} data-i18n="status.ready">Ready</option>
-                            <option value="filmed" {% if v.production_status == 'filmed' %}selected{% endif %} data-i18n="status.filmed">Filmed</option>
-                            <option value="published" {% if v.production_status == 'published' %}selected{% endif %} data-i18n="status.published">Published</option>
+                            <option value="ready" {% if v.production_status == 'ready' %}selected{% endif %}>Ready</option>
+                            <option value="filmed" {% if v.production_status == 'filmed' %}selected{% endif %}>Filmed</option>
+                            <option value="published" {% if v.production_status == 'published' %}selected{% endif %}>Published</option>
                         </select>
                     </td>
-                    <td class="td">
+                    <td class="td" onclick="event.stopPropagation()">
                         <input type="date" value="{{ v.published_tiktok.strftime('%Y-%m-%d') if v.published_tiktok else '' }}" onchange="annaSetDate({{ v.id }}, 'tiktok', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_tiktok else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_tiktok else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_tiktok else '#9ca3af' }};">
                     </td>
-                    <td class="td">
+                    <td class="td" onclick="event.stopPropagation()">
                         <input type="date" value="{{ v.published_instagram.strftime('%Y-%m-%d') if v.published_instagram else '' }}" onchange="annaSetDate({{ v.id }}, 'instagram', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_instagram else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_instagram else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_instagram else '#9ca3af' }};">
                     </td>
-                    <td class="td">
+                    <td class="td" onclick="event.stopPropagation()">
                         <input type="date" value="{{ v.published_youtube.strftime('%Y-%m-%d') if v.published_youtube else '' }}" onchange="annaSetDate({{ v.id }}, 'youtube', this.value)" style="font-size: 10px; padding: 2px 3px; border: 1px solid {{ '#bbf7d0' if v.published_youtube else '#e2e8f0' }}; border-radius: 4px; background: {{ 'rgba(22,163,74,0.05)' if v.published_youtube else 'white' }}; cursor: pointer; width: 105px; color: {{ '#16a34a' if v.published_youtube else '#9ca3af' }};">
+                    </td>
+                </tr>
+                <!-- Publication Metadata Row -->
+                <tr id="pub-{{ v.id }}" style="display: none; background: #f8fafc;">
+                    <td colspan="6" style="padding: 12px 16px;">
+                        {% if v.pub_title_tiktok %}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #000; margin-bottom: 6px;">TIKTOK</div>
+                                <div style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 3px;">{{ v.pub_title_tiktok }}</div>
+                                <div style="font-size: 10px; color: #6b7280; margin-bottom: 3px;">{{ v.pub_desc_tiktok }}</div>
+                                <div style="font-size: 9px; color: #3b82f6;">{{ v.pub_tags_tiktok }}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #E1306C; margin-bottom: 6px;">INSTAGRAM</div>
+                                <div style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 3px;">{{ v.pub_title_instagram }}</div>
+                                <div style="font-size: 10px; color: #6b7280; margin-bottom: 3px;">{{ v.pub_desc_instagram }}</div>
+                                <div style="font-size: 9px; color: #3b82f6;">{{ v.pub_tags_instagram }}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #FF0000; margin-bottom: 6px;">YOUTUBE</div>
+                                <div style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 3px;">{{ v.pub_title_youtube }}</div>
+                                <div style="font-size: 10px; color: #6b7280; margin-bottom: 3px;">{{ v.pub_desc_youtube }}</div>
+                                <div style="font-size: 9px; color: #3b82f6;">{{ v.pub_tags_youtube }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span style="font-size: 11px; color: #9ca3af;">No publication metadata yet. Generate via batch.</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -54,6 +83,11 @@
 
 {% block scripts %}
 <script>
+function togglePub(id) {
+    const row = document.getElementById('pub-' + id);
+    row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+
 async function annaUpdateStatus(videoId, status) {
     const result = await api('/api/anna/' + videoId + '/production', 'POST', { production_status: status });
     if (result && result.ok) {

@@ -81,6 +81,15 @@ class NariVideo(Base):
     published_tiktok = Column(DateTime, nullable=True)
     published_youtube = Column(DateTime, nullable=True)
     published_instagram = Column(DateTime, nullable=True)
+    pub_title_tiktok = Column(Text, default="")
+    pub_desc_tiktok = Column(Text, default="")
+    pub_tags_tiktok = Column(Text, default="")
+    pub_title_instagram = Column(Text, default="")
+    pub_desc_instagram = Column(Text, default="")
+    pub_tags_instagram = Column(Text, default="")
+    pub_title_youtube = Column(Text, default="")
+    pub_desc_youtube = Column(Text, default="")
+    pub_tags_youtube = Column(Text, default="")
     created_at = Column(DateTime, default=utcnow)
 
 
@@ -92,6 +101,15 @@ class AnnaVideo(Base):
     published_tiktok = Column(DateTime, nullable=True)
     published_youtube = Column(DateTime, nullable=True)
     published_instagram = Column(DateTime, nullable=True)
+    pub_title_tiktok = Column(Text, default="")
+    pub_desc_tiktok = Column(Text, default="")
+    pub_tags_tiktok = Column(Text, default="")
+    pub_title_instagram = Column(Text, default="")
+    pub_desc_instagram = Column(Text, default="")
+    pub_tags_instagram = Column(Text, default="")
+    pub_title_youtube = Column(Text, default="")
+    pub_desc_youtube = Column(Text, default="")
+    pub_tags_youtube = Column(Text, default="")
     created_at = Column(DateTime, default=utcnow)
 
 

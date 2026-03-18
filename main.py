@@ -42,6 +42,7 @@ def startup():
     _migrate_avatar_variants()
     _migrate_video3_prompt()
     _migrate_pipeline_fields()
+    _migrate_nari_anna_pub()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -229,6 +230,27 @@ def _seed_api_keys():
             logging.info(f"Seeded {len(keys)} default API keys")
     finally:
         db.close()
+
+
+def _migrate_nari_anna_pub():
+    """Add pub metadata columns to nari_videos and anna_videos."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    pub_cols = [
+        "pub_title_tiktok", "pub_desc_tiktok", "pub_tags_tiktok",
+        "pub_title_instagram", "pub_desc_instagram", "pub_tags_instagram",
+        "pub_title_youtube", "pub_desc_youtube", "pub_tags_youtube",
+    ]
+    for table in ["nari_videos", "anna_videos"]:
+        for col in pub_cols:
+            try:
+                db.execute(text(f"SELECT {col} FROM {table} LIMIT 1"))
+            except Exception:
+                db.rollback()
+                db.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} TEXT DEFAULT ''"))
+                db.commit()
+                logging.info(f"Migrated: added {col} to {table}")
+    db.close()
 
 
 def _seed_presets():
