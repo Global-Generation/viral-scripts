@@ -723,9 +723,9 @@ function showTrimEditor() {
 
         // Sync playhead with video currentTime
         video.addEventListener('timeupdate', () => {
-            const dur = trimState[num].duration;
-            if (!dur) return;
-            const pct = (video.currentTime / dur) * 100;
+            const vid = document.getElementById('trim-v' + num);
+            if (!vid || !vid.duration) return;
+            const pct = (vid.currentTime / vid.duration) * 100;
             const ph = document.getElementById('playhead-' + num);
             if (ph) ph.style.left = pct + '%';
         });
@@ -733,11 +733,14 @@ function showTrimEditor() {
         // Click on timeline to seek
         const tl = document.getElementById('timeline-' + num);
         if (tl) {
-            tl.addEventListener('mousedown', (e) => {
+            tl.addEventListener('mousedown', function(e) {
                 if (e.target.classList.contains('trim-handle')) return;
-                const rect = tl.getBoundingClientRect();
+                e.preventDefault();
+                const vid = document.getElementById('trim-v' + num);
+                if (!vid || !vid.duration) return;
+                const rect = this.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                video.currentTime = pct * trimState[num].duration;
+                vid.currentTime = pct * vid.duration;
                 const ph = document.getElementById('playhead-' + num);
                 if (ph) ph.style.left = (pct * 100) + '%';
             });
