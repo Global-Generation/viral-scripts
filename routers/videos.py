@@ -58,7 +58,7 @@ def _build_script_schedule(db, creator, today):
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
-            "has_pub_meta": bool(script.pub_title_tiktok),
+            "has_final": bool(script.final_video_path or script.final_subtitled_path),
         })
 
         link = f"/scripts/{script.id}"
@@ -93,7 +93,7 @@ def _build_nari_schedule(db, today):
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
-            "has_pub_meta": v.production_status in ("ready", "published"),
+            "has_final": v.production_status == "published",
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
@@ -127,7 +127,7 @@ def _build_anna_schedule(db, today):
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
-            "has_pub_meta": v.production_status in ("ready", "published"),
+            "has_final": v.production_status == "published",
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
