@@ -589,7 +589,11 @@ function uploadAndConcat(scriptId) {
         if (e.lengthComputable) {
             const pct = Math.round((e.loaded / e.total) * 100);
             progressBar.style.width = pct + '%';
-            statusText.textContent = 'Uploading... ' + pct + '%';
+            if (pct >= 100) {
+                statusText.textContent = 'Processing on server...';
+            } else {
+                statusText.textContent = 'Uploading... ' + pct + '%';
+            }
         }
     });
     xhr.addEventListener('load', () => {
