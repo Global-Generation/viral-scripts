@@ -205,7 +205,7 @@
 
             <button id="upload-concat-btn" onclick="uploadAndConcat({{ script.id }})" class="btn btn-primary w-full justify-center mt-4" style="font-size: 13px; font-weight: 700;">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                Upload & Concat + Subtitles
+                Upload & Concat
             </button>
 
             <div id="upload-status" style="display: none; margin-top: 12px; padding: 10px; background: #f0f9ff; border-radius: 8px;">
@@ -264,7 +264,7 @@
                 {% elif script.subtitle_status == 'processing' %}
                 <span class="status-badge status-running" style="font-size: 10px;">Subtitles processing...</span>
                 {% else %}
-                <span class="status-badge status-running" style="font-size: 10px;">Subtitles processing...</span>
+                <span class="status-badge" style="background: rgba(107,114,128,0.1); color: #6b7280; font-size: 10px;">No subtitles yet</span>
                 {% endif %}
             </div>
 
@@ -344,9 +344,14 @@
                 </div>
             </div>
         </div>
-        <button id="trim-process-btn" onclick="trimAndProcess({{ script.id }})" class="btn btn-primary w-full justify-center mt-4" style="font-size: 13px; font-weight: 700;">
-            Trim & Process Subtitles
-        </button>
+        <div class="flex gap-2 mt-4">
+            <button id="trim-process-btn" onclick="trimAndProcess({{ script.id }})" class="btn btn-secondary flex-1 justify-center" style="font-size: 13px; font-weight: 700;">
+                Trim & Concat
+            </button>
+            <button id="add-subtitles-btn" onclick="addSubtitles({{ script.id }})" class="btn btn-primary flex-1 justify-center" style="font-size: 13px; font-weight: 700;">
+                Add Subtitles
+            </button>
+        </div>
     </div>
 </div>
 
@@ -548,10 +553,11 @@ async function uploadAndConcat(scriptId) {
         });
         const result = await res.json();
         if (result.ok) {
-            statusText.textContent = 'Concatenated! Adding subtitles...';
-            toast('Videos concatenated! Subtitles processing...', 'success');
-            // Poll for subtitles
-            pollFinalStatus(scriptId);
+            statusText.textContent = 'Uploaded! Use trim editor below, then add subtitles.';
+            toast('Videos concatenated! Trim or add subtitles.', 'success');
+            showTrimEditor();
+            // Reload to show final video preview
+            setTimeout(() => location.reload(), 1500);
         } else {
             toast('Upload failed: ' + (result.detail || 'error'), 'error');
             status.style.display = 'none';
@@ -562,7 +568,7 @@ async function uploadAndConcat(scriptId) {
     }
 
     btn.disabled = false;
-    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Upload & Concat + Subtitles';
+    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Upload & Concat';
 }
 
 async function pollFinalStatus(scriptId) {
@@ -669,7 +675,7 @@ function previewTrim(num) {
 async function trimAndProcess(scriptId) {
     const btn = document.getElementById('trim-process-btn');
     btn.disabled = true;
-    btn.textContent = 'Processing...';
+    btn.textContent = 'Trimming...';
 
     const body = {
         v1_start: parseFloat(document.getElementById('trim-v1-start').value) || 0,
@@ -680,19 +686,35 @@ async function trimAndProcess(scriptId) {
 
     const result = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
     btn.disabled = false;
-    btn.textContent = 'Trim & Process Subtitles';
+    btn.textContent = 'Trim & Concat';
 
     if (result && result.ok) {
-        toast('Trimmed! Processing subtitles...', 'success');
-        const uploadStatus = document.getElementById('upload-status');
-        const statusText = document.getElementById('upload-status-text');
-        uploadStatus.style.display = 'block';
-        statusText.textContent = 'Trimmed & concatenated. Adding subtitles...';
-        document.getElementById('subtitle-error-box').style.display = 'none';
-        pollFinalStatus(scriptId);
+        toast('Trimmed & concatenated! Reloading...', 'success');
+        setTimeout(() => location.reload(), 1500);
     } else {
         toast('Trim failed: ' + (result?.detail || 'error'), 'error');
     }
+}
+
+async function addSubtitles(scriptId) {
+    const btn = document.getElementById('add-subtitles-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing subtitles...';
+
+    const result = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
+    if (result && result.ok) {
+        toast('Subtitles processing...', 'success');
+        const uploadStatus = document.getElementById('upload-status');
+        const statusText = document.getElementById('upload-status-text');
+        uploadStatus.style.display = 'block';
+        statusText.textContent = 'Adding subtitles...';
+        document.getElementById('subtitle-error-box').style.display = 'none';
+        pollFinalStatus(scriptId);
+    } else {
+        toast('Failed: ' + (result?.detail || 'error'), 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Add Subtitles';
 }
 
 // Auto-check for raw videos on page load (video tab)

@@ -791,6 +791,7 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
         path,
         media_type="video/mp4",
         filename=f"script_{script_id}_final{'_subtitled' if subtitled else ''}.mp4",
+        stat_result=os.stat(path),
     )
 
 
@@ -864,10 +865,7 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
         script.subtitle_error = ""
         db.commit()
 
-        # Auto-trigger subtitles
-        _executor.submit(_add_final_subtitles_safe, script_id)
-
-        return {"ok": True, "status": "processing", "message": "Trimmed & concatenated. Subtitles processing..."}
+        return {"ok": True, "status": "trimmed", "message": "Trimmed & concatenated. Ready for subtitles."}
     except Exception as e:
         logger.error(f"Trim-concat failed for script {script_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -893,7 +891,8 @@ def get_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="num must be 1 or 2")
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail=f"Raw video {num} not found")
-    return FileResponse(path, media_type="video/mp4", filename=f"raw_{script_id}_v{num}.mp4")
+    return FileResponse(path, media_type="video/mp4", filename=f"raw_{script_id}_v{num}.mp4",
+                        stat_result=os.stat(path))
 
 
 @router.post("/{script_id}/upload-videos")
@@ -943,10 +942,7 @@ async def upload_videos(
         script.subtitle_error = ""
         db.commit()
 
-        # Auto-trigger subtitle generation
-        _executor.submit(_add_final_subtitles_safe, script_id)
-
-        return {"ok": True, "status": "processing", "message": "Videos concatenated. Subtitles processing..."}
+        return {"ok": True, "status": "uploaded", "message": "Videos concatenated. Use trim editor or add subtitles."}
     except Exception as e:
         logger.error(f"Upload + concat failed for script {script_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
