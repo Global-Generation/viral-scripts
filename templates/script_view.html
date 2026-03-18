@@ -310,15 +310,13 @@
     </div>
 
     <!-- 3. Final Video + Status (hidden until processing or ready) -->
-    <div id="final-video-section" class="stat-card" style="display: {% if script.final_subtitled_path or script.subtitle_status == 'processing' or script.subtitle_status == 'failed' or script.final_video_path %}block{% else %}none{% endif %};">
+    <div id="final-video-section" class="stat-card" style="display: {% if script.final_subtitled_path or script.subtitle_status == 'processing' or script.subtitle_status == 'failed' %}block{% else %}none{% endif %};">
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Final Video</h2>
 
         <!-- Status Bar -->
         <div id="subtitle-status-bar" class="video-status-bar mb-3
             {% if script.final_subtitled_path %}status-ready
-            {% elif script.subtitle_status == 'processing' %}status-processing
             {% elif script.subtitle_status == 'failed' %}status-failed
-            {% elif script.final_video_path %}status-processing
             {% else %}status-processing{% endif %}">
             <span id="subtitle-status-icon">
                 {% if script.final_subtitled_path %}
@@ -332,7 +330,7 @@
             <span id="subtitle-status-text">
                 {% if script.final_subtitled_path %}Subtitles ready
                 {% elif script.subtitle_status == 'failed' %}Subtitles failed
-                {% elif script.subtitle_status == 'processing' or script.final_video_path %}Processing subtitles...
+                {% elif script.subtitle_status == 'processing' %}Processing subtitles...
                 {% else %}Processing...{% endif %}
             </span>
             <button id="retry-sub-btn" onclick="retrySubtitles({{ script.id }})" style="display: {% if script.subtitle_status == 'failed' %}inline-flex{% else %}none{% endif %}; margin-left: auto; font-size: 11px; font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.1); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
