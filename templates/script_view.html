@@ -225,9 +225,12 @@
                 </div>
             </div>
             <div id="upload-status" style="display: none; margin-top: 10px; padding: 8px 12px; background: #eff6ff; border-radius: 8px;">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 mb-1">
                     <svg class="animate-spin w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                     <span id="upload-status-text" style="font-size: 12px; color: #3b82f6; font-weight: 600;">Uploading...</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: #dbeafe; border-radius: 3px; overflow: hidden;">
+                    <div id="upload-progress-bar" style="width: 0%; height: 100%; background: #3b82f6; border-radius: 3px; transition: width 0.2s;"></div>
                 </div>
             </div>
         </div>
@@ -564,37 +567,58 @@ function handleFiles(fileList) {
     document.getElementById('drop-zone-text').textContent = 'Files selected — ready to upload';
 }
 
-async function uploadAndConcat(scriptId) {
+function uploadAndConcat(scriptId) {
     if (!_uploadFiles[0] || !_uploadFiles[1]) { toast('Select 2 video files first', 'error'); return; }
 
     const btn = document.getElementById('upload-concat-btn');
     const status = document.getElementById('upload-status');
     const statusText = document.getElementById('upload-status-text');
+    const progressBar = document.getElementById('upload-progress-bar');
     btn.disabled = true;
     btn.textContent = 'Uploading...';
     status.style.display = 'block';
     statusText.textContent = 'Uploading videos...';
+    progressBar.style.width = '0%';
 
     const formData = new FormData();
     formData.append('video1', _uploadFiles[0]);
     formData.append('video2', _uploadFiles[1]);
 
-    try {
-        const res = await fetch(`/api/scripts/${scriptId}/upload-videos`, { method: 'POST', body: formData });
-        const result = await res.json();
-        if (result.ok) {
-            toast('Videos uploaded! Reloading...', 'success');
-            setTimeout(() => location.reload(), 1200);
-        } else {
-            toast('Upload failed: ' + (result.detail || 'error'), 'error');
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = pct + '%';
+            statusText.textContent = 'Uploading... ' + pct + '%';
+        }
+    });
+    xhr.addEventListener('load', () => {
+        try {
+            const result = JSON.parse(xhr.responseText);
+            if (result.ok) {
+                progressBar.style.width = '100%';
+                statusText.textContent = 'Processing...';
+                toast('Videos uploaded! Reloading...', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                toast('Upload failed: ' + (result.detail || 'error'), 'error');
+                status.style.display = 'none';
+            }
+        } catch (e) {
+            toast('Upload failed: bad response', 'error');
             status.style.display = 'none';
         }
-    } catch (e) {
-        toast('Upload error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Upload & Concat';
+    });
+    xhr.addEventListener('error', () => {
+        toast('Upload error: network failure', 'error');
         status.style.display = 'none';
-    }
-    btn.disabled = false;
-    btn.textContent = 'Upload & Concat';
+        btn.disabled = false;
+        btn.textContent = 'Upload & Concat';
+    });
+    xhr.open('POST', `/api/scripts/${scriptId}/upload-videos`);
+    xhr.send(formData);
 }
 
 // === Subtitle Status Polling ===
