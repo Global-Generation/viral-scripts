@@ -309,17 +309,16 @@
         </div>
     </div>
 
-    <!-- 3. Final Video + Status -->
-    <div id="final-video-section" class="stat-card">
+    <!-- 3. Final Video + Status (hidden until processing or ready) -->
+    <div id="final-video-section" class="stat-card" style="display: {% if script.final_subtitled_path or script.subtitle_status == 'processing' or script.subtitle_status == 'failed' %}block{% else %}none{% endif %};">
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Final Video</h2>
 
-        <!-- Status Bar (always visible) -->
+        <!-- Status Bar -->
         <div id="subtitle-status-bar" class="video-status-bar mb-3
             {% if script.final_subtitled_path %}status-ready
             {% elif script.subtitle_status == 'processing' %}status-processing
             {% elif script.subtitle_status == 'failed' %}status-failed
-            {% elif script.final_video_path %}status-idle
-            {% else %}status-idle{% endif %}">
+            {% else %}status-processing{% endif %}">
             <span id="subtitle-status-icon">
                 {% if script.final_subtitled_path %}
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
@@ -328,21 +327,22 @@
                 {% elif script.subtitle_status == 'failed' %}
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 {% else %}
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+                    <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                 {% endif %}
             </span>
             <span id="subtitle-status-text">
                 {% if script.final_subtitled_path %}Subtitles ready
                 {% elif script.subtitle_status == 'processing' %}Processing subtitles...
                 {% elif script.subtitle_status == 'failed' %}Subtitles failed
-                {% elif script.final_video_path %}No subtitles
-                {% else %}No video yet{% endif %}
+                {% else %}Processing...{% endif %}
             </span>
             <button id="retry-sub-btn" onclick="retrySubtitles({{ script.id }})" style="display: {% if script.subtitle_status == 'failed' %}inline-flex{% else %}none{% endif %}; margin-left: auto; font-size: 11px; font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.1); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
                 Retry
             </button>
         </div>
 
+        <!-- Video player + downloads (only when subtitled video is ready) -->
+        <div id="final-video-content">
         {% if script.final_subtitled_path %}
         <div style="max-width: 260px; margin: 0 auto 12px;">
             <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden;">
@@ -358,25 +358,8 @@
                 No Subs
             </a>
         </div>
-
-        {% elif script.final_video_path %}
-        <div style="max-width: 260px; margin: 0 auto 12px;">
-            <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden;">
-                <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
-            </div>
-        </div>
-        <a href="/api/scripts/{{ script.id }}/download-final" download class="btn btn-secondary w-full justify-center" style="font-size: 12px;">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Download
-        </a>
-
-        {% else %}
-        <div style="text-align: center; padding: 40px 20px; color: #9ca3af; border: 2px dashed #e2e8f0; border-radius: 10px;">
-            <svg width="36" height="36" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 8px;"><path stroke-linecap="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            <p style="font-size: 13px; font-weight: 600; color: #6b7280;">No video yet</p>
-            <p style="font-size: 11px; margin-top: 4px;">Upload two clips above to get started</p>
-        </div>
         {% endif %}
+        </div>
     </div>
 </div>
 
@@ -639,8 +622,14 @@ function updateStatusBar(state, text) {
     }
 }
 
+function showFinalSection() {
+    const sec = document.getElementById('final-video-section');
+    if (sec) sec.style.display = 'block';
+}
+
 function pollSubtitleStatus(scriptId) {
     if (_subPollInterval) clearInterval(_subPollInterval);
+    showFinalSection();
     updateStatusBar('processing', 'Processing subtitles...');
     _subPollInterval = setInterval(async () => {
         const result = await api(`/api/scripts/${scriptId}/final-video-status`);
