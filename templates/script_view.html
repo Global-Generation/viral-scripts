@@ -214,6 +214,17 @@
                     <span id="upload-status-text" style="font-size: 12px; color: #3b82f6; font-weight: 600;">Processing...</span>
                 </div>
             </div>
+
+            <!-- Subtitle error state -->
+            <div id="subtitle-error-box" style="display: none; margin-top: 12px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span style="font-size: 12px; font-weight: 700; color: #dc2626;">Subtitles Failed</span>
+                </div>
+                <p id="subtitle-error-text" style="font-size: 11px; color: #991b1b; margin-bottom: 8px; word-break: break-word;"></p>
+                <button onclick="retrySubtitles({{ script.id }})" class="btn btn-secondary w-full justify-center" style="font-size: 12px; font-weight: 600;">
+                    Retry Subtitles
+                </button>
+            </div>
         </div>
 
         <!-- Final Video -->
@@ -221,8 +232,10 @@
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Final Video</h2>
 
             {% if script.final_subtitled_path %}
-            <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
-                <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final?subtitled=true" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+            <div style="max-width: 260px; margin: 0 auto 12px;">
+                <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden;">
+                    <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final?subtitled=true" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
             </div>
             <div class="flex gap-2">
                 <a href="/api/scripts/{{ script.id }}/download-final?subtitled=true" download class="btn btn-primary flex-1 justify-center" style="font-size: 12px;">
@@ -236,15 +249,23 @@
             <span class="status-badge status-completed mt-2" style="font-size: 10px;">Subtitles Ready</span>
 
             {% elif script.final_video_path %}
-            <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
-                <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+            <div style="max-width: 260px; margin: 0 auto 12px;">
+                <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden;">
+                    <video id="final-video-player" src="/api/scripts/{{ script.id }}/download-final" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
             </div>
             <a href="/api/scripts/{{ script.id }}/download-final" download class="btn btn-secondary w-full justify-center" style="font-size: 12px;">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Download
             </a>
             <div id="sub-processing-badge" class="mt-2">
+                {% if script.subtitle_status == 'failed' %}
+                <span class="status-badge" style="background: rgba(220,38,38,0.1); color: #dc2626; font-size: 10px;">Subtitles failed</span>
+                {% elif script.subtitle_status == 'processing' %}
                 <span class="status-badge status-running" style="font-size: 10px;">Subtitles processing...</span>
+                {% else %}
+                <span class="status-badge status-running" style="font-size: 10px;">Subtitles processing...</span>
+                {% endif %}
             </div>
 
             {% else %}
@@ -256,11 +277,76 @@
             {% endif %}
 
             <div id="final-video-container" style="display: none; margin-top: 12px;">
-                <div style="width: 100%; aspect-ratio: 9/16; max-height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
-                    <video id="new-final-video" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                <div style="max-width: 260px; margin: 0 auto;">
+                    <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden;">
+                        <video id="new-final-video" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Trim Editor -->
+    <div id="trim-editor" class="stat-card mt-4" style="display: none;">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Trim Editor</h2>
+        <p class="text-xs text-gray-400 mb-4">Set start/end times for each clip, then trim & re-process with subtitles.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Video 1 -->
+            <div>
+                <h3 style="font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">Video 1</h3>
+                <div style="background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 9/16; max-height: 300px; margin-bottom: 8px;">
+                    <video id="trim-v1" src="/api/scripts/{{ script.id }}/raw-video/1" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">Start (sec)</label>
+                        <input type="number" id="trim-v1-start" value="0" min="0" step="0.1" class="input w-full" style="font-size: 12px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">End (sec)</label>
+                        <input type="number" id="trim-v1-end" value="0" min="0" step="0.1" class="input w-full" style="font-size: 12px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">Duration</label>
+                        <span id="trim-v1-dur" style="font-size: 12px; font-weight: 700; color: #3b82f6;">—</span>
+                    </div>
+                </div>
+                <div class="flex gap-1">
+                    <button onclick="setTrimStart(1)" class="btn-sm btn-secondary" style="font-size: 10px;">Set Start</button>
+                    <button onclick="setTrimEnd(1)" class="btn-sm btn-secondary" style="font-size: 10px;">Set End</button>
+                    <button onclick="previewTrim(1)" class="btn-sm btn-secondary" style="font-size: 10px;">Preview</button>
+                </div>
+            </div>
+            <!-- Video 2 -->
+            <div>
+                <h3 style="font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">Video 2</h3>
+                <div style="background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 9/16; max-height: 300px; margin-bottom: 8px;">
+                    <video id="trim-v2" src="/api/scripts/{{ script.id }}/raw-video/2" controls style="width: 100%; height: 100%; object-fit: contain;"></video>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">Start (sec)</label>
+                        <input type="number" id="trim-v2-start" value="0" min="0" step="0.1" class="input w-full" style="font-size: 12px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">End (sec)</label>
+                        <input type="number" id="trim-v2-end" value="0" min="0" step="0.1" class="input w-full" style="font-size: 12px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; font-weight: 600; color: #6b7280; display: block;">Duration</label>
+                        <span id="trim-v2-dur" style="font-size: 12px; font-weight: 700; color: #3b82f6;">—</span>
+                    </div>
+                </div>
+                <div class="flex gap-1">
+                    <button onclick="setTrimStart(2)" class="btn-sm btn-secondary" style="font-size: 10px;">Set Start</button>
+                    <button onclick="setTrimEnd(2)" class="btn-sm btn-secondary" style="font-size: 10px;">Set End</button>
+                    <button onclick="previewTrim(2)" class="btn-sm btn-secondary" style="font-size: 10px;">Preview</button>
+                </div>
+            </div>
+        </div>
+        <button id="trim-process-btn" onclick="trimAndProcess({{ script.id }})" class="btn btn-primary w-full justify-center mt-4" style="font-size: 13px; font-weight: 700;">
+            Trim & Process Subtitles
+        </button>
     </div>
 </div>
 
@@ -481,6 +567,9 @@ async function uploadAndConcat(scriptId) {
 
 async function pollFinalStatus(scriptId) {
     const statusText = document.getElementById('upload-status-text');
+    const uploadStatus = document.getElementById('upload-status');
+    const errorBox = document.getElementById('subtitle-error-box');
+    const errorText = document.getElementById('subtitle-error-text');
     const interval = setInterval(async () => {
         const result = await api(`/api/scripts/${scriptId}/final-video-status`);
         if (!result) return;
@@ -489,11 +578,145 @@ async function pollFinalStatus(scriptId) {
             statusText.textContent = 'Done! Subtitles ready.';
             toast('Subtitles added! Reloading...', 'success');
             setTimeout(() => location.reload(), 1500);
+        } else if (result.subtitle_status === 'failed') {
+            clearInterval(interval);
+            uploadStatus.style.display = 'none';
+            errorBox.style.display = 'block';
+            errorText.textContent = result.subtitle_error || 'Unknown error';
+            toast('Subtitles failed', 'error');
         } else if (result.has_final) {
             statusText.textContent = 'Adding subtitles...';
         }
+
+        // Show trim editor when raw videos are available
+        if (result.has_raw_v1 && result.has_raw_v2) {
+            showTrimEditor();
+        }
     }, 3000);
 }
+
+// === Retry Subtitles ===
+async function retrySubtitles(scriptId) {
+    const errorBox = document.getElementById('subtitle-error-box');
+    const uploadStatus = document.getElementById('upload-status');
+    const statusText = document.getElementById('upload-status-text');
+    errorBox.style.display = 'none';
+    uploadStatus.style.display = 'block';
+    statusText.textContent = 'Retrying subtitles...';
+    const result = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
+    if (result && result.ok) {
+        pollFinalStatus(scriptId);
+    } else {
+        toast('Retry failed: ' + (result?.detail || 'error'), 'error');
+        uploadStatus.style.display = 'none';
+    }
+}
+
+// === Trim Editor ===
+function showTrimEditor() {
+    const editor = document.getElementById('trim-editor');
+    if (editor) editor.style.display = 'block';
+    // Set end times from video durations when loaded
+    const v1 = document.getElementById('trim-v1');
+    const v2 = document.getElementById('trim-v2');
+    if (v1) v1.addEventListener('loadedmetadata', () => {
+        const endInput = document.getElementById('trim-v1-end');
+        if (endInput && parseFloat(endInput.value) === 0) endInput.value = v1.duration.toFixed(1);
+        document.getElementById('trim-v1-dur').textContent = v1.duration.toFixed(1) + 's';
+    });
+    if (v2) v2.addEventListener('loadedmetadata', () => {
+        const endInput = document.getElementById('trim-v2-end');
+        if (endInput && parseFloat(endInput.value) === 0) endInput.value = v2.duration.toFixed(1);
+        document.getElementById('trim-v2-dur').textContent = v2.duration.toFixed(1) + 's';
+    });
+}
+
+function setTrimStart(num) {
+    const video = document.getElementById('trim-v' + num);
+    if (video) document.getElementById('trim-v' + num + '-start').value = video.currentTime.toFixed(1);
+    updateTrimDuration(num);
+}
+
+function setTrimEnd(num) {
+    const video = document.getElementById('trim-v' + num);
+    if (video) document.getElementById('trim-v' + num + '-end').value = video.currentTime.toFixed(1);
+    updateTrimDuration(num);
+}
+
+function updateTrimDuration(num) {
+    const s = parseFloat(document.getElementById('trim-v' + num + '-start').value) || 0;
+    const e = parseFloat(document.getElementById('trim-v' + num + '-end').value) || 0;
+    const d = e > s ? (e - s).toFixed(1) + 's' : '—';
+    document.getElementById('trim-v' + num + '-dur').textContent = d;
+}
+
+function previewTrim(num) {
+    const video = document.getElementById('trim-v' + num);
+    const start = parseFloat(document.getElementById('trim-v' + num + '-start').value) || 0;
+    const end = parseFloat(document.getElementById('trim-v' + num + '-end').value) || 0;
+    if (!video || end <= start) return;
+    video.currentTime = start;
+    video.play();
+    const stopAt = () => {
+        if (video.currentTime >= end) {
+            video.pause();
+            video.removeEventListener('timeupdate', stopAt);
+        }
+    };
+    video.addEventListener('timeupdate', stopAt);
+}
+
+async function trimAndProcess(scriptId) {
+    const btn = document.getElementById('trim-process-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    const body = {
+        v1_start: parseFloat(document.getElementById('trim-v1-start').value) || 0,
+        v1_end: parseFloat(document.getElementById('trim-v1-end').value) || 0,
+        v2_start: parseFloat(document.getElementById('trim-v2-start').value) || 0,
+        v2_end: parseFloat(document.getElementById('trim-v2-end').value) || 0,
+    };
+
+    const result = await api(`/api/scripts/${scriptId}/trim-concat`, 'POST', body);
+    btn.disabled = false;
+    btn.textContent = 'Trim & Process Subtitles';
+
+    if (result && result.ok) {
+        toast('Trimmed! Processing subtitles...', 'success');
+        const uploadStatus = document.getElementById('upload-status');
+        const statusText = document.getElementById('upload-status-text');
+        uploadStatus.style.display = 'block';
+        statusText.textContent = 'Trimmed & concatenated. Adding subtitles...';
+        document.getElementById('subtitle-error-box').style.display = 'none';
+        pollFinalStatus(scriptId);
+    } else {
+        toast('Trim failed: ' + (result?.detail || 'error'), 'error');
+    }
+}
+
+// Auto-check for raw videos on page load (video tab)
+(function() {
+    fetch(`/api/scripts/${SCRIPT_ID}/final-video-status`).then(r => r.json()).then(data => {
+        if (data.has_raw_v1 && data.has_raw_v2) showTrimEditor();
+        if (data.subtitle_status === 'failed') {
+            const errorBox = document.getElementById('subtitle-error-box');
+            const errorText = document.getElementById('subtitle-error-text');
+            if (errorBox) {
+                errorBox.style.display = 'block';
+                errorText.textContent = data.subtitle_error || 'Unknown error';
+            }
+        } else if (data.subtitle_status === 'processing') {
+            const uploadStatus = document.getElementById('upload-status');
+            const statusText = document.getElementById('upload-status-text');
+            if (uploadStatus) {
+                uploadStatus.style.display = 'block';
+                statusText.textContent = 'Adding subtitles...';
+                pollFinalStatus(SCRIPT_ID);
+            }
+        }
+    }).catch(() => {});
+})()
 
 // === Copy platform metadata ===
 function copyPlatformMeta(platform) {

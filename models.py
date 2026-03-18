@@ -57,6 +57,11 @@ class Script(Base):
     # Final concatenated video
     final_video_path = Column(Text, default="")
     final_subtitled_path = Column(Text, default="")
+    subtitle_status = Column(String, default="")
+    subtitle_error = Column(Text, default="")
+    # Raw uploaded videos (before trim/concat)
+    raw_video1_path = Column(Text, default="")
+    raw_video2_path = Column(Text, default="")
     # Publication metadata per platform
     pub_title_tiktok = Column(Text, default="")
     pub_desc_tiktok = Column(Text, default="")

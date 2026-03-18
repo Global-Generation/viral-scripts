@@ -43,6 +43,7 @@ def startup():
     _migrate_video3_prompt()
     _migrate_pipeline_fields()
     _migrate_nari_anna_pub()
+    _migrate_script_subtitle_and_raw()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -250,6 +251,26 @@ def _migrate_nari_anna_pub():
                 db.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} TEXT DEFAULT ''"))
                 db.commit()
                 logging.info(f"Migrated: added {col} to {table}")
+    db.close()
+
+
+def _migrate_script_subtitle_and_raw():
+    """Add subtitle_status, subtitle_error, raw_video1_path, raw_video2_path to scripts."""
+    from sqlalchemy import text
+    db = SessionLocal()
+    for col, sql in [
+        ("subtitle_status", "ALTER TABLE scripts ADD COLUMN subtitle_status VARCHAR DEFAULT ''"),
+        ("subtitle_error", "ALTER TABLE scripts ADD COLUMN subtitle_error TEXT DEFAULT ''"),
+        ("raw_video1_path", "ALTER TABLE scripts ADD COLUMN raw_video1_path TEXT DEFAULT ''"),
+        ("raw_video2_path", "ALTER TABLE scripts ADD COLUMN raw_video2_path TEXT DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to scripts")
     db.close()
 
 

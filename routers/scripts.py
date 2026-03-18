@@ -677,7 +677,11 @@ def concat_videos_endpoint(script_id: int, db: Session = Depends(get_db)):
 
 
 def _add_final_subtitles_safe(script_id: int):
-    """Add subtitles to the final concatenated video."""
+    """Add subtitles to the final concatenated video.
+
+    If extract_dialogue finds quoted text, aligns it with Whisper timing.
+    Otherwise falls back to using Whisper transcription words directly.
+    """
     from services.subtitle_extractor import extract_dialogue
     from services.subtitler import _get_whisper_model, _align_words, _burn_subtitles
 
@@ -687,12 +691,13 @@ def _add_final_subtitles_safe(script_id: int):
         if not script or not script.final_video_path:
             return
 
+        script.subtitle_status = "processing"
+        script.subtitle_error = ""
+        script.final_subtitled_path = ""
+        db.commit()
+
         source_path = script.final_video_path
-        # Get full dialogue from modified or original text
         dialogue_text = extract_dialogue(script.modified_text or script.original_text or "")
-        if not dialogue_text:
-            logger.warning(f"No dialogue found for script {script_id}")
-            return
 
         downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
         audio_path = os.path.join(downloads_dir, f"final_{script_id}_audio.wav")
@@ -716,11 +721,25 @@ def _add_final_subtitles_safe(script_id: int):
                     "end": word.end,
                 })
 
-        known_words = dialogue_text.split()
-        timed_words = _align_words(known_words, whisper_words)
+        if dialogue_text:
+            known_words = dialogue_text.split()
+            timed_words = _align_words(known_words, whisper_words)
+        else:
+            # No quoted dialogue found — use Whisper transcription directly
+            logger.info(f"No quoted dialogue for script {script_id}, using Whisper transcription")
+            timed_words = whisper_words
+
+        if not timed_words:
+            script.subtitle_status = "failed"
+            script.subtitle_error = "No speech detected in video"
+            db.commit()
+            return
+
         _burn_subtitles(source_path, timed_words, output_path)
 
         script.final_subtitled_path = output_path
+        script.subtitle_status = "completed"
+        script.subtitle_error = ""
         db.commit()
         logger.info(f"Final subtitles completed for script {script_id}")
 
@@ -731,6 +750,14 @@ def _add_final_subtitles_safe(script_id: int):
 
     except Exception as e:
         logger.error(f"Final subtitles failed for script {script_id}: {e}")
+        try:
+            script = db.query(Script).get(script_id)
+            if script:
+                script.subtitle_status = "failed"
+                script.subtitle_error = str(e)[:500]
+                db.commit()
+        except Exception:
+            pass
     finally:
         db.close()
 
@@ -745,6 +772,10 @@ def final_video_status(script_id: int, db: Session = Depends(get_db)):
         "final_subtitled_path": script.final_subtitled_path or "",
         "has_final": bool(script.final_video_path),
         "has_subtitled": bool(script.final_subtitled_path),
+        "subtitle_status": script.subtitle_status or "",
+        "subtitle_error": script.subtitle_error or "",
+        "has_raw_v1": bool(script.raw_video1_path and os.path.exists(script.raw_video1_path)),
+        "has_raw_v2": bool(script.raw_video2_path and os.path.exists(script.raw_video2_path)),
     }
 
 
@@ -763,6 +794,108 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
     )
 
 
+@router.post("/{script_id}/retry-subtitles")
+def retry_subtitles(script_id: int, db: Session = Depends(get_db)):
+    """Re-trigger subtitle generation on the final video."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if not script.final_video_path:
+        raise HTTPException(status_code=400, detail="No final video to add subtitles to")
+    if script.subtitle_status == "processing":
+        return {"ok": True, "status": "processing", "message": "Already processing"}
+
+    script.subtitle_status = ""
+    script.subtitle_error = ""
+    script.final_subtitled_path = ""
+    db.commit()
+
+    _executor.submit(_add_final_subtitles_safe, script_id)
+    return {"ok": True, "status": "processing", "message": "Subtitle generation restarted"}
+
+
+class TrimRequest(BaseModel):
+    v1_start: float = 0
+    v1_end: float = 0
+    v2_start: float = 0
+    v2_end: float = 0
+
+
+@router.post("/{script_id}/trim-concat")
+def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)):
+    """Trim raw videos at given times, concatenate, and re-trigger subtitles."""
+    import subprocess as sp
+    from services.video_utils import concat_videos
+
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    raw1 = script.raw_video1_path
+    raw2 = script.raw_video2_path
+    if not raw1 or not os.path.exists(raw1) or not raw2 or not os.path.exists(raw2):
+        raise HTTPException(status_code=400, detail="Raw videos not available. Upload videos first.")
+
+    downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
+    trimmed_v1 = os.path.join(downloads_dir, f"trimmed_{script_id}_v1.mp4")
+    trimmed_v2 = os.path.join(downloads_dir, f"trimmed_{script_id}_v2.mp4")
+    output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
+
+    try:
+        # Trim video 1
+        cmd1 = ["ffmpeg", "-y", "-i", raw1, "-ss", str(data.v1_start)]
+        if data.v1_end > data.v1_start:
+            cmd1 += ["-to", str(data.v1_end)]
+        cmd1 += ["-c:v", "libx264", "-c:a", "aac", "-preset", "fast", trimmed_v1]
+        sp.run(cmd1, check=True, capture_output=True)
+
+        # Trim video 2
+        cmd2 = ["ffmpeg", "-y", "-i", raw2, "-ss", str(data.v2_start)]
+        if data.v2_end > data.v2_start:
+            cmd2 += ["-to", str(data.v2_end)]
+        cmd2 += ["-c:v", "libx264", "-c:a", "aac", "-preset", "fast", trimmed_v2]
+        sp.run(cmd2, check=True, capture_output=True)
+
+        # Concatenate
+        concat_videos([trimmed_v1, trimmed_v2], output_path)
+        script.final_video_path = output_path
+        script.final_subtitled_path = ""
+        script.subtitle_status = ""
+        script.subtitle_error = ""
+        db.commit()
+
+        # Auto-trigger subtitles
+        _executor.submit(_add_final_subtitles_safe, script_id)
+
+        return {"ok": True, "status": "processing", "message": "Trimmed & concatenated. Subtitles processing..."}
+    except Exception as e:
+        logger.error(f"Trim-concat failed for script {script_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        for p in [trimmed_v1, trimmed_v2]:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+
+
+@router.get("/{script_id}/raw-video/{num}")
+def get_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
+    """Serve raw video 1 or 2 for preview in trim editor."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if num == 1:
+        path = script.raw_video1_path
+    elif num == 2:
+        path = script.raw_video2_path
+    else:
+        raise HTTPException(status_code=400, detail="num must be 1 or 2")
+    if not path or not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"Raw video {num} not found")
+    return FileResponse(path, media_type="video/mp4", filename=f"raw_{script_id}_v{num}.mp4")
+
+
 @router.post("/{script_id}/upload-videos")
 async def upload_videos(
     script_id: int,
@@ -770,8 +903,9 @@ async def upload_videos(
     video2: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    """Upload 2 video files, concatenate them, and auto-add subtitles."""
+    """Upload 2 video files, save raw copies, concatenate, and auto-add subtitles."""
     from services.video_utils import concat_videos
+    import shutil
 
     script = db.query(Script).get(script_id)
     if not script:
@@ -782,6 +916,8 @@ async def upload_videos(
 
     v1_path = os.path.join(downloads_dir, f"upload_v1_{script_id}.mp4")
     v2_path = os.path.join(downloads_dir, f"upload_v2_{script_id}.mp4")
+    raw_v1 = os.path.join(downloads_dir, f"raw_{script_id}_v1.mp4")
+    raw_v2 = os.path.join(downloads_dir, f"raw_{script_id}_v2.mp4")
     output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
 
     try:
@@ -793,10 +929,18 @@ async def upload_videos(
             content = await video2.read()
             f.write(content)
 
+        # Save raw copies for trim editor
+        shutil.copy2(v1_path, raw_v1)
+        shutil.copy2(v2_path, raw_v2)
+        script.raw_video1_path = raw_v1
+        script.raw_video2_path = raw_v2
+
         # Concatenate
         concat_videos([v1_path, v2_path], output_path)
         script.final_video_path = output_path
         script.final_subtitled_path = ""  # reset
+        script.subtitle_status = ""
+        script.subtitle_error = ""
         db.commit()
 
         # Auto-trigger subtitle generation
