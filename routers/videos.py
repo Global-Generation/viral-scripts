@@ -47,7 +47,8 @@ def _build_script_schedule(db, creator, today):
     entries = []
     tasks = []
     for i, script in enumerate(scripts):
-        base_date = start + timedelta(days=i)
+        base_date = start + timedelta(days=i // 2)
+        slot = "morning" if i % 2 == 0 else "evening"
         tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
         ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
         yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
@@ -59,6 +60,7 @@ def _build_script_schedule(db, creator, today):
             "instagram_date": ig_date,
             "youtube_date": yt_date,
             "has_final": bool(script.final_video_path or script.final_subtitled_path),
+            "slot": slot,
         })
 
         link = f"/scripts/{script.id}"
@@ -70,6 +72,7 @@ def _build_script_schedule(db, creator, today):
                     "link": link,
                     "platform": platform,
                     "date": d,
+                    "slot": slot,
                 })
 
     return entries, tasks
@@ -82,7 +85,8 @@ def _build_nari_schedule(db, today):
     entries = []
     tasks = []
     for i, v in enumerate(videos):
-        base_date = start + timedelta(days=i)
+        base_date = start + timedelta(days=i // 2)
+        slot = "morning" if i % 2 == 0 else "evening"
         tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
         ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
         yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
@@ -94,6 +98,7 @@ def _build_nari_schedule(db, today):
             "instagram_date": ig_date,
             "youtube_date": yt_date,
             "has_final": v.production_status == "published",
+            "slot": slot,
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
@@ -104,6 +109,7 @@ def _build_nari_schedule(db, today):
                     "link": "/nari",
                     "platform": platform,
                     "date": d,
+                    "slot": slot,
                 })
 
     return entries, tasks
@@ -116,7 +122,8 @@ def _build_anna_schedule(db, today):
     entries = []
     tasks = []
     for i, v in enumerate(videos):
-        base_date = start + timedelta(days=i)
+        base_date = start + timedelta(days=i // 2)
+        slot = "morning" if i % 2 == 0 else "evening"
         tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
         ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
         yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
@@ -128,6 +135,7 @@ def _build_anna_schedule(db, today):
             "instagram_date": ig_date,
             "youtube_date": yt_date,
             "has_final": v.production_status == "published",
+            "slot": slot,
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
@@ -138,6 +146,7 @@ def _build_anna_schedule(db, today):
                     "link": "/anna",
                     "platform": platform,
                     "date": d,
+                    "slot": slot,
                 })
 
     return entries, tasks
@@ -170,12 +179,15 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     for d in range(28):
         cal_days.append(cal_start + timedelta(days=d))
 
-    # For each creator, map date → entry for the calendar
+    # For each creator, map date → list of entries for the calendar
     cal_data = {}
     for creator in CREATORS:
         day_map = {}
         for entry in schedule[creator]["scripts"]:
-            day_map[entry["tiktok_date"]] = entry
+            d = entry["tiktok_date"]
+            if d not in day_map:
+                day_map[d] = []
+            day_map[d].append(entry)
         cal_data[creator] = day_map
 
     return templates.TemplateResponse(

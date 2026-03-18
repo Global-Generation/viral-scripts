@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Publication Schedule</h1>
-    <p class="text-sm text-gray-500">TT +0, Instagram +7, YouTube +14 days. One per day per creator.</p>
+    <p class="text-sm text-gray-500">TT +0, Instagram +7, YouTube +14 days. Two per day per creator (morning + evening).</p>
 </div>
 
 <!-- Today's Tasks -->
@@ -14,20 +14,49 @@
         <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <h2 class="text-sm font-bold text-gray-900">Today — {{ today.strftime('%B %d, %Y') }}</h2>
     </div>
-    <div class="space-y-2">
-        {% for task in todays_tasks %}
-        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #f0f9ff; border-radius: 8px;">
-            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
-                {% if task.platform == 'TikTok' %}color: #000;
-                {% elif task.platform == 'Instagram' %}color: #E1306C;
-                {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
-            <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
-                {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
-            <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
-            <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
+
+    {% set morning_tasks = todays_tasks|selectattr('slot', 'equalto', 'morning')|list %}
+    {% set evening_tasks = todays_tasks|selectattr('slot', 'equalto', 'evening')|list %}
+
+    {% if morning_tasks %}
+    <div style="margin-bottom: 12px;">
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Morning</div>
+        <div class="space-y-2">
+            {% for task in morning_tasks %}
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fffbeb; border-radius: 8px;">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
+                    {% if task.platform == 'TikTok' %}color: #000;
+                    {% elif task.platform == 'Instagram' %}color: #E1306C;
+                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
+                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
+                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
+                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
+                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+    {% endif %}
+
+    {% if evening_tasks %}
+    <div>
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6366f1; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Evening</div>
+        <div class="space-y-2">
+            {% for task in evening_tasks %}
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #eef2ff; border-radius: 8px;">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
+                    {% if task.platform == 'TikTok' %}color: #000;
+                    {% elif task.platform == 'Instagram' %}color: #E1306C;
+                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
+                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
+                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
+                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
+                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% else %}
 <div class="stat-card mb-6">
@@ -62,18 +91,19 @@
                     <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
                         {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{{ creator }}</td>
                     {% for day in cal_days %}
-                    {% set entry = cal_data[creator].get(day) %}
+                    {% set day_entries = cal_data[creator].get(day, []) %}
+                    {% set count = day_entries|length %}
                     <td style="padding: 3px 2px; text-align: center;">
-                        {% if entry %}
+                        {% if count > 0 %}
                             {% if day < today %}
-                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 9px; line-height: 20px; font-weight: 700;" title="{{ entry.title }}">&#10003;</span>
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 10px; line-height: 20px; font-weight: 700;" title="{% for e in day_entries %}{{ e.title }}&#10;{% endfor %}">{{ count }}</span>
                             {% elif day == today %}
-                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; color: #fff; font-size: 9px; line-height: 20px; font-weight: 700;" title="{{ entry.title }}">&#9679;</span>
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; color: #fff; font-size: 10px; line-height: 20px; font-weight: 700;" title="{% for e in day_entries %}{{ e.title }}&#10;{% endfor %}">{{ count }}</span>
                             {% else %}
-                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #f3f4f6; color: #9ca3af; font-size: 9px; line-height: 20px;" title="{{ entry.title }}">&#9679;</span>
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #f3f4f6; color: #6b7280; font-size: 10px; line-height: 20px; font-weight: 600;" title="{% for e in day_entries %}{{ e.title }}&#10;{% endfor %}">{{ count }}</span>
                             {% endif %}
                         {% else %}
-                            <span style="color: #e5e7eb;">—</span>
+                            <span style="color: #e5e7eb;">&mdash;</span>
                         {% endif %}
                     </td>
                     {% endfor %}
@@ -84,13 +114,13 @@
     </div>
     <div class="flex items-center gap-4 mt-3" style="font-size: 10px; color: #9ca3af;">
         <div class="flex items-center gap-1">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #dcfce7; border: 1px solid #16a34a;"></span> Done
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #dcfce7; border: 1px solid #16a34a; font-size: 9px; line-height: 16px; text-align: center; color: #16a34a; font-weight: 700;">2</span> Done
         </div>
         <div class="flex items-center gap-1">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span> Today
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; font-size: 9px; line-height: 16px; text-align: center; color: #fff; font-weight: 700;">2</span> Today
         </div>
         <div class="flex items-center gap-1">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f3f4f6; border: 1px solid #d1d5db;"></span> Planned
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #f3f4f6; border: 1px solid #d1d5db; font-size: 9px; line-height: 16px; text-align: center; color: #6b7280; font-weight: 600;">2</span> Planned
         </div>
     </div>
 </div>
@@ -111,7 +141,7 @@
             <span style="font-size: 11px; font-weight: 600; color: #374151;">YouTube: +14</span>
         </div>
         <div style="flex: 1;"></div>
-        <span style="font-size: 11px; color: #9ca3af;">1 script/day per creator</span>
+        <span style="font-size: 11px; color: #9ca3af;">2 scripts/day per creator</span>
     </div>
 </div>
 
@@ -140,6 +170,7 @@
                     <tr class="border-b border-gray-100">
                         <th class="th" style="font-size: 10px; width: 30px;">#</th>
                         <th class="th" style="font-size: 10px;">Script</th>
+                        <th class="th" style="font-size: 10px; width: 50px;">Slot</th>
                         <th class="th" style="font-size: 10px;">Pub</th>
                         <th class="th" style="font-size: 10px;">TikTok</th>
                         <th class="th" style="font-size: 10px;">Instagram</th>
@@ -151,16 +182,23 @@
                     {% for entry in data.scripts %}
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50">
                         <td class="td" style="color: #9ca3af; font-size: 11px;">{{ loop.index }}</td>
-                        <td class="td" style="max-width: 240px;">
+                        <td class="td" style="max-width: 220px;">
                             <a href="{{ entry.link }}" class="text-xs text-blue-500 hover:underline truncate block">
                                 {{ entry.title }}
                             </a>
                         </td>
                         <td class="td">
+                            {% if entry.slot == 'morning' %}
+                            <span style="font-size: 9px; font-weight: 600; color: #f59e0b; background: #fffbeb; padding: 2px 6px; border-radius: 4px;">AM</span>
+                            {% else %}
+                            <span style="font-size: 9px; font-weight: 600; color: #6366f1; background: #eef2ff; padding: 2px 6px; border-radius: 4px;">PM</span>
+                            {% endif %}
+                        </td>
+                        <td class="td">
                             {% if entry.has_final %}
                             <span class="status-badge status-completed" style="font-size: 9px;">Ready</span>
                             {% else %}
-                            <span style="color: #d1d5db; font-size: 10px;">—</span>
+                            <span style="color: #d1d5db; font-size: 10px;">&mdash;</span>
                             {% endif %}
                         </td>
                         <td class="td">

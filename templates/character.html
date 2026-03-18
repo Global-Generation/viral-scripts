@@ -86,6 +86,14 @@
     <p class="text-gray-400 text-sm">No scripts assigned to {{ label }} yet.</p>
 </div>
 {% else %}
+<!-- Search -->
+<div class="stat-card mb-4" style="padding: 10px 16px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="script-search" placeholder="Search scripts by text content..." oninput="filterScripts(this.value)" style="flex: 1; font-size: 12px; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; outline: none;">
+        <span id="search-count" style="font-size: 11px; color: #9ca3af; min-width: 60px; text-align: right;"></span>
+    </div>
+</div>
 <div class="stat-card">
     <div class="overflow-x-auto">
         <table class="w-full" id="scripts-table">
@@ -102,7 +110,7 @@
             </thead>
             <tbody>
                 {% for script in scripts %}
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" data-search-text="{{ (script.modified_text or script.original_text or '')|lower|e }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
                     <td class="td">
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
                     </td>
@@ -238,6 +246,30 @@
 })();
 </script>
 <script>
+// === Search/filter scripts ===
+function filterScripts(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('tr.script-row');
+    let visible = 0;
+    rows.forEach(row => {
+        const expandRow = document.getElementById('expand-' + row.dataset.scriptId);
+        if (!q) {
+            row.style.display = '';
+            if (expandRow) expandRow.style.display = 'none';
+            visible++;
+            return;
+        }
+        const title = (row.children[1]?.textContent || '').toLowerCase();
+        const fullText = row.dataset.searchText || '';
+        const match = title.includes(q) || fullText.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (expandRow) expandRow.style.display = 'none';
+        if (match) visible++;
+    });
+    const countEl = document.getElementById('search-count');
+    if (countEl) countEl.textContent = q ? visible + ' found' : '';
+}
+
 // === Expand/collapse provocative text ===
 function toggleExpand(row, event) {
     if (event.target.closest('select, input, a, button')) return;
