@@ -2,8 +2,8 @@ import logging
 import os
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
+from fastapi.responses import FileResponse, StreamingResponse, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
@@ -885,8 +885,8 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
 
 
 @router.get("/{script_id}/raw-video/{num}")
-def get_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
-    """Serve raw video 1 or 2 for preview in trim editor."""
+def get_raw_video(script_id: int, num: int, request: Request, db: Session = Depends(get_db)):
+    """Serve raw video 1 or 2 for preview in trim editor (with Range support)."""
     script = db.query(Script).get(script_id)
     if not script:
         raise HTTPException(status_code=404, detail="Script not found")
@@ -898,8 +898,42 @@ def get_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="num must be 1 or 2")
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail=f"Raw video {num} not found")
-    return FileResponse(path, media_type="video/mp4", filename=f"raw_{script_id}_v{num}.mp4",
-                        stat_result=os.stat(path))
+
+    file_size = os.path.getsize(path)
+    range_header = request.headers.get("range")
+
+    if range_header:
+        # Parse "bytes=start-end"
+        range_str = range_header.replace("bytes=", "")
+        parts = range_str.split("-")
+        start = int(parts[0]) if parts[0] else 0
+        end = int(parts[1]) if parts[1] else file_size - 1
+        end = min(end, file_size - 1)
+        length = end - start + 1
+
+        def iter_file():
+            with open(path, "rb") as f:
+                f.seek(start)
+                remaining = length
+                while remaining > 0:
+                    chunk = f.read(min(8192, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return StreamingResponse(
+            iter_file(),
+            status_code=206,
+            media_type="video/mp4",
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(length),
+            },
+        )
+
+    return FileResponse(path, media_type="video/mp4", headers={"Accept-Ranges": "bytes"})
 
 
 @router.post("/{script_id}/upload-videos")
