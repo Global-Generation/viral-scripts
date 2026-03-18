@@ -76,11 +76,13 @@ Format — continuous text as a directorial scene description. No lists, no time
 Describe body language, expressions, energy between dialogue lines — be specific and visual.
 
 SPLITTING RULE (CRITICAL — SEQUENTIAL FILL):
-The script is split into 2 videos SEQUENTIALLY, with EQUAL text in each:
+The script is split into 2 videos SEQUENTIALLY, with APPROXIMATELY EQUAL text in each:
 1. Video 1 = first ~50% of the script words (HOOK + DEVELOPMENT)
 2. Video 2 = remaining ~50% of the script words (CONCLUSION + CTA)
 Each video uses EXACT lines from the script in order. No skipping, no rearranging.
-The two halves must be APPROXIMATELY EQUAL in dialogue word count (within 3 words of each other)."""
+CRITICAL: ALWAYS split at a SENTENCE BOUNDARY. Never split mid-sentence or mid-phrase.
+If the 50% mark falls mid-sentence, include the FULL sentence in Video 1 even if it makes halves slightly unequal.
+A slightly uneven split is ALWAYS better than cutting mid-thought."""
 
 # ── STEP 1: Video 1 (HOOK — problem, tension rising) ──
 
@@ -113,6 +115,9 @@ Use ONLY the first ~50% of the script as dialogue. STOP at the halfway point —
 Do NOT paraphrase or invent new lines. Do NOT include the conclusion or payoff.
 2-3 camera changes (HARD CUTS only — static tripod angles). Energy rises from calm to peak tension.
 Describe body language, expressions, and energy between dialogue lines — be specific and visual.
+
+SPLIT RULE: The LAST quoted line must be a COMPLETE SENTENCE ending with a period, question mark, or exclamation mark.
+NEVER cut a sentence in half. If the 50% mark is mid-sentence, include the full sentence.
 
 CRITICAL: EXACTLY 20-25 words of dialogue total in this video. Count every word inside "quotes".
 If you write more than 25 words of dialogue, DELETE lines until 20-25.
