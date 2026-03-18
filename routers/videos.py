@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Script, Video
+from models import Script, Video, NariVideo, AnnaVideo
 
 router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
@@ -24,73 +24,137 @@ SCHEDULE_STARTS = {
 }
 
 
+def _build_script_schedule(db, creator, today):
+    """Build schedule for script-based creators (daniel, boris, thomas)."""
+    scripts = (
+        db.query(Script)
+        .options(joinedload(Script.video))
+        .filter(
+            Script.assigned_to == creator,
+            Script.video1_prompt != "",
+            Script.video1_prompt.isnot(None),
+            Script.video2_prompt != "",
+            Script.video2_prompt.isnot(None),
+        )
+        .order_by(Script.id.asc())
+        .all()
+    )
+
+    start = SCHEDULE_STARTS[creator]
+    entries = []
+    tasks = []
+    for i, script in enumerate(scripts):
+        base_date = start + timedelta(days=i)
+        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
+        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+        entries.append({
+            "title": script.video.title[:55] if script.video else f"Script #{script.id}",
+            "link": f"/scripts/{script.id}",
+            "tiktok_date": tt_date,
+            "instagram_date": ig_date,
+            "youtube_date": yt_date,
+            "has_pub_meta": bool(script.pub_title_tiktok),
+        })
+
+        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+            if d == today:
+                tasks.append({
+                    "creator": creator,
+                    "title": script.video.title[:60] if script.video else f"Script #{script.id}",
+                    "platform": platform,
+                    "date": d,
+                })
+
+    return entries, tasks
+
+
+def _build_nari_schedule(db, today):
+    """Build schedule for Sophia (NariVideo)."""
+    videos = db.query(NariVideo).order_by(NariVideo.id.asc()).all()
+    start = SCHEDULE_STARTS["sophia"]
+    entries = []
+    tasks = []
+    for i, v in enumerate(videos):
+        base_date = start + timedelta(days=i)
+        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
+        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+        entries.append({
+            "title": v.title[:55] if v.title else f"Video #{v.id}",
+            "link": "/nari",
+            "tiktok_date": tt_date,
+            "instagram_date": ig_date,
+            "youtube_date": yt_date,
+            "has_pub_meta": v.production_status in ("ready", "published"),
+        })
+
+        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+            if d == today:
+                tasks.append({
+                    "creator": "sophia",
+                    "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "platform": platform,
+                    "date": d,
+                })
+
+    return entries, tasks
+
+
+def _build_anna_schedule(db, today):
+    """Build schedule for Ava (AnnaVideo)."""
+    videos = db.query(AnnaVideo).order_by(AnnaVideo.id.asc()).all()
+    start = SCHEDULE_STARTS["ava"]
+    entries = []
+    tasks = []
+    for i, v in enumerate(videos):
+        base_date = start + timedelta(days=i)
+        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
+        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+        entries.append({
+            "title": v.title[:55] if v.title else f"Video #{v.id}",
+            "link": "/anna",
+            "tiktok_date": tt_date,
+            "instagram_date": ig_date,
+            "youtube_date": yt_date,
+            "has_pub_meta": v.production_status in ("ready", "published"),
+        })
+
+        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+            if d == today:
+                tasks.append({
+                    "creator": "ava",
+                    "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "platform": platform,
+                    "date": d,
+                })
+
+    return entries, tasks
+
+
 @router.get("/videos", response_class=HTMLResponse)
 def videos_page(request: Request, db: Session = Depends(get_db)):
     today = date.today()
 
-    # Build schedule: per-creator, only scripts with prompts ready
     schedule = {}
     todays_tasks = []
 
     for creator in CREATORS:
-        scripts = (
-            db.query(Script)
-            .options(joinedload(Script.video))
-            .filter(
-                Script.assigned_to == creator,
-                Script.video1_prompt != "",
-                Script.video1_prompt.isnot(None),
-                Script.video2_prompt != "",
-                Script.video2_prompt.isnot(None),
-            )
-            .order_by(Script.id.asc())
-            .all()
-        )
+        if creator == "sophia":
+            entries, tasks = _build_nari_schedule(db, today)
+        elif creator == "ava":
+            entries, tasks = _build_anna_schedule(db, today)
+        else:
+            entries, tasks = _build_script_schedule(db, creator, today)
 
-        # Assign dates: 1 script per day per creator
-        script_dates = []
-        start = SCHEDULE_STARTS.get(creator, date(2026, 3, 18))
-        for i, script in enumerate(scripts):
-            base_date = start + timedelta(days=i)
-            tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
-            ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-            yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
-
-            entry = {
-                "script": script,
-                "tiktok_date": tt_date,
-                "instagram_date": ig_date,
-                "youtube_date": yt_date,
-                "has_pub_meta": bool(script.pub_title_tiktok),
-            }
-            script_dates.append(entry)
-
-            # Check if any platform is due today
-            if tt_date == today:
-                todays_tasks.append({
-                    "creator": creator,
-                    "script": script,
-                    "platform": "TikTok",
-                    "date": tt_date,
-                })
-            if ig_date == today:
-                todays_tasks.append({
-                    "creator": creator,
-                    "script": script,
-                    "platform": "Instagram",
-                    "date": ig_date,
-                })
-            if yt_date == today:
-                todays_tasks.append({
-                    "creator": creator,
-                    "script": script,
-                    "platform": "YouTube",
-                    "date": yt_date,
-                })
-
+        todays_tasks.extend(tasks)
         schedule[creator] = {
-            "scripts": script_dates,
-            "count": len(scripts),
+            "scripts": entries,
+            "count": len(entries),
         }
 
     return templates.TemplateResponse(

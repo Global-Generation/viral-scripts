@@ -23,9 +23,7 @@
                 {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
             <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
                 {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
-            <a href="/scripts/{{ task.script.id }}" class="text-xs text-blue-500 hover:underline truncate">
-                {{ task.script.video.title[:60] if task.script.video else ('Script #' ~ task.script.id) }}
-            </a>
+            <span class="text-xs text-gray-700 truncate">{{ task.title }}</span>
         </div>
         {% endfor %}
     </div>
@@ -92,12 +90,11 @@
                 </thead>
                 <tbody>
                     {% for entry in data.scripts %}
-                    {% set script = entry.script %}
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50">
                         <td class="td" style="color: #9ca3af; font-size: 11px;">{{ loop.index }}</td>
                         <td class="td" style="max-width: 240px;">
-                            <a href="/scripts/{{ script.id }}" class="text-xs text-blue-500 hover:underline truncate block">
-                                {{ script.video.title[:55] if script.video else ('Script #' ~ script.id) }}
+                            <a href="{{ entry.link }}" class="text-xs text-blue-500 hover:underline truncate block">
+                                {{ entry.title }}
                             </a>
                         </td>
                         <td class="td">
