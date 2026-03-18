@@ -733,14 +733,11 @@ function showTrimEditor() {
         // Click on timeline to seek
         const tl = document.getElementById('timeline-' + num);
         if (tl) {
-            tl.addEventListener('click', (e) => {
-                if (_dragging) return;
+            tl.addEventListener('mousedown', (e) => {
                 if (e.target.classList.contains('trim-handle')) return;
-                if (Date.now() - _lastDragEnd < 300) return;
                 const rect = tl.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 video.currentTime = pct * trimState[num].duration;
-                // Update playhead immediately (timeupdate only fires while playing)
                 const ph = document.getElementById('playhead-' + num);
                 if (ph) ph.style.left = (pct * 100) + '%';
             });

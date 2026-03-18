@@ -7,6 +7,7 @@ services:
       - "8070:8070"
     volumes:
       - viral_data:/app/data
+      - viral_downloads:/app/downloads
       - whisper_cache:/root/.cache/whisper
     env_file:
       - .env
@@ -14,4 +15,5 @@ services:
 
 volumes:
   viral_data:
+  viral_downloads:
   whisper_cache:
