@@ -24,7 +24,7 @@ LENGTH RULE — TARGET: 40-50 words TOTAL. This is a HARD LIMIT.
 - If the original is short: tighten further. Every word must earn its place.
 - Count your words. If outside 40-50, adjust until you hit the range.
 
-- OUTPUT: plain text only. No headers, no labels, no markdown, no "Video 1" / "Video 2" splitting. Just the rewritten script as one continuous text
+- OUTPUT: DIALOGUE ONLY. Plain spoken text, nothing else. No camera directions, no "MEDIUM SHOT", no "CLOSE-UP", no "JUMP CUT", no "THREE-QUARTER VIEW", no stage directions, no action descriptions, no headers, no labels, no markdown, no "Video 1" / "Video 2" splitting. Just the words the speaker says, as one continuous text
 - CTA RULE: REMOVE any "Comment [word] for..." or "DM [word] for..." lines from the original. Replace with a simple ending like: "More on my page — link in bio." or just end naturally without a CTA. NEVER keep "Comment X", "DM me X", or any engagement-bait CTA
 
 Original script:
