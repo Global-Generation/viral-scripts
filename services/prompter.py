@@ -207,6 +207,7 @@ def generate_video_prompt(script_text: str) -> dict:
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
+        temperature=0.3,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(
             script=first_half, word_count=len(first_half.split()),
@@ -224,9 +225,12 @@ def generate_video_prompt(script_text: str) -> dict:
     # Step 2: Generate Video 2 (with up to 2 retries for word balance)
     video2_text = None
     for attempt in range(3):
+        # Use higher temperature on retries to get different output
+        temp = 0.3 if attempt == 0 else 0.7 + attempt * 0.1
         response2 = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=700,
+            temperature=temp,
             system=SYSTEM_VIDEO2,
             messages=[{"role": "user", "content": USER_VIDEO2.format(
                 script=second_half, video1=video1_text,
