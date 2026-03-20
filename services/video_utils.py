@@ -78,7 +78,8 @@ def concat_videos(video_paths: list[str], output_path: str) -> str:
     if len(video_paths) == 1:
         # Just copy the single video
         subprocess.run(
-            ["ffmpeg", "-y", "-i", video_paths[0], "-c", "copy", output_path],
+            ["ffmpeg", "-y", "-i", video_paths[0], "-c", "copy",
+             "-movflags", "+faststart", output_path],
             check=True, capture_output=True, timeout=120,
         )
         return output_path
@@ -97,6 +98,7 @@ def concat_videos(video_paths: list[str], output_path: str) -> str:
         "-map", "[outv]", "-map", "[outa]",
         "-c:v", "libx264", "-preset", "medium", "-crf", "18",
         "-c:a", "aac", "-b:a", "192k",
+        "-movflags", "+faststart",
         output_path,
     ]
 

@@ -676,6 +676,20 @@ def concat_videos_endpoint(script_id: int, db: Session = Depends(get_db)):
                 pass
 
 
+def _validate_video_file(path: str) -> bool:
+    """Check that a video file is valid (has moov atom) using ffprobe."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "csv=p=0", path],
+            capture_output=True, text=True, timeout=15,
+        )
+        return result.returncode == 0 and result.stdout.strip() != ""
+    except Exception:
+        return False
+
+
 def _add_final_subtitles_safe(script_id: int):
     """Add subtitles to the final concatenated video using Whisper transcription."""
     from services.subtitler import _get_whisper_model, _burn_subtitles
@@ -692,6 +706,14 @@ def _add_final_subtitles_safe(script_id: int):
         db.commit()
 
         source_path = script.final_video_path
+
+        # Validate video file before attempting subtitles
+        if not os.path.exists(source_path) or not _validate_video_file(source_path):
+            script.subtitle_status = "failed"
+            script.subtitle_error = "Video file is invalid or incomplete (moov atom not found). Try re-processing the video."
+            db.commit()
+            logger.error(f"Video validation failed for script {script_id}: {source_path}")
+            return
         downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
         audio_path = os.path.join(downloads_dir, f"final_{script_id}_audio.wav")
         output_path = os.path.join(downloads_dir, f"final_{script_id}_subtitled.mp4")
@@ -788,6 +810,8 @@ def retry_subtitles(script_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Script not found")
     if not script.final_video_path:
         raise HTTPException(status_code=400, detail="No final video to add subtitles to")
+    if script.subtitle_status == "trimming":
+        raise HTTPException(status_code=409, detail="Wait for video processing to complete before retrying subtitles")
     if script.subtitle_status == "processing":
         return {"ok": True, "status": "processing", "message": "Already processing"}
 
@@ -849,18 +873,19 @@ def _trim_concat_bg(script_id, raw1, raw2, v1_start, v1_end, v2_start, v2_end):
     trimmed_v1 = os.path.join(downloads_dir, f"trimmed_{script_id}_v1.mp4")
     trimmed_v2 = os.path.join(downloads_dir, f"trimmed_{script_id}_v2.mp4")
     output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
+    concat_ok = False
 
     try:
         cmd1 = ["ffmpeg", "-y", "-ss", str(v1_start), "-i", raw1]
         if v1_end > v1_start:
             cmd1 += ["-t", str(v1_end - v1_start)]
-        cmd1 += ["-c", "copy", trimmed_v1]
+        cmd1 += ["-c", "copy", "-movflags", "+faststart", trimmed_v1]
         sp.run(cmd1, check=True, capture_output=True)
 
         cmd2 = ["ffmpeg", "-y", "-ss", str(v2_start), "-i", raw2]
         if v2_end > v2_start:
             cmd2 += ["-t", str(v2_end - v2_start)]
-        cmd2 += ["-c", "copy", trimmed_v2]
+        cmd2 += ["-c", "copy", "-movflags", "+faststart", trimmed_v2]
         sp.run(cmd2, check=True, capture_output=True)
 
         concat_videos([trimmed_v1, trimmed_v2], output_path)
@@ -868,11 +893,13 @@ def _trim_concat_bg(script_id, raw1, raw2, v1_start, v1_end, v2_start, v2_end):
         script = db.query(Script).get(script_id)
         script.final_video_path = output_path
         script.final_subtitled_path = ""
-        script.subtitle_status = ""
+        script.subtitle_status = "processing"
         script.subtitle_error = ""
         db.commit()
-        logger.info(f"Trim-concat done for script {script_id}")
+        logger.info(f"Trim-concat done for script {script_id}, starting subtitles...")
+        concat_ok = True
     except Exception as e:
+        concat_ok = False
         logger.error(f"Trim-concat failed for script {script_id}: {e}")
         try:
             script = db.query(Script).get(script_id)
@@ -888,6 +915,10 @@ def _trim_concat_bg(script_id, raw1, raw2, v1_start, v1_end, v2_start, v2_end):
                 os.remove(p)
             except OSError:
                 pass
+
+    # Auto-trigger subtitles AFTER concat is fully done (file written + DB committed)
+    if concat_ok:
+        _add_final_subtitles_safe(script_id)
 
 
 @router.get("/{script_id}/raw-video/{num}")
