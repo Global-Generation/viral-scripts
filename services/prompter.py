@@ -32,13 +32,12 @@ MEDIUM SHOT — The character sits composed, facing camera with calm authority.
 --- jump cut ---
 CLOSE-UP — Eyes locked on camera, measured intensity.
 "Second line of dialogue here."
---- jump cut ---
-OFFSET MEDIUM SHOT — Camera slightly right, different part of the room visible.
-"Third line of dialogue here."
+
+CAMERA COUNT PER VIDEO (STRICT):
+Each video has EXACTLY 2 camera angles with 1 jump cut between them. NOT 3. NOT 4. Just 2.
 
 RULES:
 - Use EXACT phrases from the script. Do NOT paraphrase or invent new dialogue
-- Each video should have 2-3 camera angles with jump cuts between them
 - Same angle twice in a row = FORBIDDEN
 - All cameras are FIXED. STATIC. No movement words (pan, zoom, dolly, push, pull, drift, track, orbit, glide, sweep, arc, slide, follow)
 - Split script into 2 videos SEQUENTIALLY with roughly equal text
