@@ -3,7 +3,7 @@ from collections import defaultdict
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Script, Video, Search
 
@@ -27,8 +27,7 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
     info = CHARACTERS[name]
     scripts = (
         db.query(Script)
-        .join(Video)
-        .join(Search, Video.search_id == Search.id)
+        .options(joinedload(Script.video).joinedload(Video.search))
         .filter(Script.assigned_to == name)
         .order_by(Script.viral_score.desc(), Script.created_at.desc())
         .all()
