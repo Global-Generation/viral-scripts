@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse, StreamingResponse, Response
+from typing import Literal
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
@@ -324,7 +325,7 @@ class GenerateVideoRequest(BaseModel):
     video_number: int = 1
     avatar_id: int = None
     model_id: str = "higgsfield-ai/dop/standard"
-    duration: int = 5
+    duration: Literal[5, 10] = 5
     aspect_ratio: str = "9:16"
     camera_movement: str = ""
     sound: bool = False
@@ -336,7 +337,7 @@ class GenerateStepRequest(BaseModel):
     video_number: int = 1
     avatar_id: int = None
     model_id: str = "higgsfield-ai/dop/standard"
-    duration: int = 5
+    duration: Literal[5, 10] = 5
     aspect_ratio: str = "9:16"
     camera_movement: str = ""
     sound: bool = False
