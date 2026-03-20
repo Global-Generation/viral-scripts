@@ -53,6 +53,7 @@ You generate a SINGLE video prompt — Video 1 of 2.
 VIDEO 1 uses the first ~50% of the script words.
 V1 dialogue MUST end on a complete sentence. NEVER cut mid-thought.
 The LAST quoted line must be a COMPLETE SENTENCE ending with . ! or ?
+ABSOLUTELY FORBIDDEN: ending V1 dialogue with an incomplete thought like "Lost" or "That's when I" — the last word of V1 must complete a full sentence grammatically and logically. If needed, move extra text to V2 rather than cutting mid-sentence.
 
 IMPORTANT — V1 ENDING ANGLE:
 Note which angle V1 ends on. V2 MUST start on a DIFFERENT angle for seamless splicing."""

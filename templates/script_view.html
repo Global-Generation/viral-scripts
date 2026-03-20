@@ -687,6 +687,8 @@ function pollSubtitleStatus(scriptId) {
             clearInterval(_subPollInterval); _subPollInterval = null;
             updateStatusBar('failed', 'Subtitles failed');
             toast('Subtitles failed', 'error');
+        } else if (result.subtitle_status === 'trimming') {
+            updateStatusBar('processing', 'Trimming video...');
         }
     }, 3000);
 }
@@ -1052,29 +1054,13 @@ async function processVideo(scriptId) {
         return;
     }
 
-    // Step 2: auto-start subtitles
-    pBar.style.width = '50%';
-    pText.textContent = 'Adding subtitles...';
-    btn.textContent = 'Adding subtitles...';
-
-    // Animate 50→80%
-    let _pct2 = 50;
-    const _ticker2 = setInterval(() => {
-        if (_pct2 < 80) { _pct2 += 1; pBar.style.width = _pct2 + '%'; }
-    }, 500);
-
+    // Step 2: subtitles auto-triggered by backend after trim completes
+    pBar.style.width = '60%';
+    pText.textContent = 'Processing...';
+    btn.textContent = 'Processing...';
     showFinalSection();
-    updateStatusBar('processing', 'Adding subtitles...');
-    const subResult = await api(`/api/scripts/${scriptId}/retry-subtitles`, 'POST');
-    clearInterval(_ticker2);
-    if (subResult && subResult.ok) {
-        pBar.style.width = '85%';
-        pText.textContent = 'Subtitles processing...';
-        pollSubtitleStatus(scriptId);
-    } else {
-        updateStatusBar('failed', 'Subtitles failed to start');
-        toast('Subtitles failed: ' + (subResult?.detail || 'error'), 'error');
-    }
+    updateStatusBar('processing', 'Processing video & subtitles...');
+    pollSubtitleStatus(scriptId);
     pStatus.style.display = 'none';
     btn.disabled = false;
     btn.textContent = 'Process Video';
