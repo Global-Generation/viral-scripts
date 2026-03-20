@@ -221,22 +221,31 @@ def generate_video_prompt(script_text: str) -> dict:
     v1_min = max(1, int(v1_dialogue_words * 0.8))
     v1_max = int(v1_dialogue_words * 1.2)
 
-    # Step 2: Generate Video 2
-    response2 = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=700,
-        system=SYSTEM_VIDEO2,
-        messages=[{"role": "user", "content": USER_VIDEO2.format(
-            script=second_half, video1=video1_text,
-            v2_angle_pair=v2_angle_str,
-            v1_word_count=v1_dialogue_words,
-            v1_min_words=v1_min,
-            v1_max_words=v1_max
-        )}]
-    )
-    video2_text = _strip_label(response2.content[0].text.strip(), 2)
+    # Step 2: Generate Video 2 (with up to 2 retries for word balance)
+    video2_text = None
+    for attempt in range(3):
+        response2 = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=700,
+            system=SYSTEM_VIDEO2,
+            messages=[{"role": "user", "content": USER_VIDEO2.format(
+                script=second_half, video1=video1_text,
+                v2_angle_pair=v2_angle_str,
+                v1_word_count=v1_dialogue_words,
+                v1_min_words=v1_min,
+                v1_max_words=v1_max
+            )}]
+        )
+        video2_text = _strip_label(response2.content[0].text.strip(), 2)
+        _log_usage("prompt")
 
-    _log_usage("prompt")
+        # Check word balance
+        v2_dialogue_words = sum(len(m.split()) for m in re.findall(r'"([^"]+)"', video2_text))
+        if v1_dialogue_words == 0 or v1_min <= v2_dialogue_words <= v1_max:
+            break
+        ratio = v2_dialogue_words / v1_dialogue_words * 100
+        logger.warning(f"V2 word balance off ({ratio:.0f}%): V1={v1_dialogue_words}w V2={v2_dialogue_words}w, retry {attempt+1}/2")
+
     _log_usage("prompt")
     return {
         "video1": video1_text,
