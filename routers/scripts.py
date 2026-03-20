@@ -839,9 +839,6 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
     if not script:
         raise HTTPException(status_code=404, detail="Script not found")
 
-    if script.subtitle_status in ("trimming", "processing"):
-        raise HTTPException(status_code=409, detail="Video is already being processed. Please wait.")
-
     raw1 = script.raw_video1_path
     raw2 = script.raw_video2_path
     if not raw1 or not os.path.exists(raw1) or not raw2 or not os.path.exists(raw2):
