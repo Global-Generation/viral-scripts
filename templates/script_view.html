@@ -245,7 +245,7 @@
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Trim Editor</h2>
         <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: start;">
             <!-- Video 1 Trim -->
-            <div>
+            <div id="video-col-1">
                 <h3 style="font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">Video 1</h3>
                 <div style="max-width: 200px; margin: 0 auto 10px;">
                     <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 8px; overflow: hidden;">
@@ -277,7 +277,7 @@
                 <button onclick="swapVideos()" class="btn-sm btn-secondary" style="font-size: 11px; white-space: nowrap; padding: 6px 10px;" title="Swap V1 and V2">&#8644; Swap</button>
             </div>
             <!-- Video 2 Trim -->
-            <div>
+            <div id="video-col-2">
                 <h3 style="font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">Video 2</h3>
                 <div style="max-width: 200px; margin: 0 auto 10px;">
                     <div style="width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 8px; overflow: hidden;">
@@ -937,7 +937,7 @@ async function deleteVideo(scriptId, num) {
             const videoEl = document.getElementById('trim-v' + num);
             if (videoEl) { videoEl.pause(); videoEl.removeAttribute('src'); videoEl.load(); }
             // Replace video column with re-upload placeholder
-            const col = videoEl ? videoEl.closest('div[class]') || videoEl.parentElement.parentElement.parentElement : null;
+            const col = document.getElementById('video-col-' + num);
             if (col) {
                 col.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;border:2px dashed #d1d5db;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#fafafa;" onclick="document.getElementById(\'reupload-input-' + num + '\').click()">' +
                     '<input type="file" id="reupload-input-' + num + '" accept="video/mp4,video/*" style="display:none" onchange="reuploadSingle(' + scriptId + ',' + num + ',this.files)">' +
