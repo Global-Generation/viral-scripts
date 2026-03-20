@@ -810,7 +810,7 @@ def retry_subtitles(script_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Script not found")
     if not script.final_video_path:
         raise HTTPException(status_code=400, detail="No final video to add subtitles to")
-    if script.subtitle_status == "trimming":
+    if script.subtitle_status == "trimming" and not script.final_video_path:
         raise HTTPException(status_code=409, detail="Wait for video processing to complete before retrying subtitles")
     if script.subtitle_status == "processing":
         return {"ok": True, "status": "processing", "message": "Already processing"}
