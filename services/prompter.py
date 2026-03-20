@@ -108,7 +108,7 @@ ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
 VIDEO 1 ALREADY GENERATED (DO NOT REPEAT):
 {video1}
 
-YOUR HALF OF THE SCRIPT:
+FULL SCRIPT (use ONLY the part after where V1 stopped — do NOT repeat V1 dialogue):
 {script}"""
 
 
@@ -233,7 +233,7 @@ def generate_video_prompt(script_text: str) -> dict:
             temperature=temp,
             system=SYSTEM_VIDEO2,
             messages=[{"role": "user", "content": USER_VIDEO2.format(
-                script=second_half, video1=video1_text,
+                script=script_text, video1=video1_text,
                 v2_angle_pair=v2_angle_str,
                 v1_word_count=v1_dialogue_words,
                 v1_min_words=v1_min,
