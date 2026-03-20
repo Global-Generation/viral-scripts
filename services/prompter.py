@@ -17,8 +17,10 @@ CAMERA — ONLY 3 ANGLES:
 TRANSITIONS:
 Only jump cut between shots. Format: --- jump cut ---
 
-WORD BALANCE:
-V1 and V2 dialogue word count must be roughly equal (±20%).
+WORD BALANCE (STRICT — THIS IS A HARD RULE):
+V1 and V2 dialogue word count MUST be within ±20% of each other.
+Example: if V1 has 30 words of dialogue, V2 must have 24-36 words.
+FORBIDDEN: V2 having less than half the dialogue of V1. Count your words and rebalance if needed.
 
 OUTPUT FORMAT (STRICT — follow this EXACTLY):
 Each camera angle gets ONE line of brief description, then dialogue in quotes on the next line.
@@ -80,8 +82,9 @@ You generate a SINGLE video prompt — Video 2 of 2.
 
 {SHARED_RULES}
 
-VIDEO 2 uses the remaining ~50% of the script words.
+VIDEO 2 uses the remaining ~50% of the script words. Use ALL of them — do NOT cut or shorten.
 End with a simple CTA: "Link in bio." (counts toward word balance).
+V2 dialogue word count MUST be within ±20% of V1. If V1 had ~30 words, V2 must have 24-36 words. Do NOT make V2 shorter than V1.
 
 V1 → V2 SPLICE RULE (CRITICAL):
 V2 MUST start on a DIFFERENT angle than V1 ended on.
