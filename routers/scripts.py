@@ -802,6 +802,20 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
     )
 
 
+@router.post("/{script_id}/cancel-processing")
+def cancel_processing(script_id: int, db: Session = Depends(get_db)):
+    """Cancel any in-progress trim/subtitle processing."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if script.subtitle_status not in ("trimming", "processing"):
+        return {"ok": True, "message": "Nothing to cancel"}
+    script.subtitle_status = ""
+    script.subtitle_error = ""
+    db.commit()
+    return {"ok": True, "message": "Processing cancelled"}
+
+
 @router.post("/{script_id}/retry-subtitles")
 def retry_subtitles(script_id: int, db: Session = Depends(get_db)):
     """Re-trigger subtitle generation on the final video."""

@@ -351,6 +351,9 @@
                 {% elif script.subtitle_status == 'processing' %}Processing subtitles...
                 {% else %}Processing...{% endif %}
             </span>
+            <button id="cancel-proc-btn" onclick="cancelProcessing({{ script.id }})" style="display: {% if script.subtitle_status in ('trimming', 'processing') %}inline-flex{% else %}none{% endif %}; margin-left: auto; font-size: 11px; font-weight: 600; color: #6b7280; background: rgba(107,114,128,0.1); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                Cancel
+            </button>
             <button id="retry-sub-btn" onclick="retrySubtitles({{ script.id }})" style="display: {% if script.subtitle_status == 'failed' %}inline-flex{% else %}none{% endif %}; margin-left: auto; font-size: 11px; font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.1); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
                 Retry
             </button>
@@ -651,6 +654,8 @@ function updateStatusBar(state, text) {
     bar.className = 'video-status-bar mb-3 status-' + state;
     label.textContent = text;
     retryBtn.style.display = state === 'failed' ? 'inline-flex' : 'none';
+    const cancelBtn = document.getElementById('cancel-proc-btn');
+    if (cancelBtn) cancelBtn.style.display = state === 'processing' ? 'inline-flex' : 'none';
     if (state === 'processing') {
         icon.innerHTML = '<svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
     } else if (state === 'ready') {
@@ -695,6 +700,22 @@ async function retrySubtitles(scriptId) {
     } else {
         toast('Retry failed: ' + (result?.detail || 'error'), 'error');
         updateStatusBar('failed', 'Retry failed');
+    }
+}
+
+// === Cancel Processing ===
+async function cancelProcessing(scriptId) {
+    const result = await api(`/api/scripts/${scriptId}/cancel-processing`, 'POST');
+    if (result && result.ok) {
+        if (_subPollInterval) { clearInterval(_subPollInterval); _subPollInterval = null; }
+        toast('Processing cancelled', 'info');
+        updateStatusBar('failed', 'Cancelled');
+        document.getElementById('final-video-section').style.display = 'none';
+        const btn = document.getElementById('process-video-btn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Process Video'; }
+        document.getElementById('process-status').style.display = 'none';
+    } else {
+        toast('Cancel failed: ' + (result?.detail || 'error'), 'error');
     }
 }
 
