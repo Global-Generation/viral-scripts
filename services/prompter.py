@@ -51,7 +51,8 @@ You generate a SINGLE video prompt — Video 1 of 2.
 {SHARED_RULES}
 
 VIDEO 1 uses the first ~50% of the script words.
-The LAST quoted line must be a COMPLETE SENTENCE.
+V1 dialogue MUST end on a complete sentence. NEVER cut mid-thought.
+The LAST quoted line must be a COMPLETE SENTENCE ending with . ! or ?
 
 IMPORTANT — V1 ENDING ANGLE:
 Note which angle V1 ends on. V2 MUST start on a DIFFERENT angle for seamless splicing."""
@@ -143,6 +144,35 @@ def _detect_last_angle(prompt_text: str) -> str:
     return last_angle
 
 
+def _split_at_sentence_boundary(text: str) -> tuple[str, str]:
+    """Split text into two halves at nearest sentence boundary to 50%."""
+    import re
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    if len(sentences) < 2:
+        # Fallback: can't split by sentence, return as-is
+        words = text.split()
+        half = len(words) // 2
+        return " ".join(words[:half]), " ".join(words[half:])
+
+    total_words = len(text.split())
+    target = total_words // 2
+
+    current_words = 0
+    best_split = 1  # at least 1 sentence in first half
+    best_diff = total_words
+
+    for i, sentence in enumerate(sentences):
+        current_words += len(sentence.split())
+        diff = abs(current_words - target)
+        if diff < best_diff:
+            best_diff = diff
+            best_split = i + 1
+
+    first_half = " ".join(sentences[:best_split])
+    second_half = " ".join(sentences[best_split:])
+    return first_half, second_half
+
+
 def _pick_angle_pairs():
     """Pick 2 different angle pairs for V1 and V2 so they never repeat across videos."""
     import random
@@ -160,12 +190,7 @@ def _pick_angle_pairs():
 def generate_video_prompt(script_text: str) -> dict:
     """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    words = script_text.split()
-    word_count = len(words)
-    half = word_count // 2
-
-    first_half = " ".join(words[:half])
-    second_half = " ".join(words[half:])
+    first_half, second_half = _split_at_sentence_boundary(script_text)
 
     # Pick random angle pairs — different for each script, splice-safe
     v1_pair, v2_pair = _pick_angle_pairs()
@@ -178,7 +203,7 @@ def generate_video_prompt(script_text: str) -> dict:
         max_tokens=700,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(
-            script=first_half, word_count=len(words[:half]),
+            script=first_half, word_count=len(first_half.split()),
             v1_angle_pair=v1_angle_str
         )}]
     )

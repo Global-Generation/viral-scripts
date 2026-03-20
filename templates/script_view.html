@@ -3,7 +3,11 @@
 
 {% block content %}
 <div class="mb-6">
+    {% if script.assigned_to %}
+    <a href="/character/{{ script.assigned_to }}" class="text-sm text-gray-400 hover:text-gray-600 mb-2 inline-block">&larr; {{ script.assigned_to|capitalize }}</a>
+    {% else %}
     <a href="/scripts" class="text-sm text-gray-400 hover:text-gray-600 mb-2 inline-block">&larr; <span data-i18n="sv.back">Scripts Library</span></a>
+    {% endif %}
     <h1 class="text-xl font-bold text-gray-900 mb-1">Script #{{ script.id }}</h1>
     {% if video %}
     <p class="text-sm text-gray-500">{{ video.title }}</p>

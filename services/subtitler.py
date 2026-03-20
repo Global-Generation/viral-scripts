@@ -253,6 +253,23 @@ def add_subtitles(generation_id: int):
         logger.info(f"Subtitle: downloading video for gen {generation_id}")
         urllib.request.urlretrieve(gen.video_url, source_path)
 
+        # Validate video file before processing
+        logger.info(f"Subtitle: validating video file for gen {generation_id}")
+        probe = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1", source_path],
+            capture_output=True, text=True
+        )
+        if probe.returncode != 0:
+            error_msg = probe.stderr.strip() or "Unknown video error"
+            if "moov atom not found" in error_msg:
+                error_msg = "Video file corrupted (moov atom not found) — re-process video"
+            gen.subtitle_status = "failed"
+            gen.subtitle_error = f"Video file corrupted — {error_msg}"
+            db.commit()
+            logger.error(f"Subtitle: corrupt video for gen {generation_id}: {error_msg}")
+            return
+
         logger.info(f"Subtitle: extracting audio for gen {generation_id}")
         subprocess.run([
             "ffmpeg", "-y", "-i", source_path,
