@@ -56,6 +56,7 @@ VIDEO 1 uses the first ~50% of the script words.
 V1 dialogue MUST end on a complete sentence. NEVER cut mid-thought.
 The LAST quoted line must be a COMPLETE SENTENCE ending with . ! or ?
 ABSOLUTELY FORBIDDEN: ending V1 dialogue with an incomplete thought like "Lost" or "That's when I" — the last word of V1 must complete a full sentence grammatically and logically. If needed, move extra text to V2 rather than cutting mid-sentence.
+WORD COUNT: Your V1 dialogue must be CLOSE to the target word count given. Do not go far over or under.
 
 IMPORTANT — V1 ENDING ANGLE:
 Note which angle V1 ends on. V2 MUST start on a DIFFERENT angle for seamless splicing."""
@@ -68,6 +69,8 @@ NO B-roll. NO inserts of hands, pens, papers, objects. NO text overlays. ONLY th
 Use ONLY the first ~50% of the script as dialogue. Leave the rest for Video 2.
 Use the exact minimal format: angle + brief description, dialogue in quotes, --- jump cut --- between angles.
 NO prose paragraphs. NO body language descriptions. NO energy arcs.
+
+TARGET DIALOGUE WORD COUNT: ~{target_words} words (this is half the total script). Stay close to this number.
 
 ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
 {v1_angle_pair}
@@ -211,6 +214,7 @@ def generate_video_prompt(script_text: str) -> dict:
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(
             script=first_half, word_count=len(first_half.split()),
+            target_words=len(script_text.split()) // 2,
             v1_angle_pair=v1_angle_str
         )}]
     )
