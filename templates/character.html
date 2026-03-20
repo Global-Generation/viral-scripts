@@ -83,18 +83,20 @@
         <table class="w-full" id="scripts-table">
             <thead>
                 <tr class="border-b border-gray-100">
+                    <th class="th" style="width: 40px;">#</th>
                     <th class="th" style="width: 50px;"></th>
-                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;"><span data-i18n="th.video">Video</span> <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;"><span data-i18n="th.category">Category</span> <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="3" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="4" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="5" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;"><span data-i18n="th.video">Video</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="3" style="cursor:pointer;"><span data-i18n="th.category">Category</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="5" style="cursor:pointer;">TikTok <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="6" style="cursor:pointer;">Instagram <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="date" data-col="7" style="cursor:pointer;">YouTube <span class="sort-icon"></span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for script in scripts %}
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" data-search-text="{{ (script.modified_text or script.original_text or '')|lower|e }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
+                    <td class="td" style="font-size: 11px; color: #9ca3af; font-weight: 600;">{{ loop.index }}</td>
                     <td class="td">
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
                     </td>
@@ -134,7 +136,7 @@
                     </td>
                 </tr>
                 <tr class="expand-row" id="expand-{{ script.id }}" style="display: none;">
-                    <td colspan="7" style="padding: 0;">
+                    <td colspan="8" style="padding: 0;">
                         <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <div style="display: flex; gap: 24px;">
                                 <div style="flex: 1; min-width: 0;">
@@ -345,7 +347,7 @@ async function inlineSetDate(scriptId, platform, dateValue) {
     if (result && result.ok) {
         const row = document.querySelector('tr[data-script-id="' + scriptId + '"]');
         if (row) {
-            const platformIndex = { tiktok: 4, instagram: 5, youtube: 6 };
+            const platformIndex = { tiktok: 5, instagram: 6, youtube: 7 };
             const cell = row.children[platformIndex[platform]];
             const input = cell.querySelector('input');
             if (dateValue) {
