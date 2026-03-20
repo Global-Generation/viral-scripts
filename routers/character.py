@@ -1,4 +1,5 @@
 import json
+import os
 from collections import defaultdict
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
@@ -68,6 +69,15 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
         for d, counts in sorted(day_map.items())
     ]
 
+    # Scan for character photos
+    photos_dir = os.path.join("static", "photos", name)
+    photos = []
+    if os.path.isdir(photos_dir):
+        photos = sorted(
+            f for f in os.listdir(photos_dir)
+            if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+        )
+
     return templates.TemplateResponse(
         "character.html",
         {
@@ -85,5 +95,6 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             "finance_count": finance_count,
             "avg_score": avg_score,
             "timeline_json": json.dumps(timeline),
+            "photos": photos,
         }
     )

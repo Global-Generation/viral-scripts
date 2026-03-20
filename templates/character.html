@@ -57,6 +57,19 @@
     </div>
 </div>
 
+<!-- Photo Gallery -->
+{% if photos %}
+<div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <div style="display: flex; gap: 10px; padding: 2px 0;">
+        {% for photo in photos %}
+        <img src="/static/photos/{{ name }}/{{ photo }}" alt="{{ label }}"
+             style="height: 180px; width: 120px; object-fit: cover; border-radius: 12px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+             loading="lazy">
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Publication Timeline Chart -->
 <div class="stat-card mb-4" id="chart-card" style="{% if not scripts %}display:none{% endif %}">
     <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;" data-i18n="stat.timeline">Publication Timeline</div>
