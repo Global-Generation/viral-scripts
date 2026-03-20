@@ -75,7 +75,7 @@ TARGET DIALOGUE WORD COUNT: ~{target_words} words (this is half the total script
 ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
 {v1_angle_pair}
 
-YOUR HALF OF THE SCRIPT ({word_count} words):
+FULL SCRIPT ({word_count} words total — use ONLY the first ~{target_words} words as dialogue):
 {script}"""
 
 # ── STEP 2: Video 2 (second half of script) ──
@@ -213,7 +213,7 @@ def generate_video_prompt(script_text: str) -> dict:
         temperature=0.3,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(
-            script=first_half, word_count=len(first_half.split()),
+            script=script_text, word_count=len(script_text.split()),
             target_words=len(script_text.split()) // 2,
             v1_angle_pair=v1_angle_str
         )}]
