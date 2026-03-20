@@ -933,12 +933,48 @@ async function deleteVideo(scriptId, num) {
         const data = await resp.json();
         if (data.ok) {
             toast('Video ' + num + ' deleted', 'success');
-            location.reload();
+            // Hide only this video's column, keep the other visible
+            const videoEl = document.getElementById('trim-v' + num);
+            if (videoEl) { videoEl.pause(); videoEl.removeAttribute('src'); videoEl.load(); }
+            // Replace video column with re-upload placeholder
+            const col = videoEl ? videoEl.closest('div[class]') || videoEl.parentElement.parentElement.parentElement : null;
+            if (col) {
+                col.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;border:2px dashed #d1d5db;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#fafafa;" onclick="document.getElementById(\'reupload-input-' + num + '\').click()">' +
+                    '<input type="file" id="reupload-input-' + num + '" accept="video/mp4,video/*" style="display:none" onchange="reuploadSingle(' + scriptId + ',' + num + ',this.files)">' +
+                    '<p style="font-size:12px;font-weight:600;color:#9ca3af;">Video ' + num + ' deleted</p>' +
+                    '<p style="font-size:11px;color:#b0b8c4;margin-top:4px;">Click to upload a replacement</p></div>';
+            }
+            // Hide process button since we need both videos
+            const processBtn = document.getElementById('process-video-btn');
+            if (processBtn) processBtn.style.display = 'none';
+            // Hide final video section since it's now invalid
+            const finalSec = document.getElementById('final-video-section');
+            if (finalSec) finalSec.style.display = 'none';
         } else {
             toast(data.detail || 'Delete failed', 'error');
         }
     } catch (e) {
         toast('Delete failed: ' + e.message, 'error');
+    }
+}
+
+async function reuploadSingle(scriptId, num, files) {
+    if (!files || !files[0]) return;
+    const formData = new FormData();
+    formData.append('video', files[0]);
+    formData.append('num', num);
+    toast('Uploading Video ' + num + '...', 'success');
+    try {
+        const resp = await fetch('/api/scripts/' + scriptId + '/upload-single-video', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (data.ok) {
+            toast('Video ' + num + ' uploaded! Reloading...', 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            toast(data.detail || 'Upload failed', 'error');
+        }
+    } catch (e) {
+        toast('Upload failed: ' + e.message, 'error');
     }
 }
 

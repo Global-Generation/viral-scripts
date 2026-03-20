@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse, StreamingResponse, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -822,11 +822,14 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
     if not raw1 or not os.path.exists(raw1) or not raw2 or not os.path.exists(raw2):
         raise HTTPException(status_code=400, detail="Raw videos not available. Upload videos first.")
 
-    # If swapped, flip the raw sources and trim params
+    # If swapped, flip the raw sources and trim params, and persist swap in DB
     if data.swap:
         raw1, raw2 = raw2, raw1
         data.v1_start, data.v2_start = data.v2_start, data.v1_start
         data.v1_end, data.v2_end = data.v2_end, data.v1_end
+        # Persist the swap so it sticks after page reload
+        script.raw_video1_path, script.raw_video2_path = raw1, raw2
+        db.commit()
 
     downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
     trimmed_v1 = os.path.join(downloads_dir, f"trimmed_{script_id}_v1.mp4")
@@ -977,6 +980,48 @@ async def upload_videos(
                 os.remove(p)
             except OSError:
                 pass
+
+
+@router.post("/{script_id}/upload-single-video")
+async def upload_single_video(
+    script_id: int,
+    video: UploadFile = File(...),
+    num: int = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Upload a single replacement video (1 or 2)."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if num not in (1, 2):
+        raise HTTPException(status_code=400, detail="num must be 1 or 2")
+
+    downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
+    os.makedirs(downloads_dir, exist_ok=True)
+    raw_path = os.path.join(downloads_dir, f"raw_{script_id}_v{num}.mp4")
+
+    with open(raw_path, "wb") as f:
+        content = await video.read()
+        f.write(content)
+
+    if num == 1:
+        script.raw_video1_path = raw_path
+    else:
+        script.raw_video2_path = raw_path
+
+    # Clear final video since it's now outdated
+    for p in [script.final_video_path, script.final_subtitled_path]:
+        if p:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+    script.final_video_path = ""
+    script.final_subtitled_path = ""
+    script.subtitle_status = ""
+    script.subtitle_error = ""
+    db.commit()
+    return {"ok": True, "message": f"Video {num} uploaded"}
 
 
 @router.delete("/{script_id}/raw-video/{num}")
