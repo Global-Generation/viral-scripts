@@ -134,14 +134,16 @@
                     <td class="td">
                         {% if script.published_tiktok or script.published_instagram or script.published_youtube %}
                         <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a;">Published</span>
-                        {% elif script.subtitle_status == 'processing' %}
-                        <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #ca8a04;">Subs Processing</span>
                         {% elif script.final_subtitled_path %}
-                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">Video Ready</span>
-                        {% elif script.final_video_path %}
-                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">Video Ready</span>
+                        <span class="status-badge" style="background: rgba(6,182,212,0.1); color: #0891b2;">Subtitled</span>
+                        {% elif script.subtitle_status == 'processing' %}
+                        <span class="status-badge" style="background: rgba(168,85,247,0.1); color: #7c3aed;">Adding Subs</span>
                         {% elif script.subtitle_status == 'failed' %}
                         <span class="status-badge" style="background: rgba(239,68,68,0.1); color: #ef4444;">Subs Failed</span>
+                        {% elif script.final_video_path %}
+                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">Video Ready</span>
+                        {% elif script.raw_video1_path or script.raw_video2_path %}
+                        <span class="status-badge" style="background: rgba(249,115,22,0.1); color: #ea580c;">Video Uploaded</span>
                         {% elif script.modified_text %}
                         <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #ca8a04;">Script Ready</span>
                         {% else %}

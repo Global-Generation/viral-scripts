@@ -30,9 +30,28 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
         db.query(Script)
         .options(joinedload(Script.video).joinedload(Video.search))
         .filter(Script.assigned_to == name)
-        .order_by(Script.viral_score.desc(), Script.created_at.desc())
         .all()
     )
+
+    # Sort by production readiness (most complete first)
+    def status_order(s):
+        if s.published_tiktok or s.published_instagram or s.published_youtube:
+            return 7
+        if s.final_subtitled_path:
+            return 6
+        if s.subtitle_status == "processing":
+            return 5
+        if s.subtitle_status == "failed":
+            return 4
+        if s.final_video_path:
+            return 3
+        if s.raw_video1_path or s.raw_video2_path:
+            return 2
+        if s.modified_text:
+            return 1
+        return 0
+
+    scripts.sort(key=lambda s: (-status_order(s), -(s.viral_score or 0)))
 
     # --- Stats ---
     total = len(scripts)
