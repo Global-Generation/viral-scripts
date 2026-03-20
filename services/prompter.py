@@ -65,6 +65,9 @@ Use ONLY the first ~50% of the script as dialogue. Leave the rest for Video 2.
 Use the exact minimal format: angle + brief description, dialogue in quotes, --- jump cut --- between angles.
 NO prose paragraphs. NO body language descriptions. NO energy arcs.
 
+ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
+{v1_angle_pair}
+
 YOUR HALF OF THE SCRIPT ({word_count} words):
 {script}"""
 
@@ -92,8 +95,8 @@ Use the exact minimal format: angle + brief description, dialogue in quotes, ---
 NO prose paragraphs. NO body language descriptions. NO energy arcs.
 End with "Link in bio." as the last line of dialogue.
 
-VIDEO 1 ENDED ON THIS ANGLE (start V2 on a DIFFERENT angle):
-{v1_last_angle}
+ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
+{v2_angle_pair}
 
 VIDEO 1 ALREADY GENERATED (DO NOT REPEAT):
 {video1}
@@ -140,6 +143,20 @@ def _detect_last_angle(prompt_text: str) -> str:
     return last_angle
 
 
+def _pick_angle_pairs():
+    """Pick 2 different angle pairs for V1 and V2 so they never repeat across videos."""
+    import random
+    angles = ["MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"]
+    # All possible 2-angle pairs (order matters)
+    pairs = [(a, b) for a in angles for b in angles if a != b]
+    # Pick V1 pair randomly
+    v1_pair = random.choice(pairs)
+    # V2 must start on a different angle than V1 ends on
+    v2_candidates = [(a, b) for a, b in pairs if a != v1_pair[1]]
+    v2_pair = random.choice(v2_candidates)
+    return v1_pair, v2_pair
+
+
 def generate_video_prompt(script_text: str) -> dict:
     """Return {"video1": ..., "video2": ...} — each is a standalone filming prompt."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -150,19 +167,22 @@ def generate_video_prompt(script_text: str) -> dict:
     first_half = " ".join(words[:half])
     second_half = " ".join(words[half:])
 
+    # Pick random angle pairs — different for each script, splice-safe
+    v1_pair, v2_pair = _pick_angle_pairs()
+    v1_angle_str = f"1. {v1_pair[0]}\n2. {v1_pair[1]}"
+    v2_angle_str = f"1. {v2_pair[0]}\n2. {v2_pair[1]}"
+
     # Step 1: Generate Video 1
     response1 = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=700,
         system=SYSTEM_VIDEO1,
         messages=[{"role": "user", "content": USER_VIDEO1.format(
-            script=first_half, word_count=len(words[:half])
+            script=first_half, word_count=len(words[:half]),
+            v1_angle_pair=v1_angle_str
         )}]
     )
     video1_text = _strip_label(response1.content[0].text.strip(), 1)
-
-    # Detect V1's last angle so V2 starts on a different one
-    v1_last_angle = _detect_last_angle(video1_text)
 
     # Step 2: Generate Video 2
     response2 = client.messages.create(
@@ -170,7 +190,8 @@ def generate_video_prompt(script_text: str) -> dict:
         max_tokens=700,
         system=SYSTEM_VIDEO2,
         messages=[{"role": "user", "content": USER_VIDEO2.format(
-            script=second_half, video1=video1_text, v1_last_angle=v1_last_angle
+            script=second_half, video1=video1_text,
+            v2_angle_pair=v2_angle_str
         )}]
     )
     video2_text = _strip_label(response2.content[0].text.strip(), 2)
