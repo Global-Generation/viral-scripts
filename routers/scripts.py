@@ -19,7 +19,7 @@ from services.subtitler import add_subtitles
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
 logger = logging.getLogger(__name__)
 
-_executor = ThreadPoolExecutor(max_workers=3)
+_executor = ThreadPoolExecutor(max_workers=8)
 
 
 @router.post("/extract/{video_id}")
@@ -809,10 +809,7 @@ class TrimRequest(BaseModel):
 
 @router.post("/{script_id}/trim-concat")
 def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)):
-    """Trim raw videos at given times, concatenate, and re-trigger subtitles."""
-    import subprocess as sp
-    from services.video_utils import concat_videos
-
+    """Trim raw videos at given times, concatenate in background."""
     script = db.query(Script).get(script_id)
     if not script:
         raise HTTPException(status_code=404, detail="Script not found")
@@ -827,43 +824,64 @@ def trim_concat(script_id: int, data: TrimRequest, db: Session = Depends(get_db)
         raw1, raw2 = raw2, raw1
         data.v1_start, data.v2_start = data.v2_start, data.v1_start
         data.v1_end, data.v2_end = data.v2_end, data.v1_end
-        # Persist the swap so it sticks after page reload
         script.raw_video1_path, script.raw_video2_path = raw1, raw2
         db.commit()
 
+    # Mark as processing immediately and return
+    script.subtitle_status = "trimming"
+    db.commit()
+
+    _executor.submit(
+        _trim_concat_bg, script_id, raw1, raw2,
+        data.v1_start, data.v1_end, data.v2_start, data.v2_end,
+    )
+    return {"ok": True, "status": "processing", "message": "Processing in background..."}
+
+
+def _trim_concat_bg(script_id, raw1, raw2, v1_start, v1_end, v2_start, v2_end):
+    """Background trim-concat worker."""
+    import subprocess as sp
+    from services.video_utils import concat_videos
+
+    db = SessionLocal()
     downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
     trimmed_v1 = os.path.join(downloads_dir, f"trimmed_{script_id}_v1.mp4")
     trimmed_v2 = os.path.join(downloads_dir, f"trimmed_{script_id}_v2.mp4")
     output_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
 
     try:
-        # Trim video 1 (stream copy — no re-encode, near-instant)
-        cmd1 = ["ffmpeg", "-y", "-ss", str(data.v1_start), "-i", raw1]
-        if data.v1_end > data.v1_start:
-            cmd1 += ["-t", str(data.v1_end - data.v1_start)]
+        cmd1 = ["ffmpeg", "-y", "-ss", str(v1_start), "-i", raw1]
+        if v1_end > v1_start:
+            cmd1 += ["-t", str(v1_end - v1_start)]
         cmd1 += ["-c", "copy", trimmed_v1]
         sp.run(cmd1, check=True, capture_output=True)
 
-        # Trim video 2 (stream copy — no re-encode, near-instant)
-        cmd2 = ["ffmpeg", "-y", "-ss", str(data.v2_start), "-i", raw2]
-        if data.v2_end > data.v2_start:
-            cmd2 += ["-t", str(data.v2_end - data.v2_start)]
+        cmd2 = ["ffmpeg", "-y", "-ss", str(v2_start), "-i", raw2]
+        if v2_end > v2_start:
+            cmd2 += ["-t", str(v2_end - v2_start)]
         cmd2 += ["-c", "copy", trimmed_v2]
         sp.run(cmd2, check=True, capture_output=True)
 
-        # Concatenate
         concat_videos([trimmed_v1, trimmed_v2], output_path)
+
+        script = db.query(Script).get(script_id)
         script.final_video_path = output_path
         script.final_subtitled_path = ""
         script.subtitle_status = ""
         script.subtitle_error = ""
         db.commit()
-
-        return {"ok": True, "status": "trimmed", "message": "Trimmed & concatenated. Ready for subtitles."}
+        logger.info(f"Trim-concat done for script {script_id}")
     except Exception as e:
         logger.error(f"Trim-concat failed for script {script_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        try:
+            script = db.query(Script).get(script_id)
+            script.subtitle_status = ""
+            script.subtitle_error = f"Trim failed: {e}"
+            db.commit()
+        except Exception:
+            pass
     finally:
+        db.close()
         for p in [trimmed_v1, trimmed_v2]:
             try:
                 os.remove(p)
