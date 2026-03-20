@@ -14,7 +14,7 @@ router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
-CREATORS = ["daniel", "boris", "thomas", "sophia", "ava"]
+CREATORS = ["daniel", "boris", "thomas", "zoe", "natalie", "luna", "sophia", "ava"]
 PUB_OFFSETS = {"tiktok": 0, "instagram": 7, "youtube": 14}
 
 # Per-creator start dates
@@ -22,6 +22,9 @@ SCHEDULE_STARTS = {
     "daniel": date(2026, 3, 18),
     "boris": date(2026, 3, 18),
     "thomas": date(2026, 3, 18),
+    "zoe": date(2026, 3, 20),
+    "natalie": date(2026, 3, 20),
+    "luna": date(2026, 3, 20),
     "sophia": date(2026, 3, 16),
     "ava": date(2026, 3, 16),
 }

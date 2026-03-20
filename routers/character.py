@@ -14,6 +14,9 @@ CHARACTERS = {
     "boris": {"label": "AI - Boris", "color": "#2563EB"},
     "daniel": {"label": "AI - Daniel", "color": "#ea580c"},
     "thomas": {"label": "AI - Thomas", "color": "#16a34a"},
+    "zoe": {"label": "AI - Zoe", "color": "#a855f7"},
+    "natalie": {"label": "AI - Natalie", "color": "#ec4899"},
+    "luna": {"label": "AI - Luna", "color": "#14b8a6"},
 }
 
 

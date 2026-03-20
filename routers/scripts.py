@@ -61,7 +61,7 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
     }
 
 
-VALID_ASSIGNEES = {"boris", "thomas", "daniel", ""}
+VALID_ASSIGNEES = {"boris", "thomas", "daniel", "zoe", "natalie", "luna", ""}
 
 
 class AssignRequest(BaseModel):

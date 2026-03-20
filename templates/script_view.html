@@ -153,7 +153,7 @@
                     <h2 class="text-sm font-semibold text-gray-700">Assigned To</h2>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                    {% for name in ['daniel', 'boris', 'thomas', 'nari', 'ava'] %}
+                    {% for name in ['daniel', 'boris', 'thomas', 'zoe', 'natalie', 'luna', 'nari', 'ava'] %}
                     <button onclick="assignScript({{ script.id }}, '{{ name }}')" class="btn-sm {{ 'btn-primary' if script.assigned_to == name else 'btn-secondary' }}" style="font-size: 10px; text-transform: capitalize;">{{ name }}</button>
                     {% endfor %}
                     {% if script.assigned_to %}
