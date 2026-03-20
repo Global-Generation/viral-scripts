@@ -100,6 +100,8 @@ Use the exact minimal format: angle + brief description, dialogue in quotes, ---
 NO prose paragraphs. NO body language descriptions. NO energy arcs.
 End with "Link in bio." as the last line of dialogue.
 
+CRITICAL WORD COUNT TARGET: Video 1 has {v1_word_count} words of dialogue. Your V2 dialogue MUST have {v1_min_words}-{v1_max_words} words (±20%). Count carefully. Use ALL the script text below.
+
 ANGLE PAIR FOR THIS VIDEO (use exactly these 2 angles in this order):
 {v2_angle_pair}
 
@@ -213,6 +215,12 @@ def generate_video_prompt(script_text: str) -> dict:
     )
     video1_text = _strip_label(response1.content[0].text.strip(), 1)
 
+    # Count V1 dialogue words to enforce balance in V2
+    import re
+    v1_dialogue_words = sum(len(m.split()) for m in re.findall(r'"([^"]+)"', video1_text))
+    v1_min = max(1, int(v1_dialogue_words * 0.8))
+    v1_max = int(v1_dialogue_words * 1.2)
+
     # Step 2: Generate Video 2
     response2 = client.messages.create(
         model=CLAUDE_MODEL,
@@ -220,7 +228,10 @@ def generate_video_prompt(script_text: str) -> dict:
         system=SYSTEM_VIDEO2,
         messages=[{"role": "user", "content": USER_VIDEO2.format(
             script=second_half, video1=video1_text,
-            v2_angle_pair=v2_angle_str
+            v2_angle_pair=v2_angle_str,
+            v1_word_count=v1_dialogue_words,
+            v1_min_words=v1_min,
+            v1_max_words=v1_max
         )}]
     )
     video2_text = _strip_label(response2.content[0].text.strip(), 2)
