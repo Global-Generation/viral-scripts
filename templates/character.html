@@ -115,8 +115,11 @@
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" data-search-text="{{ (script.modified_text or script.original_text or '')|lower|e }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
                     <td class="td" style="font-size: 11px; color: #9ca3af;">{{ loop.index }}</td>
                     <td class="td" style="font-size: 11px; color: #64748b; font-weight: 600;">#{{ script.id }}</td>
-                    <td class="td">
+                    <td class="td" style="white-space: nowrap;">
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
+                        {% if script.final_subtitled_path %}
+                        <button class="btn-sm" onclick="event.stopPropagation(); playVideo({{ script.id }})" style="background: #16a34a; color: #fff; border: none; cursor: pointer; margin-left: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">Play</button>
+                        {% endif %}
                     </td>
                     <td class="td" style="padding: 2px 4px;" onclick="event.stopPropagation()">
                         {% if script.final_subtitled_path %}
@@ -382,6 +385,35 @@ function openPhotoModal(src) {
         document.body.appendChild(modal);
     }
     document.getElementById('photo-modal-img').src = src;
+    modal.style.display = 'flex';
+    requestAnimationFrame(function() { modal.style.opacity = '1'; });
+}
+
+// === Video player modal ===
+function playVideo(scriptId) {
+    let modal = document.getElementById('video-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'video-modal';
+        Object.assign(modal.style, {
+            position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+            background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: '9999',
+            opacity: '0', transition: 'opacity 0.2s'
+        });
+        modal.innerHTML = '<video id="video-modal-player" controls autoplay playsinline style="max-height:90vh; max-width:90vw; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);"></video>';
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                var vid = document.getElementById('video-modal-player');
+                vid.pause(); vid.src = '';
+                modal.style.opacity = '0';
+                setTimeout(function() { modal.style.display = 'none'; }, 200);
+            }
+        };
+        document.body.appendChild(modal);
+    }
+    var player = document.getElementById('video-modal-player');
+    player.src = '/api/scripts/' + scriptId + '/final-video?subtitled=true';
     modal.style.display = 'flex';
     requestAnimationFrame(function() { modal.style.opacity = '1'; });
 }
