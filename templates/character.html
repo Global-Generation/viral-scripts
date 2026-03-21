@@ -119,7 +119,7 @@
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
                     </td>
                     <td class="td" style="padding: 2px 4px;" onclick="event.stopPropagation()">
-                        {% if script.raw_video1_path or script.final_video_path %}
+                        {% if script.final_subtitled_path %}
                         <img src="/api/scripts/{{ script.id }}/thumbnail" alt="" style="width: 32px; height: 56px; object-fit: cover; border-radius: 4px; display: block;" loading="lazy" onerror="this.style.display='none'">
                         {% endif %}
                     </td>

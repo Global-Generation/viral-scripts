@@ -1093,8 +1093,8 @@ def get_thumbnail(script_id: int, db: Session = Depends(get_db)):
     if not script:
         raise HTTPException(status_code=404, detail="Script not found")
 
-    # Prefer raw_video1, fall back to final_video
-    src = script.raw_video1_path or script.final_video_path
+    # Prefer subtitled final, then raw_video1, then final_video
+    src = script.final_subtitled_path or script.raw_video1_path or script.final_video_path
     if not src or not os.path.exists(src):
         raise HTTPException(status_code=404, detail="No video available")
 
