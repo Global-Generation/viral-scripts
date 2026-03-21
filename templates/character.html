@@ -413,7 +413,7 @@ function playVideo(scriptId) {
         document.body.appendChild(modal);
     }
     var player = document.getElementById('video-modal-player');
-    player.src = '/api/scripts/' + scriptId + '/final-video?subtitled=true';
+    player.src = '/api/scripts/' + scriptId + '/download-final?subtitled=true';
     modal.style.display = 'flex';
     requestAnimationFrame(function() { modal.style.opacity = '1'; });
 }
