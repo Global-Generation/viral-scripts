@@ -802,6 +802,32 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
     )
 
 
+@router.delete("/{script_id}/delete-final")
+def delete_final_video(script_id: int, db: Session = Depends(get_db)):
+    """Delete final video and subtitled version. Keeps raw uploads."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    for p in [script.final_video_path, script.final_subtitled_path]:
+        if p:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+    # Also delete cached thumbnail
+    thumb = os.path.join(os.getenv("DOWNLOADS_DIR", "./downloads"), f"thumb_{script_id}.jpg")
+    try:
+        os.remove(thumb)
+    except OSError:
+        pass
+    script.final_video_path = ""
+    script.final_subtitled_path = ""
+    script.subtitle_status = ""
+    script.subtitle_error = ""
+    db.commit()
+    return {"ok": True, "message": "Final video deleted"}
+
+
 @router.post("/{script_id}/cancel-processing")
 def cancel_processing(script_id: int, db: Session = Depends(get_db)):
     """Cancel any in-progress trim/subtitle processing."""

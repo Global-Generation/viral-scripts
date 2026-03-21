@@ -375,6 +375,10 @@
             <a href="/api/scripts/{{ script.id }}/download-final" download class="btn btn-secondary flex-1 justify-center" style="font-size: 12px;">
                 No Subs
             </a>
+            <button onclick="deleteFinalVideo({{ script.id }})" class="btn flex-1 justify-center" style="font-size: 12px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Delete
+            </button>
         </div>
         {% endif %}
         </div>
@@ -702,6 +706,20 @@ async function retrySubtitles(scriptId) {
     } else {
         toast('Retry failed: ' + (result?.detail || 'error'), 'error');
         updateStatusBar('failed', 'Retry failed');
+    }
+}
+
+// === Delete Final Video ===
+async function deleteFinalVideo(scriptId) {
+    if (!confirm('Delete final video and subtitled version? Raw uploads will remain.')) return;
+    const result = await api(`/api/scripts/${scriptId}/delete-final`, 'DELETE');
+    if (result && result.ok) {
+        toast('Final video deleted', 'success');
+        document.getElementById('final-video-section').style.display = 'none';
+        const player = document.getElementById('final-video-player');
+        if (player) { player.pause(); player.src = ''; }
+    } else {
+        toast('Delete failed: ' + (result?.detail || 'error'), 'error');
     }
 }
 
