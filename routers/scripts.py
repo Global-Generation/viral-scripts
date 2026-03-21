@@ -1086,6 +1086,34 @@ async def upload_single_video(
     return {"ok": True, "message": f"Video {num} uploaded"}
 
 
+@router.get("/{script_id}/thumbnail")
+def get_thumbnail(script_id: int, db: Session = Depends(get_db)):
+    """Extract and serve first frame of raw video 1 as a small JPEG thumbnail."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    # Prefer raw_video1, fall back to final_video
+    src = script.raw_video1_path or script.final_video_path
+    if not src or not os.path.exists(src):
+        raise HTTPException(status_code=404, detail="No video available")
+
+    downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
+    thumb_path = os.path.join(downloads_dir, f"thumb_{script_id}.jpg")
+
+    # Generate thumbnail if not cached (or source video is newer)
+    if not os.path.exists(thumb_path) or os.path.getmtime(src) > os.path.getmtime(thumb_path):
+        import subprocess
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", src, "-vframes", "1", "-vf", "scale=80:-1", "-q:v", "5", thumb_path],
+            capture_output=True, timeout=10,
+        )
+    if not os.path.exists(thumb_path):
+        raise HTTPException(status_code=404, detail="Thumbnail generation failed")
+
+    return FileResponse(thumb_path, media_type="image/jpeg")
+
+
 @router.delete("/{script_id}/raw-video/{num}")
 def delete_raw_video(script_id: int, num: int, db: Session = Depends(get_db)):
     """Delete raw video 1 or 2 and its related final/subtitled files."""

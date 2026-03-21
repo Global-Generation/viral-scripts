@@ -169,6 +169,7 @@
                 <thead>
                     <tr class="border-b border-gray-100">
                         <th class="th" style="font-size: 10px; width: 30px;">#</th>
+                        <th class="th" style="font-size: 10px; width: 44px;"></th>
                         <th class="th" style="font-size: 10px;">Script</th>
                         <th class="th" style="font-size: 10px; width: 50px;">Slot</th>
                         <th class="th" style="font-size: 10px;">Pub</th>
@@ -182,6 +183,13 @@
                     {% for entry in data.scripts %}
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50">
                         <td class="td" style="color: #9ca3af; font-size: 11px;">{{ loop.index }}</td>
+                        <td class="td" style="padding: 2px 4px;">
+                            {% if entry.has_raw_video %}
+                            <img src="/api/scripts/{{ entry.script_id }}/thumbnail" alt="" style="width: 36px; height: 64px; object-fit: cover; border-radius: 4px; display: block;" loading="lazy" onerror="this.style.display='none'">
+                            {% else %}
+                            <span style="display: block; width: 36px; height: 64px; background: #f3f4f6; border-radius: 4px;"></span>
+                            {% endif %}
+                        </td>
                         <td class="td" style="max-width: 220px;">
                             <a href="{{ entry.link }}" class="text-xs text-blue-500 hover:underline truncate block">
                                 {{ entry.title }}

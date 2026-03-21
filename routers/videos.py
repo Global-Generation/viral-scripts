@@ -59,6 +59,8 @@ def _build_script_schedule(db, creator, today):
         entries.append({
             "title": script.video.title[:55] if script.video else f"Script #{script.id}",
             "link": f"/scripts/{script.id}",
+            "script_id": script.id,
+            "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
@@ -97,6 +99,8 @@ def _build_nari_schedule(db, today):
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
             "link": "/nari",
+            "script_id": None,
+            "has_raw_video": False,
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
@@ -134,6 +138,8 @@ def _build_anna_schedule(db, today):
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
             "link": "/anna",
+            "script_id": None,
+            "has_raw_video": False,
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
