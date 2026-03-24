@@ -5,7 +5,12 @@ Usage:
     python batch_run.py --force      # regenerate ALL video prompts + metadata
     python batch_run.py --rewrite    # rewrite modified_text + regenerate video prompts + metadata
     python batch_run.py --daniel     # only Daniel's scripts
-    python batch_run.py --rewrite --daniel --force  # full regeneration for Daniel
+    python batch_run.py --boris      # only Boris's scripts (uses provocative Boris rewrite)
+    python batch_run.py --thomas     # only Thomas's scripts
+    python batch_run.py --zoe        # only Zoe's scripts
+    python batch_run.py --natalie    # only Natalie's scripts
+    python batch_run.py --luna       # only Luna's scripts
+    python batch_run.py --rewrite --boris --force  # full regeneration for Boris
 """
 import sys
 import json
@@ -21,7 +26,13 @@ logger = logging.getLogger(__name__)
 
 force = "--force" in sys.argv
 rewrite = "--rewrite" in sys.argv
-daniel_only = "--daniel" in sys.argv
+
+# Character filter — supports --daniel, --boris, --thomas, --zoe, --natalie, --luna
+character_filter = None
+for name in ["daniel", "boris", "thomas", "zoe", "natalie", "luna"]:
+    if f"--{name}" in sys.argv:
+        character_filter = name
+        break
 
 db = SessionLocal()
 q = db.query(Script).filter(
@@ -29,28 +40,31 @@ q = db.query(Script).filter(
     Script.assigned_to.isnot(None),
 )
 
-if daniel_only:
-    q = q.filter(Script.assigned_to == "daniel")
+if character_filter:
+    q = q.filter(Script.assigned_to == character_filter)
 
 if not force and not rewrite:
     q = q.filter((Script.video1_prompt == "") | (Script.video1_prompt.is_(None)))
 
 scripts = q.all()
-logger.info(f"Found {len(scripts)} scripts to process (force={force}, rewrite={rewrite}, daniel_only={daniel_only})")
+logger.info(f"Found {len(scripts)} scripts to process (force={force}, rewrite={rewrite}, character={character_filter or 'all'})")
 
 # Step 1: Rewrite modified_text if --rewrite
 if rewrite:
-    from services.rewriter import rewrite_provocative
+    from services.rewriter import rewrite_provocative, rewrite_provocative_boris
     rcount = 0
     rerrors = 0
     for s in scripts:
         if not s.original_text:
             continue
         try:
-            s.modified_text = rewrite_provocative(s.original_text)
+            if s.assigned_to == "boris":
+                s.modified_text = rewrite_provocative_boris(s.original_text)
+            else:
+                s.modified_text = rewrite_provocative(s.original_text)
             db.commit()
             rcount += 1
-            logger.info(f"Rewritten #{s.id} ({rcount}/{len(scripts)})")
+            logger.info(f"Rewritten #{s.id} [{s.assigned_to}] ({rcount}/{len(scripts)})")
         except Exception as e:
             rerrors += 1
             logger.error(f"Rewrite failed #{s.id}: {e}")

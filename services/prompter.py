@@ -58,8 +58,11 @@ The LAST quoted line must be a COMPLETE SENTENCE ending with . ! or ?
 ABSOLUTELY FORBIDDEN: ending V1 dialogue with an incomplete thought like "Lost" or "That's when I" — the last word of V1 must complete a full sentence grammatically and logically. If needed, move extra text to V2 rather than cutting mid-sentence.
 WORD COUNT: Your V1 dialogue must be CLOSE to the target word count given. Do not go far over or under.
 
-IMPORTANT — V1 ENDING ANGLE:
-Note which angle V1 ends on. V2 MUST start on a DIFFERENT angle for seamless splicing."""
+IMPORTANT — V1 CAMERA RULE (STRICT):
+- First angle is ALWAYS MEDIUM SHOT — use it for the FIRST SENTENCE ONLY
+- After the first sentence, jump cut to OFFSET MEDIUM SHOT (side view, camera ~30° to the right) for ALL remaining dialogue
+- This creates an immediate visual hook — the camera shift right after the opening line
+- V1 ALWAYS ends on OFFSET MEDIUM SHOT. V2 MUST start on a DIFFERENT angle for seamless splicing."""
 
 USER_VIDEO1 = """Generate Video 1 of 2 from this script.
 
@@ -183,15 +186,13 @@ def _split_at_sentence_boundary(text: str) -> tuple[str, str]:
 
 
 def _pick_angle_pairs():
-    """Pick 2 different angle pairs for V1 and V2 so they never repeat across videos."""
+    """Pick angle pairs for V1 and V2. V1 is always MEDIUM → OFFSET (side view after first sentence)."""
     import random
+    # V1 always: MEDIUM SHOT first sentence → jump cut → OFFSET MEDIUM SHOT (side view ~30°)
+    v1_pair = ("MEDIUM SHOT", "OFFSET MEDIUM SHOT")
+    # V2 must start on a different angle than OFFSET MEDIUM SHOT (V1 ending)
     angles = ["MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"]
-    # All possible 2-angle pairs (order matters)
-    pairs = [(a, b) for a in angles for b in angles if a != b]
-    # Pick V1 pair randomly
-    v1_pair = random.choice(pairs)
-    # V2 must start on a different angle than V1 ends on
-    v2_candidates = [(a, b) for a, b in pairs if a != v1_pair[1]]
+    v2_candidates = [(a, b) for a in angles for b in angles if a != b and a != "OFFSET MEDIUM SHOT"]
     v2_pair = random.choice(v2_candidates)
     return v1_pair, v2_pair
 

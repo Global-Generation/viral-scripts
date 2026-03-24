@@ -60,3 +60,47 @@ def rewrite_provocative(original_text: str) -> str:
     )
     _log_usage("rewrite")
     return response.content[0].text.strip()
+
+
+BORIS_SYSTEM_PROMPT = """You are a TikTok content strategist specializing in provocative, debate-sparking content.
+Your job is to rewrite scripts into bold, confrontational takes that make viewers want to argue in the comments.
+Write in the same language as the original script."""
+
+BORIS_REWRITE_PROMPT = """Rewrite this TikTok script in BORIS STYLE. Requirements:
+- Opening: bold controversial statement or hot take — hit the viewer immediately
+- Tone: "I don't care if you disagree" energy — calm but cutting. Think Joe Rogan meets Naval Ravikant
+- State opinions as facts. Challenge conventional wisdom. Make the viewer pick a side
+- NO emotional amplifiers: remove "literally", "insane", "crazy", "mind-blowing", "game-changer"
+- NO fake urgency: remove "right now", "before it's too late", "most people don't know"
+- NO hype. NO exclamation marks. Just raw, quiet confidence
+- Short sentences. Punchy. Every word earns its place
+- Keep the same topic and key facts but angle them provocatively
+
+LENGTH RULE — TARGET: 55-70 words TOTAL. This is a HARD LIMIT.
+- CUT ruthlessly. One core provocative point. No repetition.
+- Every sentence must be COMPLETE. Never end mid-thought.
+- Count your words. If outside 55-70, adjust until you hit the range.
+
+- OUTPUT: DIALOGUE ONLY. Plain spoken text, nothing else. No camera directions, no stage directions, no labels, no markdown
+- CTA RULE: REMOVE any "Comment X for..." or "DM me X for..." lines. Replace with "More on my page — link in bio." or end naturally
+
+Original script:
+{script}
+
+Rewrite (Boris style — provocative, confrontational, debate-sparking):"""
+
+
+def rewrite_provocative_boris(original_text: str) -> str:
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=512,
+        system=BORIS_SYSTEM_PROMPT,
+        messages=[{
+            "role": "user",
+            "content": BORIS_REWRITE_PROMPT.format(script=original_text)
+        }]
+    )
+    _log_usage("rewrite_boris")
+    return response.content[0].text.strip()
