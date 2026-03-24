@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
@@ -6,6 +7,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Script, Video, NariVideo, AnnaVideo
+
+PHOTOS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "photos")
 
 # US Eastern = UTC-4 (EDT) / UTC-5 (EST). Using EDT for now.
 EDT = timezone(timedelta(hours=-4))
@@ -316,9 +319,21 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             entries, tasks = _build_script_schedule(db, creator, today)
 
         todays_tasks.extend(tasks)
+
+        # Count photos
+        photo_dir = os.path.join(PHOTOS_DIR, creator)
+        photos = len([f for f in os.listdir(photo_dir) if not f.startswith(".")]) if os.path.isdir(photo_dir) else 0
+
+        # Count subtitled / published
+        subtitled = sum(1 for e in entries if e.get("status") == "Subtitled" or e.get("has_final"))
+        published = sum(1 for e in entries if e["published_tiktok"])
+
         schedule[creator] = {
             "scripts": entries,
             "count": len(entries),
+            "photos": photos,
+            "subtitled": subtitled,
+            "published": published,
         }
 
     # Build calendar dynamically from actual entry dates
@@ -346,6 +361,14 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             day_map[d].append(entry)
         cal_data[creator] = day_map
 
+    # Grand totals
+    totals = {
+        "count": sum(schedule[c]["count"] for c in CREATORS),
+        "photos": sum(schedule[c]["photos"] for c in CREATORS),
+        "subtitled": sum(schedule[c]["subtitled"] for c in CREATORS),
+        "published": sum(schedule[c]["published"] for c in CREATORS),
+    }
+
     return templates.TemplateResponse(
         "videos.html",
         {
@@ -357,5 +380,6 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "today": today,
             "cal_days": cal_days,
             "cal_data": cal_data,
+            "totals": totals,
         }
     )

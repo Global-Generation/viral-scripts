@@ -91,7 +91,10 @@
                         {{ day.strftime('%d') }}<br>{{ day.strftime('%a')[:2] }}
                     </th>
                     {% endfor %}
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 36px;">Total</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Total</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Ready</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,9 +132,42 @@
                     <td style="padding: 3px 6px; text-align: center;">
                         <span style="font-size: 10px; font-weight: 700; color: #374151;">{{ schedule[creator].count }}</span>
                     </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].photos > 0 %}#8b5cf6{% else %}#d1d5db{% endif %};">{{ schedule[creator].photos }}</span>
+                    </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].subtitled > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].subtitled }}</span>
+                    </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].published }}</span>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #e5e7eb;">
+                    <td style="padding: 6px; font-weight: 700; font-size: 10px; color: #374151;">TOTAL</td>
+                    {% for day in cal_days %}
+                    <td style="padding: 3px 2px; text-align: center;">
+                        {% set ns = namespace(day_total=0, day_pub=0) %}
+                        {% for creator in creators %}
+                            {% set day_entries = cal_data[creator].get(day, []) %}
+                            {% set ns.day_total = ns.day_total + day_entries|length %}
+                            {% set ns.day_pub = ns.day_pub + day_entries|selectattr('published_tiktok')|list|length %}
+                        {% endfor %}
+                        {% if ns.day_total > 0 %}
+                        <span style="font-size: 9px; font-weight: 700; color: #374151;">{{ ns.day_total }}</span>
+                        {% else %}
+                        <span style="color: #e5e7eb;">&mdash;</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #111827;">{{ totals.count }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.subtitled }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.published }}</span></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
     <div class="flex items-center gap-4 mt-3" style="font-size: 10px; color: #9ca3af;">
