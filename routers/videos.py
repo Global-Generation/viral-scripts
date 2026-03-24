@@ -17,7 +17,7 @@ router = APIRouter(tags=["videos"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
-CREATORS = ["daniel", "boris", "thomas", "zoe", "natalie", "luna", "sophia", "ava"]
+CREATORS = ["sophia", "ava", "daniel", "boris", "thomas", "zoe", "natalie", "luna"]
 
 # Per-creator start dates
 SCHEDULE_STARTS = {
