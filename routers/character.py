@@ -1,8 +1,9 @@
 import json
 import os
+import uuid
 from collections import defaultdict
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Depends, UploadFile, File
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
@@ -117,3 +118,41 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             "photos": photos,
         }
     )
+
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+@router.post("/api/character/{name}/upload-photo")
+async def upload_character_photo(name: str, file: UploadFile = File(...)):
+    if name not in CHARACTERS:
+        return JSONResponse({"ok": False, "error": "Character not found"}, status_code=404)
+
+    ext = os.path.splitext(file.filename or "img.jpg")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return JSONResponse({"ok": False, "error": "Only JPG, PNG, WebP allowed"}, status_code=400)
+
+    photos_dir = os.path.join("static", "photos", name)
+    os.makedirs(photos_dir, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(photos_dir, filename)
+
+    contents = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    return {"ok": True, "filename": filename, "url": f"/static/photos/{name}/{filename}"}
+
+
+@router.delete("/api/character/{name}/photo/{filename}")
+async def delete_character_photo(name: str, filename: str):
+    if name not in CHARACTERS:
+        return JSONResponse({"ok": False, "error": "Character not found"}, status_code=404)
+
+    filepath = os.path.join("static", "photos", name, filename)
+    if not os.path.isfile(filepath):
+        return JSONResponse({"ok": False, "error": "Photo not found"}, status_code=404)
+
+    os.remove(filepath)
+    return {"ok": True}

@@ -58,19 +58,30 @@
 </div>
 
 <!-- Photo Gallery -->
-{% if photos %}
 <div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-    <div style="display: flex; gap: 10px; padding: 2px 0;">
+    <div id="photo-gallery" style="display: flex; gap: 10px; padding: 2px 0;">
         {% for photo in photos %}
-        <img src="/static/photos/{{ name }}/{{ photo }}" alt="{{ label }}"
-             style="height: 180px; width: 120px; object-fit: cover; border-radius: 12px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.15s;"
-             onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'"
-             onclick="openPhotoModal(this.src)"
-             loading="lazy">
+        <div style="position: relative; flex-shrink: 0;" class="photo-item" data-filename="{{ photo }}"
+             onmouseenter="this.querySelector('.del-btn').style.opacity='1'" onmouseleave="this.querySelector('.del-btn').style.opacity='0'">
+            <img src="/static/photos/{{ name }}/{{ photo }}" alt="{{ label }}"
+                 style="height: 180px; width: 120px; object-fit: cover; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.15s;"
+                 onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'"
+                 onclick="openPhotoModal(this.src)"
+                 loading="lazy">
+            <button class="del-btn" onclick="event.stopPropagation(); deletePhoto('{{ photo }}')" title="Delete"
+                    style="position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s;">×</button>
+        </div>
         {% endfor %}
+        <!-- Upload button -->
+        <label style="height: 180px; width: 120px; border-radius: 12px; border: 2px dashed #d1d5db; flex-shrink: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: border-color 0.15s, background 0.15s;"
+               onmouseenter="this.style.borderColor='{{ color }}'; this.style.background='rgba(0,0,0,0.02)'"
+               onmouseleave="this.style.borderColor='#d1d5db'; this.style.background='transparent'">
+            <svg width="24" height="24" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span style="font-size: 10px; color: #9ca3af; font-weight: 500;">Add Photo</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple style="display: none;" onchange="uploadPhotos(this.files)">
+        </label>
     </div>
 </div>
-{% endif %}
 
 <!-- Publication Timeline Chart -->
 <div class="stat-card mb-4" id="chart-card" style="{% if not scripts %}display:none{% endif %}">
@@ -364,6 +375,55 @@ function toggleExpand(row, event) {
         return cell.textContent.trim();
     }
 })();
+
+// === Upload photos ===
+async function uploadPhotos(files) {
+    const gallery = document.getElementById('photo-gallery');
+    const uploadLabel = gallery.querySelector('label');
+    for (const file of files) {
+        const form = new FormData();
+        form.append('file', file);
+        try {
+            const res = await fetch('/api/character/{{ name }}/upload-photo', { method: 'POST', body: form });
+            const data = await res.json();
+            if (data.ok) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position: relative; flex-shrink: 0;';
+                wrapper.className = 'photo-item';
+                wrapper.dataset.filename = data.filename;
+                wrapper.innerHTML =
+                    '<img src="' + data.url + '" alt="{{ label }}" style="height: 180px; width: 120px; object-fit: cover; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.15s;" onmouseenter="this.style.transform=\'scale(1.05)\'" onmouseleave="this.style.transform=\'scale(1)\'" onclick="openPhotoModal(this.src)" loading="lazy">' +
+                    '<button onclick="event.stopPropagation(); deletePhoto(\'' + data.filename + '\')" title="Delete" style="position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s;" onmouseenter="this.style.opacity=\'1\'" onmouseleave="this.style.opacity=\'0\'">×</button>';
+                gallery.insertBefore(wrapper, uploadLabel);
+                toast('Photo uploaded', 'success');
+            } else {
+                toast(data.error || 'Upload failed', 'error');
+            }
+        } catch (e) {
+            toast('Upload failed', 'error');
+        }
+    }
+    // Reset file input
+    uploadLabel.querySelector('input').value = '';
+}
+
+// === Delete photo ===
+async function deletePhoto(filename) {
+    if (!confirm('Delete this photo?')) return;
+    try {
+        const res = await fetch('/api/character/{{ name }}/photo/' + filename, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) {
+            const item = document.querySelector('.photo-item[data-filename="' + filename + '"]');
+            if (item) item.remove();
+            toast('Photo deleted', 'success');
+        } else {
+            toast(data.error || 'Delete failed', 'error');
+        }
+    } catch (e) {
+        toast('Delete failed', 'error');
+    }
+}
 
 // === Photo modal ===
 function openPhotoModal(src) {
