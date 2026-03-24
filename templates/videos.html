@@ -24,7 +24,7 @@
         <div class="space-y-2">
             {% for task in morning_tasks %}
             <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fffbeb; border-radius: 8px;">
-                <input type="checkbox" onchange="togglePublishCb({{ task.script_id }}, '{{ task.platform|lower }}', this)"
+                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
                     {% if task.published %}checked{% endif %}
                     style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
                 <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
@@ -48,7 +48,7 @@
         <div class="space-y-2">
             {% for task in evening_tasks %}
             <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #eef2ff; border-radius: 8px;">
-                <input type="checkbox" onchange="togglePublishCb({{ task.script_id }}, '{{ task.platform|lower }}', this)"
+                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
                     {% if task.published %}checked{% endif %}
                     style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
                 <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;

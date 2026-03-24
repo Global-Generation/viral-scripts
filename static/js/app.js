@@ -214,9 +214,9 @@ async function togglePublish(scriptId, platform) {
 }
 
 // === Toggle publish from schedule checkbox ===
-async function togglePublishCb(scriptId, platform, checkbox) {
+async function togglePublishCb(publishUrl, platform, checkbox) {
     try {
-        const result = await api('/api/scripts/' + scriptId + '/publish', 'POST', { platform: platform });
+        const result = await api(publishUrl, 'POST', { platform: platform });
         if (result && result.ok) {
             toast(result.published ? platform + ' published ✓' : platform + ' unpublished', 'success');
         } else {

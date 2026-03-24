@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from collections import defaultdict
 from database import get_db
 from models import AnnaVideo
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
 import json
@@ -49,6 +49,29 @@ def anna_publish_date(video_id: int, data: DateUpdate, db: Session = Depends(get
         setattr(video, field, dt)
         db.commit()
     return {"ok": True}
+
+
+class TogglePublish(BaseModel):
+    platform: str = "tiktok"
+
+
+@router.post("/api/anna/{video_id}/toggle-publish")
+def anna_toggle_publish(video_id: int, data: TogglePublish, db: Session = Depends(get_db)):
+    video = db.query(AnnaVideo).get(video_id)
+    if not video:
+        return JSONResponse({"error": "Not found"}, 404)
+    field = f"published_{data.platform}"
+    if not hasattr(video, field):
+        return JSONResponse({"error": "Invalid platform"}, 400)
+    current = getattr(video, field)
+    if current:
+        setattr(video, field, None)
+        db.commit()
+        return {"ok": True, "published": False}
+    else:
+        setattr(video, field, datetime.now(timezone.utc))
+        db.commit()
+        return {"ok": True, "published": True}
 
 
 class StatusUpdate(BaseModel):
