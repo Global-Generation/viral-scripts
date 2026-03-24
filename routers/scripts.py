@@ -11,7 +11,7 @@ from database import get_db, SessionLocal
 from models import Video, Script, Avatar, VideoGeneration
 from services.pipeline import extract_script_for_video
 from services.higgsfield import generate_video, check_status as hf_check_status
-from services.rewriter import rewrite_provocative
+from services.rewriter import rewrite_provocative, rewrite_provocative_boris
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
 from services.prompter import generate_video_prompt
@@ -152,7 +152,10 @@ def rewrite_script(script_id: int, db: Session = Depends(get_db)):
     if not script.original_text:
         raise HTTPException(status_code=400, detail="No script text to rewrite")
 
-    rewritten = rewrite_provocative(script.original_text)
+    if script.assigned_to == "boris":
+        rewritten = rewrite_provocative_boris(script.original_text)
+    else:
+        rewritten = rewrite_provocative(script.original_text)
     script.modified_text = rewritten
     script.status = "modified"
     db.commit()
@@ -208,7 +211,10 @@ def batch_rewrite(db: Session = Depends(get_db)):
     errors = 0
     for script in scripts:
         try:
-            rewritten = rewrite_provocative(script.original_text)
+            if script.assigned_to == "boris":
+                rewritten = rewrite_provocative_boris(script.original_text)
+            else:
+                rewritten = rewrite_provocative(script.original_text)
             script.modified_text = rewritten
             script.status = "modified"
             db.commit()
