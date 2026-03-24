@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Publication Schedule</h1>
-    <p class="text-sm text-gray-500">TT +0, Instagram +7, YouTube +14 days. Two per day per creator (morning + evening).</p>
+    <p class="text-sm text-gray-500">Two per day per creator (morning + evening).</p>
 </div>
 
 <!-- Today's Tasks -->
@@ -154,15 +154,7 @@
     <div class="flex items-center gap-4 flex-wrap">
         <div style="display: flex; align-items: center; gap: 5px;">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: #000;"></span>
-            <span style="font-size: 11px; font-weight: 600; color: #374151;">TikTok: Day 0</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #E1306C;"></span>
-            <span style="font-size: 11px; font-weight: 600; color: #374151;">Instagram: +7</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF0000;"></span>
-            <span style="font-size: 11px; font-weight: 600; color: #374151;">YouTube: +14</span>
+            <span style="font-size: 11px; font-weight: 600; color: #374151;">TikTok</span>
         </div>
         <div style="flex: 1;"></div>
         <span style="font-size: 11px; color: #9ca3af;">2 scripts/day per creator</span>
@@ -199,8 +191,6 @@
                         <th class="th" style="font-size: 10px; width: 50px;">Slot</th>
                         <th class="th" style="font-size: 10px;">Pub</th>
                         <th class="th" style="font-size: 10px;">TikTok</th>
-                        <th class="th" style="font-size: 10px;">Instagram</th>
-                        <th class="th" style="font-size: 10px;">YouTube</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -243,32 +233,6 @@
                             <span style="font-size: 8px; color: #ef4444; font-weight: 600;">overdue</span>
                             {% else %}
                             <span style="font-size: 11px; font-weight: 600; color: #374151;">{{ entry.tiktok_date.strftime('%b %d') }}</span>
-                            {% endif %}
-                        </td>
-                        <td class="td">
-                            {% if entry.published_instagram %}
-                            <span style="font-size: 11px; font-weight: 500; color: #16a34a;">{{ entry.instagram_date.strftime('%b %d') }} ✓</span>
-                            {% elif entry.instagram_date == today %}
-                            <span style="font-size: 11px; font-weight: 500; color: #E1306C;">{{ entry.instagram_date.strftime('%b %d') }}</span>
-                            <span style="font-size: 8px; color: #E1306C; font-weight: 700;">TODAY</span>
-                            {% elif entry.instagram_date < today %}
-                            <span style="font-size: 11px; font-weight: 500; color: #ef4444;">{{ entry.instagram_date.strftime('%b %d') }}</span>
-                            <span style="font-size: 8px; color: #ef4444; font-weight: 600;">overdue</span>
-                            {% else %}
-                            <span style="font-size: 11px; font-weight: 500; color: #6b7280;">{{ entry.instagram_date.strftime('%b %d') }}</span>
-                            {% endif %}
-                        </td>
-                        <td class="td">
-                            {% if entry.published_youtube %}
-                            <span style="font-size: 11px; font-weight: 500; color: #16a34a;">{{ entry.youtube_date.strftime('%b %d') }} ✓</span>
-                            {% elif entry.youtube_date == today %}
-                            <span style="font-size: 11px; font-weight: 500; color: #FF0000;">{{ entry.youtube_date.strftime('%b %d') }}</span>
-                            <span style="font-size: 8px; color: #FF0000; font-weight: 700;">TODAY</span>
-                            {% elif entry.youtube_date < today %}
-                            <span style="font-size: 11px; font-weight: 500; color: #ef4444;">{{ entry.youtube_date.strftime('%b %d') }}</span>
-                            <span style="font-size: 8px; color: #ef4444; font-weight: 600;">overdue</span>
-                            {% else %}
-                            <span style="font-size: 11px; font-weight: 500; color: #6b7280;">{{ entry.youtube_date.strftime('%b %d') }}</span>
                             {% endif %}
                         </td>
                     </tr>
