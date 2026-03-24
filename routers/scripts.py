@@ -62,6 +62,33 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/by-speaker/{speaker_name}")
+def get_scripts_by_speaker(speaker_name: str, db: Session = Depends(get_db)):
+    """Return all scripts assigned to a speaker that have video1_prompt."""
+    speaker = speaker_name.lower().strip()
+    scripts = (
+        db.query(Script)
+        .filter(Script.assigned_to == speaker)
+        .filter(Script.video1_prompt != "")
+        .filter(Script.video1_prompt.isnot(None))
+        .order_by(Script.id)
+        .all()
+    )
+    return [
+        {
+            "id": s.id,
+            "video1_prompt": s.video1_prompt or "",
+            "video2_prompt": s.video2_prompt or "",
+            "video3_prompt": s.video3_prompt or "",
+            "character_type": s.character_type or "",
+            "assigned_to": s.assigned_to or "",
+            "production_status": s.production_status or "",
+            "modified_text": s.modified_text or "",
+        }
+        for s in scripts
+    ]
+
+
 VALID_ASSIGNEES = {"boris", "thomas", "daniel", "zoe", "natalie", "luna", ""}
 
 
