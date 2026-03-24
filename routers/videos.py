@@ -30,6 +30,23 @@ SCHEDULE_STARTS = {
 }
 
 
+def _script_status(script):
+    """Return (status_label, status_color) for a script."""
+    if script.published_tiktok or script.published_instagram or script.published_youtube:
+        return "Published", "#16a34a"
+    if script.final_subtitled_path:
+        return "Subtitled", "#0891b2"
+    if script.subtitle_status == "processing":
+        return "Adding Subs", "#8b5cf6"
+    if script.final_video_path:
+        return "Video Ready", "#2563eb"
+    if script.raw_video1_path or script.raw_video2_path:
+        return "Filmed", "#ca8a04"
+    if script.modified_text:
+        return "Script Only", "#9ca3af"
+    return "Draft", "#d1d5db"
+
+
 def _build_script_schedule(db, creator, today):
     """Build schedule for script-based creators (daniel, boris, thomas)."""
     scripts = (
@@ -67,6 +84,7 @@ def _build_script_schedule(db, creator, today):
         ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
         yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
 
+        s_label, s_color = _script_status(script)
         entries.append({
             "title": script.video.title[:55] if script.video else f"Script #{script.id}",
             "link": f"/scripts/{script.id}",
@@ -80,6 +98,8 @@ def _build_script_schedule(db, creator, today):
             "published_tiktok": bool(script.published_tiktok),
             "published_instagram": bool(script.published_instagram),
             "published_youtube": bool(script.published_youtube),
+            "status": s_label,
+            "status_color": s_color,
         })
 
         link = f"/scripts/{script.id}"
@@ -94,7 +114,8 @@ def _build_script_schedule(db, creator, today):
                     "slot": slot,
                     "script_id": script.id,
                     "published": bool(getattr(script, f"published_{platform.lower()}")),
-                    "has_final": bool(script.final_video_path or script.final_subtitled_path),
+                    "status": s_label,
+                    "status_color": s_color,
                 })
 
     return entries, tasks
