@@ -106,6 +106,14 @@ def _build_script_schedule(db, creator, today):
         link = f"/scripts/{script.id}"
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
+                plat_published = bool(getattr(script, f"published_{platform.lower()}"))
+                if plat_published:
+                    task_status, task_color = "Published", "#16a34a"
+                elif s_label == "Published":
+                    # TikTok published but this platform not yet
+                    task_status, task_color = "Ready to Post", "#f59e0b"
+                else:
+                    task_status, task_color = s_label, s_color
                 tasks.append({
                     "creator": creator,
                     "title": title[:60],
@@ -114,9 +122,9 @@ def _build_script_schedule(db, creator, today):
                     "date": d,
                     "slot": slot,
                     "script_id": script.id,
-                    "published": bool(getattr(script, f"published_{platform.lower()}")),
-                    "status": s_label,
-                    "status_color": s_color,
+                    "published": plat_published,
+                    "status": task_status,
+                    "status_color": task_color,
                 })
 
     return entries, tasks
@@ -163,6 +171,7 @@ def _build_nari_schedule(db, today):
         })
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
+                plat_published = bool(getattr(v, f"published_{platform.lower()}"))
                 tasks.append({
                     "creator": "sophia",
                     "title": v.title[:60] if v.title else f"Video #{v.id}",
@@ -171,10 +180,10 @@ def _build_nari_schedule(db, today):
                     "date": d,
                     "slot": slot,
                     "script_id": None,
-                    "published": bool(getattr(v, f"published_{platform.lower()}")),
+                    "published": plat_published,
                     "has_final": True,
-                    "status": "Published",
-                    "status_color": "#16a34a",
+                    "status": "Published" if plat_published else "Ready to Post",
+                    "status_color": "#16a34a" if plat_published else "#f59e0b",
                 })
 
     # Unpublished videos → from today at 2/day
@@ -264,6 +273,7 @@ def _build_anna_schedule(db, today):
         })
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
+                plat_published = bool(getattr(v, f"published_{platform.lower()}"))
                 tasks.append({
                     "creator": "ava",
                     "title": v.title[:60] if v.title else f"Video #{v.id}",
@@ -272,10 +282,10 @@ def _build_anna_schedule(db, today):
                     "date": d,
                     "slot": slot,
                     "script_id": None,
-                    "published": bool(getattr(v, f"published_{platform.lower()}")),
+                    "published": plat_published,
                     "has_final": True,
-                    "status": "Published",
-                    "status_color": "#16a34a",
+                    "status": "Published" if plat_published else "Ready to Post",
+                    "status_color": "#16a34a" if plat_published else "#f59e0b",
                 })
 
     # Unpublished videos → from today at 2/day
