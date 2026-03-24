@@ -105,8 +105,8 @@
                         {% if count > 0 %}
                             {% set pub_count = day_entries|selectattr('published_tiktok')|list|length %}
                             {% if pub_count == count %}
-                            {# All published — green ✓ #}
-                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 10px; line-height: 20px; font-weight: 700;" title="{% for e in day_entries %}{{ e.title }}&#10;{% endfor %}">✓</span>
+                            {# All published — green with count #}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 10px; line-height: 20px; font-weight: 700;" title="{% for e in day_entries %}{{ e.title }}&#10;{% endfor %}">{{ count }}</span>
                             {% elif pub_count > 0 %}
                             {# Partially published — yellow with fraction #}
                             <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #fef9c3; color: #ca8a04; font-size: 9px; line-height: 20px; font-weight: 700;" title="{% for e in day_entries %}{{ e.title }}{% if e.published_tiktok %} ✓{% endif %}&#10;{% endfor %}">{{ pub_count }}/{{ count }}</span>
@@ -132,7 +132,7 @@
     </div>
     <div class="flex items-center gap-4 mt-3" style="font-size: 10px; color: #9ca3af;">
         <div class="flex items-center gap-1">
-            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #dcfce7; border: 1px solid #16a34a; font-size: 9px; line-height: 16px; text-align: center; color: #16a34a; font-weight: 700;">✓</span> Published
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #dcfce7; border: 1px solid #16a34a; font-size: 9px; line-height: 16px; text-align: center; color: #16a34a; font-weight: 700;">2</span> Published
         </div>
         <div class="flex items-center gap-1">
             <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; font-size: 9px; line-height: 16px; text-align: center; color: #fff; font-weight: 700;">2</span> Today
