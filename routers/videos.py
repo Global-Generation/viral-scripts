@@ -25,8 +25,8 @@ SCHEDULE_STARTS = {
     "zoe":     date(2026, 3, 24),
     "natalie": date(2026, 3, 24),
     "luna":    date(2026, 3, 24),
-    "sophia":  date(2026, 3, 24),
-    "ava":     date(2026, 3, 24),
+    "sophia":  date(2026, 3, 16),
+    "ava":     date(2026, 3, 16),
 }
 
 

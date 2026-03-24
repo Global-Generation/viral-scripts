@@ -1310,6 +1310,85 @@ def get_metadata(script_id: int, db: Session = Depends(get_db)):
     }
 
 
+@router.post("/batch-generate-metadata")
+def batch_generate_metadata(db: Session = Depends(get_db)):
+    """Generate publication metadata for all assigned scripts that don't have it."""
+    import anthropic
+    import json as json_mod
+    from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
+
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=500, detail="Anthropic API key not configured")
+
+    scripts = db.query(Script).filter(
+        Script.assigned_to != "",
+        Script.assigned_to.isnot(None),
+        (Script.pub_title_tiktok == "") | (Script.pub_title_tiktok.is_(None)),
+    ).all()
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    count = 0
+    errors = 0
+
+    for script in scripts:
+        text = script.modified_text or script.original_text
+        if not text:
+            continue
+        try:
+            prompt = f"""You are a social media expert. Given this video script, generate publication metadata for 3 platforms.
+
+SCRIPT:
+{text[:3000]}
+
+Generate JSON with this exact structure (no markdown, just raw JSON):
+{{
+  "tiktok": {{
+    "title": "short catchy title under 60 chars with hooks",
+    "description": "2-3 sentences with emojis, call-to-action, under 150 chars",
+    "tags": "#hashtag1 #hashtag2 #hashtag3 (10-15 relevant trending hashtags)"
+  }},
+  "instagram": {{
+    "title": "catchy title under 60 chars",
+    "description": "3-4 sentences with emojis, storytelling hook, call-to-action, under 300 chars",
+    "tags": "#hashtag1 #hashtag2 (15-20 relevant hashtags)"
+  }},
+  "youtube": {{
+    "title": "SEO-optimized title under 70 chars",
+    "description": "5-7 sentences with SEO keywords, call-to-action, links placeholder, under 500 chars",
+    "tags": "tag1, tag2, tag3 (10-15 comma-separated SEO tags)"
+  }}
+}}"""
+            response = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = response.content[0].text.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            data = json_mod.loads(raw)
+
+            script.pub_title_tiktok = data.get("tiktok", {}).get("title", "")
+            script.pub_desc_tiktok = data.get("tiktok", {}).get("description", "")
+            script.pub_tags_tiktok = data.get("tiktok", {}).get("tags", "")
+            script.pub_title_instagram = data.get("instagram", {}).get("title", "")
+            script.pub_desc_instagram = data.get("instagram", {}).get("description", "")
+            script.pub_tags_instagram = data.get("instagram", {}).get("tags", "")
+            script.pub_title_youtube = data.get("youtube", {}).get("title", "")
+            script.pub_desc_youtube = data.get("youtube", {}).get("description", "")
+            script.pub_tags_youtube = data.get("youtube", {}).get("tags", "")
+            db.commit()
+            count += 1
+            logger.info(f"Generated metadata for script #{script.id}")
+        except Exception as e:
+            errors += 1
+            logger.error(f"Metadata generation failed for script #{script.id}: {e}")
+
+    return {"ok": True, "generated": count, "errors": errors}
+
+
 # === Subtitle endpoints ===
 
 def _add_subtitles_safe(generation_id: int):

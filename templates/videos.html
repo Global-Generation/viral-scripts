@@ -37,7 +37,7 @@
                 {% if task.has_final %}
                 <span style="font-size: 9px; font-weight: 600; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Ready</span>
                 {% else %}
-                <span style="font-size: 9px; font-weight: 600; color: #ef4444; background: #fef2f2; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Not ready</span>
+                <span style="font-size: 9px; font-weight: 600; color: #6b7280; background: #e5e7eb; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Not ready</span>
                 {% endif %}
                 <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
             </div>
@@ -65,7 +65,7 @@
                 {% if task.has_final %}
                 <span style="font-size: 9px; font-weight: 600; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Ready</span>
                 {% else %}
-                <span style="font-size: 9px; font-weight: 600; color: #ef4444; background: #fef2f2; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Not ready</span>
+                <span style="font-size: 9px; font-weight: 600; color: #6b7280; background: #e5e7eb; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">Not ready</span>
                 {% endif %}
                 <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
             </div>
@@ -219,7 +219,7 @@
                             {% if entry.has_final %}
                             <img src="/api/scripts/{{ entry.script_id }}/thumbnail" alt="" style="width: 36px; height: 64px; object-fit: cover; border-radius: 4px; display: block;" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\'display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:#f3f4f6;border-radius:4px;font-size:7px;color:#ef4444;font-weight:600;text-align:center;line-height:1.2;\'>Not<br>ready</span>'">
                             {% else %}
-                            <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 64px; background: #f3f4f6; border-radius: 4px; font-size: 7px; color: #ef4444; font-weight: 600; text-align: center; line-height: 1.2;">Not<br>ready</span>
+                            <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 64px; background: #f3f4f6; border-radius: 4px; font-size: 7px; color: #6b7280; font-weight: 600; text-align: center; line-height: 1.2;">Not<br>ready</span>
                             {% endif %}
                         </td>
                         <td class="td" style="max-width: 220px;">
