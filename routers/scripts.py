@@ -643,8 +643,9 @@ def generate_step(script_id: int, data: GenerateStepRequest, db: Session = Depen
     if not image_url:
         raise HTTPException(status_code=400, detail="Avatar image is required.")
 
-    # If we have an end frame from previous step, use it as the start image
-    start_image = data.end_frame_image or image_url
+    # Always use the original avatar photo — NOT the end frame from the previous clip.
+    # Each clip must look like a different day (different outfit, room, lighting = UGC style).
+    start_image = image_url
 
     generation_ids = []
     for variant_idx in range(2):
