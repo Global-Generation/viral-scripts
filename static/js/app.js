@@ -219,6 +219,7 @@ async function togglePublishCb(publishUrl, platform, checkbox) {
         const result = await api(publishUrl, 'POST', { platform: platform });
         if (result && result.ok) {
             toast(result.published ? platform + ' published ✓' : platform + ' unpublished', 'success');
+            location.reload();
         } else {
             checkbox.checked = !checkbox.checked;
             toast('Publish toggle failed', 'error');
