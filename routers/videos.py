@@ -19,14 +19,14 @@ PUB_OFFSETS = {"tiktok": 0, "instagram": 7, "youtube": 14}
 
 # Per-creator start dates
 SCHEDULE_STARTS = {
-    "daniel": date(2026, 3, 18),
-    "boris": date(2026, 3, 18),
-    "thomas": date(2026, 3, 18),
-    "zoe": date(2026, 3, 20),
-    "natalie": date(2026, 3, 20),
-    "luna": date(2026, 3, 20),
-    "sophia": date(2026, 3, 16),
-    "ava": date(2026, 3, 16),
+    "daniel":  date(2026, 3, 24),
+    "boris":   date(2026, 3, 24),
+    "thomas":  date(2026, 3, 24),
+    "zoe":     date(2026, 3, 24),
+    "natalie": date(2026, 3, 24),
+    "luna":    date(2026, 3, 24),
+    "sophia":  date(2026, 3, 24),
+    "ava":     date(2026, 3, 24),
 }
 
 
@@ -66,6 +66,9 @@ def _build_script_schedule(db, creator, today):
             "youtube_date": yt_date,
             "has_final": bool(script.final_video_path or script.final_subtitled_path),
             "slot": slot,
+            "published_tiktok": bool(script.published_tiktok),
+            "published_instagram": bool(script.published_instagram),
+            "published_youtube": bool(script.published_youtube),
         })
 
         link = f"/scripts/{script.id}"
@@ -78,6 +81,8 @@ def _build_script_schedule(db, creator, today):
                     "platform": platform,
                     "date": d,
                     "slot": slot,
+                    "script_id": script.id,
+                    "published": bool(getattr(script, f"published_{platform.lower()}")),
                 })
 
     return entries, tasks

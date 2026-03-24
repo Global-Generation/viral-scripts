@@ -213,6 +213,22 @@ async function togglePublish(scriptId, platform) {
     }
 }
 
+// === Toggle publish from schedule checkbox ===
+async function togglePublishCb(scriptId, platform, checkbox) {
+    try {
+        const result = await api('/api/scripts/' + scriptId + '/publish', 'POST', { platform: platform });
+        if (result && result.ok) {
+            toast(result.published ? platform + ' published ✓' : platform + ' unpublished', 'success');
+        } else {
+            checkbox.checked = !checkbox.checked;
+            toast('Publish toggle failed', 'error');
+        }
+    } catch (e) {
+        checkbox.checked = !checkbox.checked;
+        toast('Network error', 'error');
+    }
+}
+
 // === Generate video prompts (split into Video 1 + Video 2) ===
 async function generatePrompt(scriptId) {
     const btn = document.getElementById('generate-prompt-btn');
