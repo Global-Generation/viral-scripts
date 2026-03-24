@@ -15,7 +15,6 @@ templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
 
 CREATORS = ["daniel", "boris", "thomas", "zoe", "natalie", "luna", "sophia", "ava"]
-PUB_OFFSETS = {"tiktok": 0, "instagram": 7, "youtube": 14}
 
 # Per-creator start dates
 SCHEDULE_STARTS = {
@@ -32,7 +31,7 @@ SCHEDULE_STARTS = {
 
 def _script_status(script):
     """Return (status_label, status_color) for a script."""
-    if script.published_tiktok or script.published_instagram or script.published_youtube:
+    if script.published_tiktok:
         return "Published", "#16a34a"
     if script.final_subtitled_path:
         return "Subtitled", "#0891b2"
@@ -80,9 +79,7 @@ def _build_script_schedule(db, creator, today):
     for i, script in enumerate(scripts):
         base_date = start + timedelta(days=i // 2)
         slot = "morning" if i % 2 == 0 else "evening"
-        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
-        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+        tt_date = base_date
 
         s_label, s_color = _script_status(script)
         title = script.pub_title_tiktok or (script.video.title if script.video else None) or f"Script #{script.id}"
@@ -92,24 +89,18 @@ def _build_script_schedule(db, creator, today):
             "script_id": script.id,
             "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
             "tiktok_date": tt_date,
-            "instagram_date": ig_date,
-            "youtube_date": yt_date,
             "has_final": bool(script.final_video_path or script.final_subtitled_path),
             "slot": slot,
             "published_tiktok": bool(script.published_tiktok),
-            "published_instagram": bool(script.published_instagram),
-            "published_youtube": bool(script.published_youtube),
             "status": s_label,
             "status_color": s_color,
         })
 
-        link = f"/scripts/{script.id}"
-        # Only TikTok in schedule for now (IG/YT disabled)
         if tt_date == today:
             tasks.append({
                 "creator": creator,
                 "title": title[:60],
-                "link": link,
+                "link": f"/scripts/{script.id}",
                 "platform": "TikTok",
                 "date": tt_date,
                 "slot": slot,
@@ -118,6 +109,9 @@ def _build_script_schedule(db, creator, today):
                 "status": s_label,
                 "status_color": s_color,
             })
+
+    # Published to bottom of the table
+    entries.sort(key=lambda e: (1 if e["published_tiktok"] else 0))
 
     return entries, tasks
 
@@ -142,8 +136,6 @@ def _build_nari_schedule(db, today):
         slot_n = date_slots.get(tt_date, 0)
         slot = "morning" if slot_n % 2 == 0 else "evening"
         date_slots[tt_date] = slot_n + 1
-        ig_date = tt_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = tt_date + timedelta(days=PUB_OFFSETS["youtube"])
 
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
@@ -151,17 +143,12 @@ def _build_nari_schedule(db, today):
             "script_id": None,
             "has_raw_video": False,
             "tiktok_date": tt_date,
-            "instagram_date": ig_date,
-            "youtube_date": yt_date,
             "has_final": True,
             "slot": slot,
             "published_tiktok": True,
-            "published_instagram": bool(v.published_instagram),
-            "published_youtube": bool(v.published_youtube),
             "status": "Published",
             "status_color": "#16a34a",
         })
-        # Only TikTok in schedule for now (IG/YT disabled)
         if tt_date == today:
             tasks.append({
                 "creator": "sophia",
@@ -171,19 +158,19 @@ def _build_nari_schedule(db, today):
                 "date": tt_date,
                 "slot": slot,
                 "script_id": None,
-                "published": bool(v.published_tiktok),
+                "published": True,
                 "has_final": True,
                 "status": "Published",
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → from today at 2/day
+    # Unpublished videos → from today, offset by published slots on today
+    pub_on_today = date_slots.get(today, 0)
     for i, v in enumerate(unpublished):
-        base_date = today + timedelta(days=i // 2)
-        slot = "morning" if i % 2 == 0 else "evening"
+        adj_i = i + pub_on_today
+        base_date = today + timedelta(days=adj_i // 2)
+        slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
-        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
         is_ready = v.production_status in ("ready", "published")
         status = "Video Ready" if is_ready else "Draft"
         status_color = "#2563eb" if is_ready else "#d1d5db"
@@ -194,17 +181,12 @@ def _build_nari_schedule(db, today):
             "script_id": None,
             "has_raw_video": False,
             "tiktok_date": tt_date,
-            "instagram_date": ig_date,
-            "youtube_date": yt_date,
             "has_final": is_ready,
             "slot": slot,
             "published_tiktok": False,
-            "published_instagram": False,
-            "published_youtube": False,
             "status": status,
             "status_color": status_color,
         })
-        # Only TikTok in schedule for now (IG/YT disabled)
         if tt_date == today:
             tasks.append({
                 "creator": "sophia",
@@ -216,9 +198,12 @@ def _build_nari_schedule(db, today):
                 "script_id": None,
                 "published": False,
                 "has_final": is_ready,
-                    "status": status,
-                    "status_color": status_color,
-                })
+                "status": status,
+                "status_color": status_color,
+            })
+
+    # Published to bottom of the table
+    entries.sort(key=lambda e: (1 if e["published_tiktok"] else 0))
 
     return entries, tasks
 
@@ -243,8 +228,6 @@ def _build_anna_schedule(db, today):
         slot_n = date_slots.get(tt_date, 0)
         slot = "morning" if slot_n % 2 == 0 else "evening"
         date_slots[tt_date] = slot_n + 1
-        ig_date = tt_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = tt_date + timedelta(days=PUB_OFFSETS["youtube"])
 
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
@@ -252,17 +235,12 @@ def _build_anna_schedule(db, today):
             "script_id": None,
             "has_raw_video": False,
             "tiktok_date": tt_date,
-            "instagram_date": ig_date,
-            "youtube_date": yt_date,
             "has_final": True,
             "slot": slot,
             "published_tiktok": True,
-            "published_instagram": bool(v.published_instagram),
-            "published_youtube": bool(v.published_youtube),
             "status": "Published",
             "status_color": "#16a34a",
         })
-        # Only TikTok in schedule for now (IG/YT disabled)
         if tt_date == today:
             tasks.append({
                 "creator": "ava",
@@ -272,19 +250,19 @@ def _build_anna_schedule(db, today):
                 "date": tt_date,
                 "slot": slot,
                 "script_id": None,
-                "published": bool(v.published_tiktok),
+                "published": True,
                 "has_final": True,
                 "status": "Published",
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → from today at 2/day
+    # Unpublished videos → from today, offset by published slots on today
+    pub_on_today = date_slots.get(today, 0)
     for i, v in enumerate(unpublished):
-        base_date = today + timedelta(days=i // 2)
-        slot = "morning" if i % 2 == 0 else "evening"
+        adj_i = i + pub_on_today
+        base_date = today + timedelta(days=adj_i // 2)
+        slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
-        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
         is_ready = v.production_status in ("ready", "published")
         status = "Video Ready" if is_ready else "Draft"
         status_color = "#2563eb" if is_ready else "#d1d5db"
@@ -295,17 +273,12 @@ def _build_anna_schedule(db, today):
             "script_id": None,
             "has_raw_video": False,
             "tiktok_date": tt_date,
-            "instagram_date": ig_date,
-            "youtube_date": yt_date,
             "has_final": is_ready,
             "slot": slot,
             "published_tiktok": False,
-            "published_instagram": False,
-            "published_youtube": False,
             "status": status,
             "status_color": status_color,
         })
-        # Only TikTok in schedule for now (IG/YT disabled)
         if tt_date == today:
             tasks.append({
                 "creator": "ava",
@@ -320,6 +293,9 @@ def _build_anna_schedule(db, today):
                 "status": status,
                 "status_color": status_color,
             })
+
+    # Published to bottom of the table
+    entries.sort(key=lambda e: (1 if e["published_tiktok"] else 0))
 
     return entries, tasks
 
@@ -377,7 +353,6 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "active_page": "videos",
             "schedule": schedule,
             "creators": CREATORS,
-            "pub_offsets": PUB_OFFSETS,
             "todays_tasks": todays_tasks,
             "today": today,
             "cal_days": cal_days,
