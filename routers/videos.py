@@ -169,7 +169,7 @@ def _build_nari_schedule(db, today):
             "status": "Published",
             "status_color": "#16a34a",
         })
-        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+        for platform, d in [("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 plat_published = bool(getattr(v, f"published_{platform.lower()}"))
                 tasks.append({
@@ -213,7 +213,7 @@ def _build_nari_schedule(db, today):
             "status": status,
             "status_color": status_color,
         })
-        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+        for platform, d in [("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 tasks.append({
                     "creator": "sophia",
@@ -271,7 +271,7 @@ def _build_anna_schedule(db, today):
             "status": "Published",
             "status_color": "#16a34a",
         })
-        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+        for platform, d in [("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 plat_published = bool(getattr(v, f"published_{platform.lower()}"))
                 tasks.append({
@@ -315,7 +315,7 @@ def _build_anna_schedule(db, today):
             "status": status,
             "status_color": status_color,
         })
-        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+        for platform, d in [("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 tasks.append({
                     "creator": "ava",
