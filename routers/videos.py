@@ -94,6 +94,7 @@ def _build_script_schedule(db, creator, today):
                     "slot": slot,
                     "script_id": script.id,
                     "published": bool(getattr(script, f"published_{platform.lower()}")),
+                    "has_final": bool(script.final_video_path or script.final_subtitled_path),
                 })
 
     return entries, tasks
@@ -138,6 +139,7 @@ def _build_nari_schedule(db, today):
                     "slot": slot,
                     "script_id": None,
                     "published": bool(getattr(v, f"published_{platform.lower()}")),
+                    "has_final": v.production_status in ("ready", "published"),
                 })
 
     return entries, tasks
@@ -182,6 +184,7 @@ def _build_anna_schedule(db, today):
                     "slot": slot,
                     "script_id": None,
                     "published": bool(getattr(v, f"published_{platform.lower()}")),
+                    "has_final": v.production_status in ("ready", "published"),
                 })
 
     return entries, tasks
