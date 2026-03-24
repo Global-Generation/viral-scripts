@@ -46,6 +46,17 @@ def _build_script_schedule(db, creator, today):
         .all()
     )
 
+    # Sort: ready (has final video) first, then by id
+    def _readiness(s):
+        if s.final_subtitled_path:
+            return 0
+        if s.final_video_path:
+            return 1
+        if s.raw_video1_path or s.raw_video2_path:
+            return 2
+        return 3
+    scripts.sort(key=lambda s: (_readiness(s), s.id))
+
     start = SCHEDULE_STARTS[creator]
     entries = []
     tasks = []
@@ -111,6 +122,9 @@ def _build_nari_schedule(db, today):
             "youtube_date": yt_date,
             "has_final": v.production_status == "published",
             "slot": slot,
+            "published_tiktok": bool(v.published_tiktok),
+            "published_instagram": bool(v.published_instagram),
+            "published_youtube": bool(v.published_youtube),
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
@@ -122,6 +136,8 @@ def _build_nari_schedule(db, today):
                     "platform": platform,
                     "date": d,
                     "slot": slot,
+                    "script_id": None,
+                    "published": bool(getattr(v, f"published_{platform.lower()}")),
                 })
 
     return entries, tasks
@@ -150,6 +166,9 @@ def _build_anna_schedule(db, today):
             "youtube_date": yt_date,
             "has_final": v.production_status == "published",
             "slot": slot,
+            "published_tiktok": bool(v.published_tiktok),
+            "published_instagram": bool(v.published_instagram),
+            "published_youtube": bool(v.published_youtube),
         })
 
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
@@ -161,6 +180,8 @@ def _build_anna_schedule(db, today):
                     "platform": platform,
                     "date": d,
                     "slot": slot,
+                    "script_id": None,
+                    "published": bool(getattr(v, f"published_{platform.lower()}")),
                 })
 
     return entries, tasks
