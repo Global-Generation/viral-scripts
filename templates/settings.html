@@ -39,6 +39,17 @@
     </div>
 </div>
 
+<!-- System Prompts -->
+<div class="stat-card mb-4">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700">System Prompts</h2>
+        <span class="text-xs text-gray-400">Click to expand, edit, and save</span>
+    </div>
+    <div id="prompts-container" class="space-y-2">
+        <p class="text-sm text-gray-400">Loading...</p>
+    </div>
+</div>
+
 <!-- Add Key Modal -->
 <div id="add-key-modal" style="display:none;" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
     <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
@@ -174,6 +185,49 @@ async function deleteApiKey(id) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadKeys(); loadUsage(); });
+async function loadPrompts() {
+    const data = await api('/api/settings/prompts');
+    if (!data) return;
+    const el = document.getElementById('prompts-container');
+    el.innerHTML = data.map(p => `
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            <div onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'"
+                 style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">${p.label}</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    ${p.is_custom ? '<span style="font-size: 9px; background: #dbeafe; color: #2563eb; padding: 1px 6px; border-radius: 4px; font-weight: 600;">Custom</span>' : ''}
+                    <span style="font-size: 10px; color: #9ca3af;">▼</span>
+                </div>
+            </div>
+            <div style="display: none; padding: 12px;">
+                <textarea id="prompt-${p.key}" style="width: 100%; min-height: 160px; font-size: 11px; font-family: monospace; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px; resize: vertical; line-height: 1.4;">${p.value.replace(/</g, '&lt;')}</textarea>
+                <div style="display: flex; gap: 6px; margin-top: 8px;">
+                    <button class="btn-sm btn-primary" onclick="savePrompt('${p.key}')">Save</button>
+                    ${p.is_custom ? `<button class="btn-sm btn-secondary" onclick="resetPrompt('${p.key}')">Reset to Default</button>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function savePrompt(key) {
+    const value = document.getElementById('prompt-' + key).value;
+    const result = await api('/api/settings/prompts/' + key, 'PUT', { value });
+    if (result && result.ok) {
+        toast('Prompt saved', 'success');
+        loadPrompts();
+    }
+}
+
+async function resetPrompt(key) {
+    if (!confirm('Reset this prompt to the default?')) return;
+    const result = await api('/api/settings/prompts/' + key, 'DELETE');
+    if (result && result.ok) {
+        toast('Reset to default', 'success');
+        loadPrompts();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => { loadKeys(); loadUsage(); loadPrompts(); });
 </script>
 {% endblock %}

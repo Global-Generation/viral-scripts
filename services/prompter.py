@@ -93,8 +93,8 @@ End with a simple CTA: "Link in bio." (counts toward word balance).
 V2 dialogue word count MUST be within ±20% of V1. If V1 had ~30 words, V2 must have 24-36 words. Do NOT make V2 shorter than V1.
 
 V1 → V2 SPLICE RULE (CRITICAL):
-V2 MUST start on a DIFFERENT angle than V1 ended on.
-This makes the splice between videos seamless."""
+V2 ALWAYS starts on MEDIUM SHOT (general plan) — this is different from V1's ending angle (OFFSET).
+Then jump cut to CLOSE-UP or OFFSET MEDIUM SHOT. V2 must NOT end on MEDIUM SHOT."""
 
 USER_VIDEO2 = """Generate Video 2 of 2 from this script.
 
@@ -156,6 +156,19 @@ def _detect_last_angle(prompt_text: str) -> str:
     return last_angle
 
 
+def _detect_first_angle(prompt_text: str) -> str:
+    """Detect the first camera angle used in a video prompt."""
+    text_upper = prompt_text.upper()
+    first_angle = "MEDIUM SHOT"
+    first_pos = len(text_upper)
+    for angle in ("MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"):
+        pos = text_upper.find(angle)
+        if 0 <= pos < first_pos:
+            first_pos = pos
+            first_angle = angle
+    return first_angle
+
+
 def _split_at_sentence_boundary(text: str) -> tuple[str, str]:
     """Split text into two halves at nearest sentence boundary to 50%."""
     import re
@@ -186,14 +199,13 @@ def _split_at_sentence_boundary(text: str) -> tuple[str, str]:
 
 
 def _pick_angle_pairs():
-    """Pick angle pairs for V1 and V2. V1 is always MEDIUM → OFFSET (side view after first sentence)."""
+    """Pick angle pairs for V1 and V2.
+    V1: MEDIUM SHOT → OFFSET MEDIUM SHOT (side view ~30°)
+    V2: MEDIUM SHOT → random(CLOSE-UP, OFFSET MEDIUM SHOT)
+    Neither video ends on MEDIUM SHOT."""
     import random
-    # V1 always: MEDIUM SHOT first sentence → jump cut → OFFSET MEDIUM SHOT (side view ~30°)
     v1_pair = ("MEDIUM SHOT", "OFFSET MEDIUM SHOT")
-    # V2 must start on a different angle than OFFSET MEDIUM SHOT (V1 ending)
-    angles = ["MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"]
-    v2_candidates = [(a, b) for a in angles for b in angles if a != b and a != "OFFSET MEDIUM SHOT"]
-    v2_pair = random.choice(v2_candidates)
+    v2_pair = ("MEDIUM SHOT", random.choice(["CLOSE-UP", "OFFSET MEDIUM SHOT"]))
     return v1_pair, v2_pair
 
 
@@ -248,12 +260,18 @@ def generate_video_prompt(script_text: str) -> dict:
         video2_text = _strip_label(response2.content[0].text.strip(), 2)
         _log_usage("prompt")
 
-        # Check word balance
+        # Check word balance and angle
         v2_dialogue_words = sum(len(m.split()) for m in re.findall(r'"([^"]+)"', video2_text))
-        if v1_dialogue_words == 0 or v1_min <= v2_dialogue_words <= v1_max:
+        v2_first = _detect_first_angle(video2_text)
+        word_ok = v1_dialogue_words == 0 or v1_min <= v2_dialogue_words <= v1_max
+        angle_ok = v2_first == "MEDIUM SHOT"
+        if word_ok and angle_ok:
             break
-        ratio = v2_dialogue_words / v1_dialogue_words * 100
-        logger.warning(f"V2 word balance off ({ratio:.0f}%): V1={v1_dialogue_words}w V2={v2_dialogue_words}w, retry {attempt+1}/2")
+        if not angle_ok:
+            logger.warning(f"V2 starts with {v2_first} instead of MEDIUM SHOT, retry {attempt+1}/2")
+        if not word_ok:
+            ratio = v2_dialogue_words / v1_dialogue_words * 100
+            logger.warning(f"V2 word balance off ({ratio:.0f}%): V1={v1_dialogue_words}w V2={v2_dialogue_words}w, retry {attempt+1}/2")
 
     _log_usage("prompt")
     return {
@@ -261,3 +279,42 @@ def generate_video_prompt(script_text: str) -> dict:
         "video2": video2_text,
         "video3": "",
     }
+
+
+def generate_video2_only(script_text: str, existing_v1: str) -> str:
+    """Regenerate only Video 2 using the existing Video 1 prompt."""
+    import re, random
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    v2_pair = ("MEDIUM SHOT", random.choice(["CLOSE-UP", "OFFSET MEDIUM SHOT"]))
+    v2_angle_str = f"1. {v2_pair[0]}\n2. {v2_pair[1]}"
+
+    v1_dialogue_words = sum(len(m.split()) for m in re.findall(r'"([^"]+)"', existing_v1))
+    v1_min = max(1, int(v1_dialogue_words * 0.8))
+    v1_max = int(v1_dialogue_words * 1.2)
+
+    video2_text = None
+    for attempt in range(3):
+        temp = 0.3 if attempt == 0 else 0.7 + attempt * 0.1
+        response = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=700,
+            temperature=temp,
+            system=SYSTEM_VIDEO2,
+            messages=[{"role": "user", "content": USER_VIDEO2.format(
+                script=script_text, video1=existing_v1,
+                v2_angle_pair=v2_angle_str,
+                v1_word_count=v1_dialogue_words,
+                v1_min_words=v1_min,
+                v1_max_words=v1_max
+            )}]
+        )
+        video2_text = _strip_label(response.content[0].text.strip(), 2)
+        _log_usage("prompt_v2_regen")
+
+        v2_first = _detect_first_angle(video2_text)
+        if v2_first == "MEDIUM SHOT":
+            break
+        logger.warning(f"V2 regen starts with {v2_first}, retry {attempt+1}/2")
+
+    return video2_text

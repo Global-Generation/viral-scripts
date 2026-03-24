@@ -14,7 +14,7 @@ from services.higgsfield import generate_video, check_status as hf_check_status
 from services.rewriter import rewrite_provocative, rewrite_provocative_boris
 from services.classifier import classify_script
 from services.scorer import score_viral_potential
-from services.prompter import generate_video_prompt
+from services.prompter import generate_video_prompt, generate_video2_only
 from services.subtitler import add_subtitles
 
 router = APIRouter(prefix="/api/scripts", tags=["scripts"])
@@ -352,6 +352,81 @@ def batch_generate_prompts(db: Session = Depends(get_db)):
             errors += 1
             logger.error(f"Prompt generation failed for script #{script.id}: {e}")
     return {"ok": True, "generated": count, "errors": errors, "total_queued": len(scripts)}
+
+
+@router.post("/{script_id}/regenerate-v2")
+def regenerate_v2(script_id: int, db: Session = Depends(get_db)):
+    """Regenerate only Video 2 prompt, keeping Video 1 as-is."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    if not script.video1_prompt:
+        raise HTTPException(status_code=400, detail="No V1 prompt to base V2 on")
+    text = script.modified_text or script.original_text
+    if not text:
+        raise HTTPException(status_code=400, detail="No script text")
+
+    new_v2 = generate_video2_only(text, script.video1_prompt)
+    script.video2_prompt = new_v2
+    script.video_prompt = script.video1_prompt + "\n\n" + new_v2
+    db.commit()
+    return {"ok": True, "script_id": script.id, "video2_prompt": new_v2}
+
+
+@router.post("/batch-fix-angles")
+def batch_fix_angles(db: Session = Depends(get_db)):
+    """Regenerate V1+V2 for all assigned scripts (boris/thomas/zoe/natalie/luna).
+    For daniel: only regenerate V2 for specific script IDs."""
+    from services.prompter import _detect_first_angle
+    daniel_v2_only = [2, 8, 28, 30, 31, 305]
+    full_regen_creators = ["boris", "thomas", "zoe", "natalie", "luna"]
+
+    fixed = 0
+    errors = 0
+
+    # Daniel: regenerate V2 only for specific scripts
+    for sid in daniel_v2_only:
+        script = db.query(Script).get(sid)
+        if not script or not script.video1_prompt:
+            continue
+        text = script.modified_text or script.original_text
+        if not text:
+            continue
+        try:
+            new_v2 = generate_video2_only(text, script.video1_prompt)
+            script.video2_prompt = new_v2
+            script.video_prompt = script.video1_prompt + "\n\n" + new_v2
+            db.commit()
+            fixed += 1
+            logger.info(f"Fixed V2 angle for daniel #{script.id}")
+        except Exception as e:
+            errors += 1
+            logger.error(f"V2 regen failed for #{script.id}: {e}")
+
+    # Other creators: full V1+V2 regeneration
+    scripts = db.query(Script).filter(
+        Script.assigned_to.in_(full_regen_creators),
+        Script.video1_prompt != "",
+        Script.video1_prompt.isnot(None),
+    ).all()
+    for script in scripts:
+        text = script.modified_text or script.original_text
+        if not text:
+            continue
+        try:
+            result = generate_video_prompt(text)
+            script.video1_prompt = result["video1"]
+            script.video2_prompt = result["video2"]
+            script.video3_prompt = ""
+            script.video_prompt = result["video1"] + "\n\n" + result["video2"]
+            db.commit()
+            fixed += 1
+            logger.info(f"Regenerated V1+V2 for {script.assigned_to} #{script.id}")
+        except Exception as e:
+            errors += 1
+            logger.error(f"Regen failed for #{script.id}: {e}")
+
+    return {"ok": True, "fixed": fixed, "errors": errors}
 
 
 class GenerateVideoRequest(BaseModel):

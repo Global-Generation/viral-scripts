@@ -188,6 +188,28 @@ class ApiKey(Base):
     created_at = Column(DateTime, default=utcnow)
 
 
+class SystemPrompt(Base):
+    __tablename__ = "system_prompts"
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+def get_prompt(key: str, default: str) -> str:
+    """Read system prompt from DB, fallback to hardcoded default."""
+    try:
+        from database import SessionLocal
+        db = SessionLocal()
+        row = db.query(SystemPrompt).filter(SystemPrompt.key == key).first()
+        db.close()
+        if row and row.value:
+            return row.value
+    except Exception:
+        pass
+    return default
+
+
 class ApiUsage(Base):
     __tablename__ = "api_usage"
     id = Column(Integer, primary_key=True, index=True)
