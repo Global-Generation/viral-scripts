@@ -122,17 +122,27 @@ def _build_script_schedule(db, creator, today):
 
 
 def _build_nari_schedule(db, today):
-    """Build schedule for Sophia (NariVideo)."""
+    """Build schedule for Sophia (NariVideo).
+    Published videos use actual pub dates; unpublished start from today at 2/day.
+    """
     videos = db.query(NariVideo).order_by(NariVideo.id.asc()).all()
-    start = SCHEDULE_STARTS["sophia"]
+
+    published = [v for v in videos if v.published_tiktok]
+    unpublished = [v for v in videos if not v.published_tiktok]
+    published.sort(key=lambda v: v.published_tiktok)
+
     entries = []
     tasks = []
-    for i, v in enumerate(videos):
-        base_date = start + timedelta(days=i // 2)
-        slot = "morning" if i % 2 == 0 else "evening"
-        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
-        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+    # Published videos → actual dates
+    date_slots = {}
+    for v in published:
+        tt_date = v.published_tiktok.date() if hasattr(v.published_tiktok, 'date') else v.published_tiktok
+        slot_n = date_slots.get(tt_date, 0)
+        slot = "morning" if slot_n % 2 == 0 else "evening"
+        date_slots[tt_date] = slot_n + 1
+        ig_date = tt_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = tt_date + timedelta(days=PUB_OFFSETS["youtube"])
 
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
@@ -142,13 +152,14 @@ def _build_nari_schedule(db, today):
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
-            "has_final": v.production_status == "published",
+            "has_final": True,
             "slot": slot,
-            "published_tiktok": bool(v.published_tiktok),
+            "published_tiktok": True,
             "published_instagram": bool(v.published_instagram),
             "published_youtube": bool(v.published_youtube),
+            "status": "Published",
+            "status_color": "#16a34a",
         })
-
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 tasks.append({
@@ -160,24 +171,79 @@ def _build_nari_schedule(db, today):
                     "slot": slot,
                     "script_id": None,
                     "published": bool(getattr(v, f"published_{platform.lower()}")),
-                    "has_final": v.production_status in ("ready", "published"),
+                    "has_final": True,
+                    "status": "Published",
+                    "status_color": "#16a34a",
+                })
+
+    # Unpublished videos → from today at 2/day
+    for i, v in enumerate(unpublished):
+        base_date = today + timedelta(days=i // 2)
+        slot = "morning" if i % 2 == 0 else "evening"
+        tt_date = base_date
+        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+        is_ready = v.production_status in ("ready", "published")
+        status = "Video Ready" if is_ready else "Draft"
+        status_color = "#2563eb" if is_ready else "#d1d5db"
+
+        entries.append({
+            "title": v.title[:55] if v.title else f"Video #{v.id}",
+            "link": "/nari",
+            "script_id": None,
+            "has_raw_video": False,
+            "tiktok_date": tt_date,
+            "instagram_date": ig_date,
+            "youtube_date": yt_date,
+            "has_final": is_ready,
+            "slot": slot,
+            "published_tiktok": False,
+            "published_instagram": False,
+            "published_youtube": False,
+            "status": status,
+            "status_color": status_color,
+        })
+        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+            if d == today:
+                tasks.append({
+                    "creator": "sophia",
+                    "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "link": "/nari",
+                    "platform": platform,
+                    "date": d,
+                    "slot": slot,
+                    "script_id": None,
+                    "published": False,
+                    "has_final": is_ready,
+                    "status": status,
+                    "status_color": status_color,
                 })
 
     return entries, tasks
 
 
 def _build_anna_schedule(db, today):
-    """Build schedule for Ava (AnnaVideo)."""
+    """Build schedule for Ava (AnnaVideo).
+    Published videos use actual pub dates; unpublished start from today at 2/day.
+    """
     videos = db.query(AnnaVideo).order_by(AnnaVideo.id.asc()).all()
-    start = SCHEDULE_STARTS["ava"]
+
+    published = [v for v in videos if v.published_tiktok]
+    unpublished = [v for v in videos if not v.published_tiktok]
+    published.sort(key=lambda v: v.published_tiktok)
+
     entries = []
     tasks = []
-    for i, v in enumerate(videos):
-        base_date = start + timedelta(days=i // 2)
-        slot = "morning" if i % 2 == 0 else "evening"
-        tt_date = base_date + timedelta(days=PUB_OFFSETS["tiktok"])
-        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
-        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+
+    # Published videos → actual dates
+    date_slots = {}
+    for v in published:
+        tt_date = v.published_tiktok.date() if hasattr(v.published_tiktok, 'date') else v.published_tiktok
+        slot_n = date_slots.get(tt_date, 0)
+        slot = "morning" if slot_n % 2 == 0 else "evening"
+        date_slots[tt_date] = slot_n + 1
+        ig_date = tt_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = tt_date + timedelta(days=PUB_OFFSETS["youtube"])
 
         entries.append({
             "title": v.title[:55] if v.title else f"Video #{v.id}",
@@ -187,13 +253,14 @@ def _build_anna_schedule(db, today):
             "tiktok_date": tt_date,
             "instagram_date": ig_date,
             "youtube_date": yt_date,
-            "has_final": v.production_status == "published",
+            "has_final": True,
             "slot": slot,
-            "published_tiktok": bool(v.published_tiktok),
+            "published_tiktok": True,
             "published_instagram": bool(v.published_instagram),
             "published_youtube": bool(v.published_youtube),
+            "status": "Published",
+            "status_color": "#16a34a",
         })
-
         for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
             if d == today:
                 tasks.append({
@@ -205,7 +272,52 @@ def _build_anna_schedule(db, today):
                     "slot": slot,
                     "script_id": None,
                     "published": bool(getattr(v, f"published_{platform.lower()}")),
-                    "has_final": v.production_status in ("ready", "published"),
+                    "has_final": True,
+                    "status": "Published",
+                    "status_color": "#16a34a",
+                })
+
+    # Unpublished videos → from today at 2/day
+    for i, v in enumerate(unpublished):
+        base_date = today + timedelta(days=i // 2)
+        slot = "morning" if i % 2 == 0 else "evening"
+        tt_date = base_date
+        ig_date = base_date + timedelta(days=PUB_OFFSETS["instagram"])
+        yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
+        is_ready = v.production_status in ("ready", "published")
+        status = "Video Ready" if is_ready else "Draft"
+        status_color = "#2563eb" if is_ready else "#d1d5db"
+
+        entries.append({
+            "title": v.title[:55] if v.title else f"Video #{v.id}",
+            "link": "/anna",
+            "script_id": None,
+            "has_raw_video": False,
+            "tiktok_date": tt_date,
+            "instagram_date": ig_date,
+            "youtube_date": yt_date,
+            "has_final": is_ready,
+            "slot": slot,
+            "published_tiktok": False,
+            "published_instagram": False,
+            "published_youtube": False,
+            "status": status,
+            "status_color": status_color,
+        })
+        for platform, d in [("TikTok", tt_date), ("Instagram", ig_date), ("YouTube", yt_date)]:
+            if d == today:
+                tasks.append({
+                    "creator": "ava",
+                    "title": v.title[:60] if v.title else f"Video #{v.id}",
+                    "link": "/anna",
+                    "platform": platform,
+                    "date": d,
+                    "slot": slot,
+                    "script_id": None,
+                    "published": False,
+                    "has_final": is_ready,
+                    "status": status,
+                    "status_color": status_color,
                 })
 
     return entries, tasks
@@ -232,11 +344,19 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "count": len(entries),
         }
 
-    # Build calendar: 21 days starting from earliest start date
-    cal_start = min(SCHEDULE_STARTS.values())
-    cal_days = []
-    for d in range(28):
-        cal_days.append(cal_start + timedelta(days=d))
+    # Build calendar dynamically from actual entry dates
+    all_tt_dates = []
+    for creator in CREATORS:
+        for entry in schedule[creator]["scripts"]:
+            all_tt_dates.append(entry["tiktok_date"])
+    if all_tt_dates:
+        cal_start = min(all_tt_dates)
+        cal_end = max(max(all_tt_dates), today + timedelta(days=7))
+        num_days = max((cal_end - cal_start).days + 1, 28)
+    else:
+        cal_start = today
+        num_days = 28
+    cal_days = [cal_start + timedelta(days=d) for d in range(num_days)]
 
     # For each creator, map date → list of entries for the calendar
     cal_data = {}
