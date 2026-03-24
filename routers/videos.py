@@ -85,8 +85,9 @@ def _build_script_schedule(db, creator, today):
         yt_date = base_date + timedelta(days=PUB_OFFSETS["youtube"])
 
         s_label, s_color = _script_status(script)
+        title = script.pub_title_tiktok or (script.video.title if script.video else None) or f"Script #{script.id}"
         entries.append({
-            "title": script.video.title[:55] if script.video else f"Script #{script.id}",
+            "title": title[:55],
             "link": f"/scripts/{script.id}",
             "script_id": script.id,
             "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
@@ -107,7 +108,7 @@ def _build_script_schedule(db, creator, today):
             if d == today:
                 tasks.append({
                     "creator": creator,
-                    "title": script.video.title[:60] if script.video else f"Script #{script.id}",
+                    "title": title[:60],
                     "link": link,
                     "platform": platform,
                     "date": d,
