@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   analyzer:
     build: .
@@ -6,16 +5,13 @@ services:
     ports:
       - "8070:8070"
     volumes:
-      - viral_data:/app/data
-      - viral_downloads:/app/downloads
-      - viral_photos:/app/static/photos
+      - /home/deploy/viral-data/db:/app/data
+      - /home/deploy/viral-data/downloads:/app/downloads
+      - /home/deploy/viral-data/photos:/app/static/photos
       - whisper_cache:/root/.cache/whisper
     env_file:
       - .env
     restart: unless-stopped
 
 volumes:
-  viral_data:
-  viral_downloads:
-  viral_photos:
   whisper_cache:
