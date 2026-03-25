@@ -59,6 +59,7 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
     pub_tt = sum(1 for s in scripts if s.published_tiktok)
     pub_ig = sum(1 for s in scripts if s.published_instagram)
     pub_yt = sum(1 for s in scripts if s.published_youtube)
+    ready_videos = sum(1 for s in scripts if s.final_video_path or s.final_subtitled_path)
 
     ai_count = 0
     finance_count = 0
@@ -114,6 +115,8 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             "ai_count": ai_count,
             "finance_count": finance_count,
             "avg_score": avg_score,
+            "ready_videos": ready_videos,
+            "total_photos": len(photos),
             "timeline_json": json.dumps(timeline),
             "photos": photos,
         }

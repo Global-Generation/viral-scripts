@@ -7,13 +7,26 @@
     <p class="text-sm text-gray-500">{{ total }} <span data-i18n="char.assigned">assigned scripts</span></p>
 </div>
 
-<!-- Stats row -->
-<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+<!-- Stats row 1: counts -->
+<div class="grid grid-cols-3 gap-3 mb-3">
     <!-- Total Scripts -->
     <div class="stat-card">
         <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;" data-i18n="stat.total">Total Scripts</div>
         <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total }}</div>
     </div>
+    <!-- Total Photos -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Photos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total_photos }}</div>
+    </div>
+    <!-- Ready Videos -->
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Ready Videos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ ready_videos }}</div>
+    </div>
+</div>
+<!-- Stats row 2: details -->
+<div class="grid grid-cols-2 gap-3 mb-4">
     <!-- Published -->
     <div class="stat-card">
         <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;" data-i18n="stat.published">Published</div>
