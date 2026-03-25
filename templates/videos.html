@@ -241,8 +241,10 @@
                             <a href="{{ entry.link }}" style="font-size: 9px; font-weight: 600; color: #6b7280; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; text-decoration: none;">Open</a>
                         </td>
                         <td class="td" style="padding: 2px 4px;">
-                            {% if entry.has_final %}
+                            {% if entry.has_final and entry.script_id %}
                             <img src="/api/scripts/{{ entry.script_id }}/thumbnail" alt="" style="width: 36px; height: 64px; object-fit: cover; border-radius: 4px; display: block;" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\'display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:#f3f4f6;border-radius:4px;font-size:7px;color:#ef4444;font-weight:600;text-align:center;line-height:1.2;\'>Not<br>ready</span>'">
+                            {% elif entry.has_final %}
+                            <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 64px; background: #dcfce7; border-radius: 4px; font-size: 8px; color: #16a34a; font-weight: 700; text-align: center; line-height: 1.2;">Ready</span>
                             {% else %}
                             <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 64px; background: #f3f4f6; border-radius: 4px; font-size: 7px; color: #6b7280; font-weight: 600; text-align: center; line-height: 1.2;">Not<br>ready</span>
                             {% endif %}
