@@ -8,6 +8,7 @@ services:
     volumes:
       - viral_data:/app/data
       - viral_downloads:/app/downloads
+      - viral_photos:/app/static/photos
       - whisper_cache:/root/.cache/whisper
     env_file:
       - .env
@@ -16,4 +17,5 @@ services:
 volumes:
   viral_data:
   viral_downloads:
+  viral_photos:
   whisper_cache:
