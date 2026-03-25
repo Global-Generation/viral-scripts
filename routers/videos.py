@@ -54,13 +54,7 @@ def _build_script_schedule(db, creator, today):
     scripts = (
         db.query(Script)
         .options(joinedload(Script.video))
-        .filter(
-            Script.assigned_to == creator,
-            Script.video1_prompt != "",
-            Script.video1_prompt.isnot(None),
-            Script.video2_prompt != "",
-            Script.video2_prompt.isnot(None),
-        )
+        .filter(Script.assigned_to == creator)
         .order_by(Script.id.asc())
         .all()
     )
@@ -169,11 +163,16 @@ def _build_nari_schedule(db, today):
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → from today, offset by published slots on today
-    pub_on_today = date_slots.get(today, 0)
+    # Unpublished videos → fill from next slot after last published
+    if date_slots:
+        last_pub_date = max(date_slots.keys())
+        slots_on_last = date_slots[last_pub_date]
+    else:
+        last_pub_date = SCHEDULE_STARTS.get("sophia", today)
+        slots_on_last = 0
     for i, v in enumerate(unpublished):
-        adj_i = i + pub_on_today
-        base_date = today + timedelta(days=adj_i // 2)
+        adj_i = i + slots_on_last
+        base_date = last_pub_date + timedelta(days=adj_i // 2)
         slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
         is_ready = v.production_status in ("ready", "published")
@@ -263,11 +262,16 @@ def _build_anna_schedule(db, today):
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → from today, offset by published slots on today
-    pub_on_today = date_slots.get(today, 0)
+    # Unpublished videos → fill from next slot after last published
+    if date_slots:
+        last_pub_date = max(date_slots.keys())
+        slots_on_last = date_slots[last_pub_date]
+    else:
+        last_pub_date = SCHEDULE_STARTS.get("ava", today)
+        slots_on_last = 0
     for i, v in enumerate(unpublished):
-        adj_i = i + pub_on_today
-        base_date = today + timedelta(days=adj_i // 2)
+        adj_i = i + slots_on_last
+        base_date = last_pub_date + timedelta(days=adj_i // 2)
         slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
         is_ready = v.production_status in ("ready", "published")
