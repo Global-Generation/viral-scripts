@@ -7,6 +7,45 @@
     <p class="text-sm text-gray-500">{{ videos|length }} videos by Anna</p>
 </div>
 
+<!-- Stats row 1: counts -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Videos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total_videos }}</div>
+    </div>
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Photos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total_photos }}</div>
+    </div>
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Ready Videos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ ready_videos }}</div>
+    </div>
+</div>
+<!-- Stats row 2: published -->
+<div style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px;">
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Published</div>
+        <div style="margin-top: 8px; display: flex; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #000; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">TikTok</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b;">{{ pub_tt }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #E1306C; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">Instagram</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b;">{{ pub_ig }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF0000; display: inline-block;"></span>
+                <span style="font-size: 12px; color: #64748b;">YouTube</span>
+                <span style="font-size: 14px; font-weight: 700; color: #1e293b;">{{ pub_yt }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Publication Timeline Chart -->
 <div class="stat-card mb-4" id="chart-card" style="{% if not videos %}display:none{% endif %}">
     <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Publication Timeline</div>

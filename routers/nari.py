@@ -1,3 +1,5 @@
+import json
+import os
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -8,7 +10,6 @@ from models import NariVideo
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
-import json
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -26,9 +27,18 @@ def nari_page(request: Request, db: Session = Depends(get_db)):
         if v.published_youtube:
             day_map[v.published_youtube.strftime("%Y-%m-%d")]["youtube"] += 1
     timeline = [{"date": d, **counts} for d, counts in sorted(day_map.items())]
+    total_videos = len(videos)
+    pub_tt = sum(1 for v in videos if v.published_tiktok)
+    pub_ig = sum(1 for v in videos if v.published_instagram)
+    pub_yt = sum(1 for v in videos if v.published_youtube)
+    ready_videos = sum(1 for v in videos if v.production_status in ("ready", "filmed", "published"))
+    photos_dir = os.path.join("static", "photos", "nari")
+    total_photos = len([f for f in os.listdir(photos_dir) if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))]) if os.path.isdir(photos_dir) else 0
     return templates.TemplateResponse(
         "nari.html",
         {"request": request, "active_page": "nari", "videos": videos,
+         "total_videos": total_videos, "total_photos": total_photos,
+         "ready_videos": ready_videos, "pub_tt": pub_tt, "pub_ig": pub_ig, "pub_yt": pub_yt,
          "timeline_json": json.dumps(timeline)}
     )
 
