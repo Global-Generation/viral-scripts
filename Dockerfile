@@ -19,7 +19,7 @@ RUN python -c "import whisper; whisper.load_model('base')"
 
 COPY . .
 
-RUN mkdir -p downloads
+RUN mkdir -p downloads static/photos
 
 EXPOSE 8070
 
