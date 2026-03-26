@@ -34,6 +34,17 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
         .all()
     )
 
+    # Self-healing: clear DB paths for deleted video files
+    dirty = False
+    for s in scripts:
+        for attr in ("final_subtitled_path", "final_video_path", "raw_video1_path", "raw_video2_path"):
+            path = getattr(s, attr)
+            if path and not os.path.isfile(path):
+                setattr(s, attr, None)
+                dirty = True
+    if dirty:
+        db.commit()
+
     # Sort by production readiness (most complete first)
     def status_order(s):
         if s.published_tiktok or s.published_instagram or s.published_youtube:

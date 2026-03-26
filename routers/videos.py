@@ -36,13 +36,14 @@ def _script_status(script):
     """Return (status_label, status_color) for a script."""
     if script.published_tiktok:
         return "Published", "#16a34a"
-    if script.final_subtitled_path:
+    if script.final_subtitled_path and os.path.isfile(script.final_subtitled_path):
         return "Subtitled", "#0891b2"
     if script.subtitle_status == "processing":
         return "Adding Subs", "#8b5cf6"
-    if script.final_video_path:
+    if script.final_video_path and os.path.isfile(script.final_video_path):
         return "Video Ready", "#2563eb"
-    if script.raw_video1_path or script.raw_video2_path:
+    if (script.raw_video1_path and os.path.isfile(script.raw_video1_path)) or \
+       (script.raw_video2_path and os.path.isfile(script.raw_video2_path)):
         return "Filmed", "#ca8a04"
     if script.modified_text:
         return "Script Only", "#9ca3af"
@@ -58,6 +59,17 @@ def _build_script_schedule(db, creator, today):
         .order_by(Script.id.asc())
         .all()
     )
+
+    # Self-healing: clear DB paths for deleted video files
+    dirty = False
+    for s in scripts:
+        for attr in ("final_subtitled_path", "final_video_path", "raw_video1_path", "raw_video2_path"):
+            path = getattr(s, attr)
+            if path and not os.path.isfile(path):
+                setattr(s, attr, None)
+                dirty = True
+    if dirty:
+        db.commit()
 
     # Sort: ready (has final video) first, then by id
     def _readiness(s):
