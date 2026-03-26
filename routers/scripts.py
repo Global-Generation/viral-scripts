@@ -911,6 +911,59 @@ def download_final(script_id: int, subtitled: bool = False, db: Session = Depend
     )
 
 
+@router.post("/{script_id}/upload-final-video")
+async def upload_final_video(
+    script_id: int,
+    video: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """Upload a single final video (already merged+subtitled) from Higgsfield Dashboard."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    downloads_dir = os.getenv("DOWNLOADS_DIR", "./downloads")
+    os.makedirs(downloads_dir, exist_ok=True)
+
+    final_path = os.path.join(downloads_dir, f"final_{script_id}.mp4")
+    subtitled_path = os.path.join(downloads_dir, f"final_{script_id}_subtitled.mp4")
+
+    # Delete old files if they exist
+    for old in [script.raw_video1_path, script.raw_video2_path,
+                script.final_video_path, script.final_subtitled_path]:
+        if old:
+            try:
+                os.remove(old)
+            except OSError:
+                pass
+
+    # Delete cached thumbnail
+    thumb = os.path.join(downloads_dir, f"thumb_{script_id}.jpg")
+    try:
+        os.remove(thumb)
+    except OSError:
+        pass
+
+    # Save the file
+    content = await video.read()
+    with open(final_path, "wb") as f:
+        f.write(content)
+
+    import shutil
+    shutil.copy2(final_path, subtitled_path)
+
+    # Update DB — this IS the final subtitled video
+    script.raw_video1_path = ""
+    script.raw_video2_path = ""
+    script.final_video_path = final_path
+    script.final_subtitled_path = subtitled_path
+    script.subtitle_status = "completed"
+    script.subtitle_error = ""
+    db.commit()
+
+    return {"ok": True, "message": "Final video uploaded", "script_id": script_id}
+
+
 @router.delete("/{script_id}/delete-final")
 def delete_final_video(script_id: int, db: Session = Depends(get_db)):
     """Delete final video and subtitled version. Keeps raw uploads."""
