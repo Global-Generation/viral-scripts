@@ -365,11 +365,14 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     _status_priority = {"Published": 0, "Subtitled": 1, "Video Ready": 2, "Adding Subs": 3, "Filmed": 4, "Script Only": 5, "Draft": 6}
     todays_tasks.sort(key=lambda t: _status_priority.get(t["status"], 9))
 
-    # Add YouTube date (+7 days from TikTok) to each entry
+    # YouTube date: only for exported videos (TikTok date + 7 days)
     YT_OFFSET = timedelta(days=7)
     for creator in CREATORS:
         for entry in schedule[creator]["scripts"]:
-            entry["yt_date"] = entry["tiktok_date"] + YT_OFFSET
+            if entry["has_final"]:
+                entry["yt_date"] = entry["tiktok_date"] + YT_OFFSET
+            else:
+                entry["yt_date"] = None
             entry["published_youtube"] = False  # TODO: populate from DB
 
     # Build TikTok calendar dynamically from actual entry dates
@@ -397,8 +400,8 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             day_map[d].append(entry)
         cal_data[creator] = day_map
 
-    # Build YouTube calendar (TikTok + 7 days)
-    all_yt_dates = [e["yt_date"] for c in CREATORS for e in schedule[c]["scripts"]]
+    # Build YouTube calendar (only exported videos, TikTok + 7 days)
+    all_yt_dates = [e["yt_date"] for c in CREATORS for e in schedule[c]["scripts"] if e["yt_date"]]
     if all_yt_dates:
         yt_cal_start = min(all_yt_dates)
         yt_cal_end = max(max(all_yt_dates), today + timedelta(days=14))
@@ -413,6 +416,8 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         day_map = {}
         for entry in schedule[creator]["scripts"]:
             d = entry["yt_date"]
+            if d is None:
+                continue
             if d not in day_map:
                 day_map[d] = []
             day_map[d].append(entry)
