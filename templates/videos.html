@@ -278,12 +278,91 @@ function togglePanel(name) {
     </div>
 </div>
 
+<!-- YouTube Calendar -->
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-2 mb-3">
+        <svg width="16" height="16" fill="none" stroke="#FF0000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <h2 class="text-sm font-bold" style="color: #FF0000;">YouTube Calendar — Plan / Fact</h2>
+        <span class="text-xs text-gray-400 ml-2">(TikTok + 7 days)</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full" style="font-size: 11px; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="font-size: 10px; padding: 4px 6px; text-align: left; color: #9ca3af; width: 70px;">Creator</th>
+                    {% for day in yt_cal_days %}
+                    <th style="font-size: 9px; padding: 4px 3px; text-align: center; color: {% if day == today %}#FF0000{% elif day.weekday() >= 5 %}#d1d5db{% else %}#9ca3af{% endif %}; font-weight: {% if day == today %}700{% else %}500{% endif %}; min-width: 32px;">
+                        {{ day.strftime('%d') }}<br>{{ day.strftime('%a')[:2] }}
+                    </th>
+                    {% endfor %}
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for creator in creators %}
+                <tr>
+                    <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
+                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{{ creator }}</td>
+                    {% for day in yt_cal_days %}
+                    {% set day_entries = yt_cal_data[creator].get(day, []) %}
+                    {% set count = day_entries|length %}
+                    <td style="padding: 3px 2px; text-align: center;">
+                        {% if count > 0 %}
+                            {% set pub_count = day_entries|selectattr('published_youtube')|list|length %}
+                            {% if pub_count == count %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 10px; line-height: 20px; font-weight: 700;">{{ count }}</span>
+                            {% elif day < today %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #fef2f2; color: #ef4444; font-size: 10px; line-height: 20px; font-weight: 700;">{{ count }}</span>
+                            {% elif day == today %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #FF0000; color: #fff; font-size: 10px; line-height: 20px; font-weight: 700;">{{ count }}</span>
+                            {% else %}
+                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #f3f4f6; color: #6b7280; font-size: 10px; line-height: 20px; font-weight: 600;">{{ count }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #e5e7eb;">&mdash;</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 700; color: #374151;">{{ schedule[creator].count }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #e5e7eb;">
+                    <td style="padding: 6px; font-weight: 700; font-size: 10px; color: #374151;">TOTAL</td>
+                    {% for day in yt_cal_days %}
+                    <td style="padding: 3px 2px; text-align: center;">
+                        {% set ns = namespace(day_total=0) %}
+                        {% for creator in creators %}
+                            {% set day_entries = yt_cal_data[creator].get(day, []) %}
+                            {% set ns.day_total = ns.day_total + day_entries|length %}
+                        {% endfor %}
+                        {% if ns.day_total > 0 %}
+                        <span style="font-size: 9px; font-weight: 700; color: #374151;">{{ ns.day_total }}</span>
+                        {% else %}
+                        <span style="color: #e5e7eb;">&mdash;</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #111827;">{{ totals.count }}</span></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
 <!-- Legend -->
 <div class="stat-card mb-4" style="padding: 10px 16px;">
     <div class="flex items-center gap-4 flex-wrap">
         <div style="display: flex; align-items: center; gap: 5px;">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: #000;"></span>
             <span style="font-size: 11px; font-weight: 600; color: #374151;">TikTok</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #FF0000;"></span>
+            <span style="font-size: 11px; font-weight: 600; color: #374151;">YouTube</span>
         </div>
         <div style="flex: 1;"></div>
         <span style="font-size: 11px; color: #9ca3af;">2 scripts/day per creator</span>
@@ -320,6 +399,7 @@ function togglePanel(name) {
                         <th class="th" style="font-size: 10px; width: 50px;">Slot</th>
                         <th class="th" style="font-size: 10px;">Pub</th>
                         <th class="th" style="font-size: 10px;">TikTok</th>
+                        <th class="th" style="font-size: 10px;">YouTube</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -364,6 +444,16 @@ function togglePanel(name) {
                             <span style="font-size: 8px; color: #ef4444; font-weight: 600;">overdue</span>
                             {% else %}
                             <span style="font-size: 11px; font-weight: 600; color: #374151;">{{ entry.tiktok_date.strftime('%b %d') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="td">
+                            {% if entry.published_youtube %}
+                            <span style="font-size: 11px; font-weight: 600; color: #16a34a;">{{ entry.yt_date.strftime('%b %d') }} ✓</span>
+                            {% elif entry.yt_date == today %}
+                            <span style="font-size: 11px; font-weight: 600; color: #FF0000;">{{ entry.yt_date.strftime('%b %d') }}</span>
+                            <span style="font-size: 8px; color: #FF0000; font-weight: 700;">TODAY</span>
+                            {% else %}
+                            <span style="font-size: 11px; font-weight: 600; color: #9ca3af;">{{ entry.yt_date.strftime('%b %d') }}</span>
                             {% endif %}
                         </td>
                     </tr>

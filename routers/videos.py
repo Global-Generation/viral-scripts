@@ -362,7 +362,14 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     _status_priority = {"Published": 0, "Subtitled": 1, "Video Ready": 2, "Adding Subs": 3, "Filmed": 4, "Script Only": 5, "Draft": 6}
     todays_tasks.sort(key=lambda t: _status_priority.get(t["status"], 9))
 
-    # Build calendar dynamically from actual entry dates
+    # Add YouTube date (+7 days from TikTok) to each entry
+    YT_OFFSET = timedelta(days=7)
+    for creator in CREATORS:
+        for entry in schedule[creator]["scripts"]:
+            entry["yt_date"] = entry["tiktok_date"] + YT_OFFSET
+            entry["published_youtube"] = False  # TODO: populate from DB
+
+    # Build TikTok calendar dynamically from actual entry dates
     all_tt_dates = []
     for creator in CREATORS:
         for entry in schedule[creator]["scripts"]:
@@ -376,7 +383,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         num_days = 28
     cal_days = [cal_start + timedelta(days=d) for d in range(num_days)]
 
-    # For each creator, map date → list of entries for the calendar
+    # For each creator, map date → list of entries for TikTok calendar
     cal_data = {}
     for creator in CREATORS:
         day_map = {}
@@ -386,6 +393,27 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
                 day_map[d] = []
             day_map[d].append(entry)
         cal_data[creator] = day_map
+
+    # Build YouTube calendar (TikTok + 7 days)
+    all_yt_dates = [e["yt_date"] for c in CREATORS for e in schedule[c]["scripts"]]
+    if all_yt_dates:
+        yt_cal_start = min(all_yt_dates)
+        yt_cal_end = max(max(all_yt_dates), today + timedelta(days=14))
+        yt_num_days = max((yt_cal_end - yt_cal_start).days + 1, 28)
+    else:
+        yt_cal_start = today + YT_OFFSET
+        yt_num_days = 28
+    yt_cal_days = [yt_cal_start + timedelta(days=d) for d in range(yt_num_days)]
+
+    yt_cal_data = {}
+    for creator in CREATORS:
+        day_map = {}
+        for entry in schedule[creator]["scripts"]:
+            d = entry["yt_date"]
+            if d not in day_map:
+                day_map[d] = []
+            day_map[d].append(entry)
+        yt_cal_data[creator] = day_map
 
     # Grand totals
     exported_list = []
@@ -418,6 +446,8 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "today": today,
             "cal_days": cal_days,
             "cal_data": cal_data,
+            "yt_cal_days": yt_cal_days,
+            "yt_cal_data": yt_cal_data,
             "totals": totals,
         }
     )
