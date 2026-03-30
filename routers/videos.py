@@ -21,12 +21,12 @@ CREATORS = ["sophia", "ava", "daniel", "boris", "thomas", "zoe", "natalie", "lun
 
 # Per-creator start dates
 SCHEDULE_STARTS = {
-    "daniel":  date(2026, 3, 25),
-    "boris":   date(2026, 3, 26),
-    "thomas":  date(2026, 3, 26),
-    "zoe":     date(2026, 3, 27),
-    "natalie": date(2026, 3, 27),
-    "luna":    date(2026, 3, 28),
+    "daniel":  date(2026, 3, 30),
+    "boris":   date(2026, 3, 30),
+    "thomas":  date(2026, 4, 1),
+    "zoe":     date(2026, 4, 1),
+    "natalie": date(2026, 4, 1),
+    "luna":    date(2026, 4, 1),
     "sophia":  date(2026, 3, 16),
     "ava":     date(2026, 3, 16),
 }
