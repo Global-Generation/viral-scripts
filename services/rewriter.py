@@ -18,12 +18,19 @@ REWRITE_PROMPT = """Rewrite this TikTok script. Requirements:
 - Short sentences. No fluff. Say it once
 - Keep the same topic and key facts
 
-LENGTH RULE — TARGET: 55-70 words TOTAL. This is a HARD LIMIT.
+LENGTH RULE — TARGET: 50-56 words TOTAL. This is a HARD LIMIT.
 - CUT ruthlessly. One core point. No repetition. No examples unless essential.
 - If the original is long: keep only the sharpest angle and strongest line.
-- If the original is short: keep the key insight and develop it into 55-70 words.
+- If the original is short: keep the key insight and develop it into 50-56 words.
 - Every sentence must be COMPLETE. Never end mid-thought or mid-sentence.
-- Count your words. If outside 55-70, adjust until you hit the range.
+- Count your words. If outside 50-56, adjust until you hit the range.
+
+FORBIDDEN TOPICS — REJECT any script about:
+- Suicide, self-harm, death, harm to minors
+- AI causing psychological harm to children/teenagers
+- Violence, abuse, criminal activity
+- Tragic real-life incidents involving AI
+If the original script contains these topics, respond with ONLY: "REJECTED: forbidden topic"
 
 - OUTPUT: DIALOGUE ONLY. Plain spoken text, nothing else. No camera directions, no "MEDIUM SHOT", no "CLOSE-UP", no "JUMP CUT", no "THREE-QUARTER VIEW", no stage directions, no action descriptions, no headers, no labels, no markdown, no "Video 1" / "Video 2" splitting. Just the words the speaker says, as one continuous text
 - CTA RULE: REMOVE any "Comment [word] for..." or "DM [word] for..." lines from the original. Replace with a simple ending like: "More on my page — link in bio." or just end naturally without a CTA. NEVER keep "Comment X", "DM me X", or any engagement-bait CTA
@@ -76,10 +83,17 @@ BORIS_REWRITE_PROMPT = """Rewrite this TikTok script in BORIS STYLE. Requirement
 - Short sentences. Punchy. Every word earns its place
 - Keep the same topic and key facts but angle them provocatively
 
-LENGTH RULE — TARGET: 55-70 words TOTAL. This is a HARD LIMIT.
+LENGTH RULE — TARGET: 50-56 words TOTAL. This is a HARD LIMIT.
 - CUT ruthlessly. One core provocative point. No repetition.
 - Every sentence must be COMPLETE. Never end mid-thought.
-- Count your words. If outside 55-70, adjust until you hit the range.
+- Count your words. If outside 50-56, adjust until you hit the range.
+
+FORBIDDEN TOPICS — REJECT any script about:
+- Suicide, self-harm, death, harm to minors
+- AI causing psychological harm to children/teenagers
+- Violence, abuse, criminal activity
+- Tragic real-life incidents involving AI
+If the original script contains these topics, respond with ONLY: "REJECTED: forbidden topic"
 
 - OUTPUT: DIALOGUE ONLY. Plain spoken text, nothing else. No camera directions, no stage directions, no labels, no markdown
 - CTA RULE: REMOVE any "Comment X for..." or "DM me X for..." lines. Replace with "More on my page — link in bio." or end naturally
