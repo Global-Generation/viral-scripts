@@ -184,6 +184,7 @@ function togglePanel(name) {
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Exported</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">%</th>
                 </tr>
             </thead>
             <tbody>
@@ -230,6 +231,10 @@ function togglePanel(name) {
                     <td style="padding: 3px 6px; text-align: center;">
                         <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].published }}</span>
                     </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set pct = (schedule[creator].published * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 700; color: {% if pct >= 100 %}#16a34a{% elif pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ pct }}%</span>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -255,6 +260,10 @@ function togglePanel(name) {
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.subtitled }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.published }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set tt_pct = (totals.published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 800; color: {% if tt_pct >= 100 %}#16a34a{% elif tt_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ tt_pct }}%</span>
+                    </td>
                 </tr>
             </tfoot>
         </table>
@@ -296,6 +305,10 @@ function togglePanel(name) {
                     </th>
                     {% endfor %}
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Total</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Exported</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">%</th>
                 </tr>
             </thead>
             <tbody>
@@ -326,6 +339,19 @@ function togglePanel(name) {
                     <td style="padding: 3px 6px; text-align: center;">
                         <span style="font-size: 10px; font-weight: 700; color: #374151;">{{ schedule[creator].count }}</span>
                     </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].photos > 0 %}#8b5cf6{% else %}#d1d5db{% endif %};">{{ schedule[creator].photos }}</span>
+                    </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].subtitled > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].subtitled }}</span>
+                    </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].yt_published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].yt_published }}</span>
+                    </td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set yt_pct = (schedule[creator].yt_published * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 700; color: {% if yt_pct >= 100 %}#16a34a{% elif yt_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ yt_pct }}%</span>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -347,6 +373,13 @@ function togglePanel(name) {
                     </td>
                     {% endfor %}
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #111827;">{{ totals.count }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.subtitled }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.yt_published }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set yt_total_pct = (totals.yt_published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 800; color: {% if yt_total_pct >= 100 %}#16a34a{% elif yt_total_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ yt_total_pct }}%</span>
+                    </td>
                 </tr>
             </tfoot>
         </table>

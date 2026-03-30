@@ -350,12 +350,15 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         subtitled = sum(1 for e in entries if e.get("status") == "Subtitled" or e.get("has_final"))
         published = sum(1 for e in entries if e["published_tiktok"])
 
+        yt_published = sum(1 for e in entries if e.get("published_youtube"))
+
         schedule[creator] = {
             "scripts": entries,
             "count": len(entries),
             "photos": photos,
             "subtitled": subtitled,
             "published": published,
+            "yt_published": yt_published,
         }
 
     # Sort today's tasks: most ready first (Published > Subtitled > Video Ready > ...)
@@ -431,6 +434,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         "photos": sum(schedule[c]["photos"] for c in CREATORS),
         "subtitled": sum(schedule[c]["subtitled"] for c in CREATORS),
         "published": sum(schedule[c]["published"] for c in CREATORS),
+        "yt_published": sum(schedule[c]["yt_published"] for c in CREATORS),
         "exported_list": exported_list,
         "published_list": published_list,
     }
