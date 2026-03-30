@@ -8,24 +8,93 @@
 </div>
 
 <!-- Score Cards -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
         <div class="text-xs text-gray-500">Total Scripts</div>
         <div class="text-2xl font-bold text-gray-900">{{ totals.count }}</div>
     </div>
-    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm cursor-pointer hover:border-cyan-400 transition" onclick="togglePanel('exported')">
         <div class="text-xs text-gray-500">Exported</div>
         <div class="text-2xl font-bold text-cyan-600">{{ totals.subtitled }}</div>
+        <div class="text-xs text-gray-400 mt-1">click to view</div>
     </div>
-    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm cursor-pointer hover:border-green-400 transition" onclick="togglePanel('published')">
         <div class="text-xs text-gray-500">Published</div>
         <div class="text-2xl font-bold text-green-600">{{ totals.published }}</div>
+        <div class="text-xs text-gray-400 mt-1">click to view</div>
     </div>
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
         <div class="text-xs text-gray-500">Photos</div>
         <div class="text-2xl font-bold text-violet-600">{{ totals.photos }}</div>
     </div>
 </div>
+
+<!-- Expandable: Exported -->
+<div id="panel-exported" class="hidden mb-4">
+    <div class="bg-white rounded-lg border border-cyan-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-2 bg-cyan-50 border-b border-cyan-200 flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-800">Exported Videos ({{ totals.subtitled }})</span>
+            <button onclick="togglePanel('exported')" class="text-xs text-cyan-600 hover:text-cyan-800">Close</button>
+        </div>
+        <table class="w-full text-xs">
+            <thead><tr class="border-b border-gray-100">
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Script</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Creator</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Title</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">TT Date</th>
+            </tr></thead>
+            <tbody>
+            {% for item in totals.exported_list %}
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+                <td class="px-4 py-1.5"><a href="{{ item.link }}" class="text-blue-600 hover:underline">#{{ item.script_id }}</a></td>
+                <td class="px-4 py-1.5 capitalize font-medium">{{ item.creator }}</td>
+                <td class="px-4 py-1.5 text-gray-700">{{ item.title }}</td>
+                <td class="px-4 py-1.5 text-gray-500">{{ item.tiktok_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Expandable: Published -->
+<div id="panel-published" class="hidden mb-4">
+    <div class="bg-white rounded-lg border border-green-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-2 bg-green-50 border-b border-green-200 flex items-center justify-between">
+            <span class="text-xs font-bold text-green-800">Published Videos ({{ totals.published }})</span>
+            <button onclick="togglePanel('published')" class="text-xs text-green-600 hover:text-green-800">Close</button>
+        </div>
+        {% if totals.published_list %}
+        <table class="w-full text-xs">
+            <thead><tr class="border-b border-gray-100">
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Script</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Creator</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">Title</th>
+                <th class="px-4 py-2 text-left text-gray-500 font-medium">TT Date</th>
+            </tr></thead>
+            <tbody>
+            {% for item in totals.published_list %}
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+                <td class="px-4 py-1.5"><a href="{{ item.link }}" class="text-blue-600 hover:underline">#{{ item.script_id }}</a></td>
+                <td class="px-4 py-1.5 capitalize font-medium">{{ item.creator }}</td>
+                <td class="px-4 py-1.5 text-gray-700">{{ item.title }}</td>
+                <td class="px-4 py-1.5 text-gray-500">{{ item.tiktok_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="px-4 py-3 text-xs text-gray-400">No published videos yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function togglePanel(name) {
+    const panel = document.getElementById('panel-' + name);
+    panel.classList.toggle('hidden');
+}
+</script>
 
 <!-- Today's Tasks -->
 {% if todays_tasks %}

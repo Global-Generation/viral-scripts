@@ -383,11 +383,23 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         cal_data[creator] = day_map
 
     # Grand totals
+    exported_list = []
+    published_list = []
+    for c in CREATORS:
+        for e in schedule[c]["scripts"]:
+            item = {"creator": c, "title": e["title"], "link": e["link"], "script_id": e["script_id"], "tiktok_date": e["tiktok_date"].strftime("%b %d")}
+            if e.get("has_final"):
+                exported_list.append(item)
+            if e.get("published_tiktok"):
+                published_list.append(item)
+
     totals = {
         "count": sum(schedule[c]["count"] for c in CREATORS),
         "photos": sum(schedule[c]["photos"] for c in CREATORS),
         "subtitled": sum(schedule[c]["subtitled"] for c in CREATORS),
         "published": sum(schedule[c]["published"] for c in CREATORS),
+        "exported_list": exported_list,
+        "published_list": published_list,
     }
 
     return templates.TemplateResponse(
