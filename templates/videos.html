@@ -7,6 +7,26 @@
     <p class="text-sm text-gray-500">Two per day per creator (morning + evening).</p>
 </div>
 
+<!-- Score Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+        <div class="text-xs text-gray-500">Total Scripts</div>
+        <div class="text-2xl font-bold text-gray-900">{{ totals.count }}</div>
+    </div>
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+        <div class="text-xs text-gray-500">Exported</div>
+        <div class="text-2xl font-bold text-cyan-600">{{ totals.subtitled }}</div>
+    </div>
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+        <div class="text-xs text-gray-500">Published</div>
+        <div class="text-2xl font-bold text-green-600">{{ totals.published }}</div>
+    </div>
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+        <div class="text-xs text-gray-500">Photos</div>
+        <div class="text-2xl font-bold text-violet-600">{{ totals.photos }}</div>
+    </div>
+</div>
+
 <!-- Today's Tasks -->
 {% if todays_tasks %}
 <div class="stat-card mb-6">
@@ -93,7 +113,7 @@
                     {% endfor %}
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Total</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Ready</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Exported</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
                 </tr>
             </thead>
