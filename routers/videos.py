@@ -33,17 +33,18 @@ SCHEDULE_STARTS = {
 
 
 def _script_status(script):
-    """Return (status_label, status_color) for a script."""
+    """Return (status_label, status_color) for a script.
+    Uses DB fields only (no os.path.isfile) — server may not have local files.
+    """
     if script.published_tiktok:
         return "Published", "#16a34a"
-    if script.final_subtitled_path and os.path.isfile(script.final_subtitled_path):
+    if script.final_subtitled_path:
         return "Subtitled", "#0891b2"
     if script.subtitle_status == "processing":
         return "Adding Subs", "#8b5cf6"
-    if script.final_video_path and os.path.isfile(script.final_video_path):
+    if script.final_video_path:
         return "Video Ready", "#2563eb"
-    if (script.raw_video1_path and os.path.isfile(script.raw_video1_path)) or \
-       (script.raw_video2_path and os.path.isfile(script.raw_video2_path)):
+    if script.raw_video1_path or script.raw_video2_path:
         return "Filmed", "#ca8a04"
     if script.modified_text:
         return "Script Only", "#9ca3af"
@@ -60,19 +61,10 @@ def _build_script_schedule(db, creator, today):
         .all()
     )
 
-    # Self-healing: clear DB paths for deleted video files
-    dirty = False
-    for s in scripts:
-        for attr in ("final_subtitled_path", "final_video_path", "raw_video1_path", "raw_video2_path"):
-            path = getattr(s, attr)
-            if path and not os.path.isfile(path):
-                setattr(s, attr, None)
-                dirty = True
-    if dirty:
-        db.commit()
-
-    # Sort: ready (has final video) first, then by id
+    # Sort: exported/ready first so they get the earliest dates (today)
     def _readiness(s):
+        if s.published_tiktok:
+            return -1
         if s.final_subtitled_path:
             return 0
         if s.final_video_path:
@@ -82,7 +74,8 @@ def _build_script_schedule(db, creator, today):
         return 3
     scripts.sort(key=lambda s: (_readiness(s), s.id))
 
-    start = SCHEDULE_STARTS[creator]
+    # Never schedule unpublished scripts in the past
+    start = max(SCHEDULE_STARTS[creator], today)
     entries = []
     tasks = []
     for i, script in enumerate(scripts):
@@ -175,16 +168,20 @@ def _build_nari_schedule(db, today):
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → fill from next slot after last published
+    # Unpublished videos → fill from next slot after last published (never in the past)
     if date_slots:
         last_pub_date = max(date_slots.keys())
         slots_on_last = date_slots[last_pub_date]
     else:
         last_pub_date = SCHEDULE_STARTS.get("sophia", today)
         slots_on_last = 0
+    # Never schedule unpublished in the past
+    effective_start = max(last_pub_date, today)
+    if effective_start > last_pub_date:
+        slots_on_last = 0
     for i, v in enumerate(unpublished):
         adj_i = i + slots_on_last
-        base_date = last_pub_date + timedelta(days=adj_i // 2)
+        base_date = effective_start + timedelta(days=adj_i // 2)
         slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
         is_ready = v.production_status in ("ready", "published")
@@ -274,16 +271,20 @@ def _build_anna_schedule(db, today):
                 "status_color": "#16a34a",
             })
 
-    # Unpublished videos → fill from next slot after last published
+    # Unpublished videos → fill from next slot after last published (never in the past)
     if date_slots:
         last_pub_date = max(date_slots.keys())
         slots_on_last = date_slots[last_pub_date]
     else:
         last_pub_date = SCHEDULE_STARTS.get("ava", today)
         slots_on_last = 0
+    # Never schedule unpublished in the past
+    effective_start = max(last_pub_date, today)
+    if effective_start > last_pub_date:
+        slots_on_last = 0
     for i, v in enumerate(unpublished):
         adj_i = i + slots_on_last
-        base_date = last_pub_date + timedelta(days=adj_i // 2)
+        base_date = effective_start + timedelta(days=adj_i // 2)
         slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
         is_ready = v.production_status in ("ready", "published")
@@ -356,6 +357,10 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "subtitled": subtitled,
             "published": published,
         }
+
+    # Sort today's tasks: most ready first (Published > Subtitled > Video Ready > ...)
+    _status_priority = {"Published": 0, "Subtitled": 1, "Video Ready": 2, "Adding Subs": 3, "Filmed": 4, "Script Only": 5, "Draft": 6}
+    todays_tasks.sort(key=lambda t: _status_priority.get(t["status"], 9))
 
     # Build calendar dynamically from actual entry dates
     all_tt_dates = []
