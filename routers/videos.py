@@ -34,20 +34,15 @@ SCHEDULE_STARTS = {
 
 def _script_status(script):
     """Return (status_label, status_color) for a script.
-    Uses DB fields only (no os.path.isfile) — server may not have local files.
+    4 statuses: Draft → Script Ready → Video Ready → Published.
+    Published = only TikTok (YouTube date = scheduling, not publication).
     """
     if script.published_tiktok:
         return "Published", "#16a34a"
-    if script.final_subtitled_path:
-        return "Subtitled", "#0891b2"
-    if script.subtitle_status == "processing":
-        return "Adding Subs", "#8b5cf6"
-    if script.final_video_path:
+    if script.final_subtitled_path or script.final_video_path:
         return "Video Ready", "#2563eb"
-    if script.raw_video1_path or script.raw_video2_path:
-        return "Filmed", "#ca8a04"
     if script.modified_text:
-        return "Script Only", "#9ca3af"
+        return "Script Ready", "#9ca3af"
     return "Draft", "#d1d5db"
 
 
@@ -65,13 +60,11 @@ def _build_script_schedule(db, creator, today):
     def _readiness(s):
         if s.published_tiktok:
             return -1
-        if s.final_subtitled_path:
+        if s.final_subtitled_path or s.final_video_path:
             return 0
-        if s.final_video_path:
+        if s.modified_text:
             return 1
-        if s.raw_video1_path or s.raw_video2_path:
-            return 2
-        return 3
+        return 2
     scripts.sort(key=lambda s: (_readiness(s), s.id))
 
     # Never schedule unpublished scripts in the past
@@ -94,6 +87,7 @@ def _build_script_schedule(db, creator, today):
             "has_final": bool(script.final_video_path or script.final_subtitled_path),
             "slot": slot,
             "published_tiktok": bool(script.published_tiktok),
+            "published_youtube": script.published_youtube,  # datetime or None
             "status": s_label,
             "status_color": s_color,
         })
@@ -149,6 +143,7 @@ def _build_nari_schedule(db, today):
             "has_final": True,
             "slot": slot,
             "published_tiktok": True,
+            "published_youtube": None,
             "status": "Published",
             "status_color": "#16a34a",
         })
@@ -197,6 +192,7 @@ def _build_nari_schedule(db, today):
             "has_final": is_ready,
             "slot": slot,
             "published_tiktok": False,
+            "published_youtube": None,
             "status": status,
             "status_color": status_color,
         })
@@ -252,6 +248,7 @@ def _build_anna_schedule(db, today):
             "has_final": True,
             "slot": slot,
             "published_tiktok": True,
+            "published_youtube": None,
             "status": "Published",
             "status_color": "#16a34a",
         })
@@ -300,6 +297,7 @@ def _build_anna_schedule(db, today):
             "has_final": is_ready,
             "slot": slot,
             "published_tiktok": False,
+            "published_youtube": None,
             "status": status,
             "status_color": status_color,
         })
@@ -346,34 +344,38 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         photo_dir = os.path.join(PHOTOS_DIR, creator)
         photos = len([f for f in os.listdir(photo_dir) if not f.startswith(".")]) if os.path.isdir(photo_dir) else 0
 
-        # Count subtitled / published
-        subtitled = sum(1 for e in entries if e.get("status") == "Subtitled" or e.get("has_final"))
+        # Count exported (Video Ready) / published
+        exported = sum(1 for e in entries if e.get("has_final"))
         published = sum(1 for e in entries if e["published_tiktok"])
 
-        yt_published = sum(1 for e in entries if e.get("published_youtube"))
+        # YouTube: count scheduled (has published_youtube date) and ready for scheduling
+        yt_scheduled = sum(1 for e in entries if e.get("published_youtube"))
+        yt_ready = sum(1 for e in entries if e.get("has_final") and not e.get("published_youtube"))
 
         schedule[creator] = {
             "scripts": entries,
             "count": len(entries),
             "photos": photos,
-            "subtitled": subtitled,
+            "exported": exported,
             "published": published,
-            "yt_published": yt_published,
+            "yt_scheduled": yt_scheduled,
+            "yt_ready": yt_ready,
         }
 
-    # Sort today's tasks: most ready first (Published > Subtitled > Video Ready > ...)
-    _status_priority = {"Published": 0, "Subtitled": 1, "Video Ready": 2, "Adding Subs": 3, "Filmed": 4, "Script Only": 5, "Draft": 6}
+    # Sort today's tasks: most ready first
+    _status_priority = {"Published": 0, "Video Ready": 1, "Script Ready": 2, "Draft": 3}
     todays_tasks.sort(key=lambda t: _status_priority.get(t["status"], 9))
 
-    # YouTube date: only for exported videos (TikTok date + 7 days)
-    YT_OFFSET = timedelta(days=7)
+    # YouTube dates: use published_youtube from DB (manual scheduling)
     for creator in CREATORS:
         for entry in schedule[creator]["scripts"]:
-            if entry["has_final"]:
-                entry["yt_date"] = entry["tiktok_date"] + YT_OFFSET
+            yt_raw = entry["published_youtube"]  # datetime or None
+            if yt_raw and hasattr(yt_raw, 'date'):
+                entry["yt_date"] = yt_raw.date()
+            elif yt_raw:
+                entry["yt_date"] = yt_raw
             else:
                 entry["yt_date"] = None
-            entry["published_youtube"] = False  # TODO: populate from DB
 
     # Build TikTok calendar dynamically from actual entry dates
     all_tt_dates = []
@@ -400,14 +402,14 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             day_map[d].append(entry)
         cal_data[creator] = day_map
 
-    # Build YouTube calendar (only exported videos, TikTok + 7 days)
+    # Build YouTube calendar (from manual published_youtube dates)
     all_yt_dates = [e["yt_date"] for c in CREATORS for e in schedule[c]["scripts"] if e["yt_date"]]
     if all_yt_dates:
         yt_cal_start = min(all_yt_dates)
         yt_cal_end = max(max(all_yt_dates), today + timedelta(days=14))
         yt_num_days = max((yt_cal_end - yt_cal_start).days + 1, 28)
     else:
-        yt_cal_start = today + YT_OFFSET
+        yt_cal_start = today
         yt_num_days = 28
     yt_cal_days = [yt_cal_start + timedelta(days=d) for d in range(yt_num_days)]
 
@@ -418,9 +420,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             d = entry["yt_date"]
             if d is None:
                 continue
-            if d not in day_map:
-                day_map[d] = []
-            day_map[d].append(entry)
+            day_map.setdefault(d, []).append(entry)
         yt_cal_data[creator] = day_map
 
     # Grand totals
@@ -437,9 +437,10 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     totals = {
         "count": sum(schedule[c]["count"] for c in CREATORS),
         "photos": sum(schedule[c]["photos"] for c in CREATORS),
-        "subtitled": sum(schedule[c]["subtitled"] for c in CREATORS),
+        "exported": sum(schedule[c]["exported"] for c in CREATORS),
         "published": sum(schedule[c]["published"] for c in CREATORS),
-        "yt_published": sum(schedule[c]["yt_published"] for c in CREATORS),
+        "yt_scheduled": sum(schedule[c]["yt_scheduled"] for c in CREATORS),
+        "yt_ready": sum(schedule[c]["yt_ready"] for c in CREATORS),
         "exported_list": exported_list,
         "published_list": published_list,
     }

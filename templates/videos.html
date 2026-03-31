@@ -15,7 +15,7 @@
     </div>
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm cursor-pointer hover:border-cyan-400 transition" onclick="togglePanel('exported')">
         <div class="text-xs text-gray-500">Exported</div>
-        <div class="text-2xl font-bold text-cyan-600">{{ totals.subtitled }}</div>
+        <div class="text-2xl font-bold text-cyan-600">{{ totals.exported }}</div>
         <div class="text-xs text-gray-400 mt-1">click to view</div>
     </div>
     <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm cursor-pointer hover:border-green-400 transition" onclick="togglePanel('published')">
@@ -33,7 +33,7 @@
 <div id="panel-exported" class="hidden mb-4">
     <div class="bg-white rounded-lg border border-cyan-200 shadow-sm overflow-hidden">
         <div class="px-4 py-2 bg-cyan-50 border-b border-cyan-200 flex items-center justify-between">
-            <span class="text-xs font-bold text-cyan-800">Exported Videos ({{ totals.subtitled }})</span>
+            <span class="text-xs font-bold text-cyan-800">Exported Videos ({{ totals.exported }})</span>
             <button onclick="togglePanel('exported')" class="text-xs text-cyan-600 hover:text-cyan-800">Close</button>
         </div>
         <table class="w-full text-xs">
@@ -227,7 +227,7 @@ function togglePanel(name) {
                         <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].photos > 0 %}#8b5cf6{% else %}#d1d5db{% endif %};">{{ schedule[creator].photos }}</span>
                     </td>
                     <td style="padding: 3px 6px; text-align: center;">
-                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].subtitled > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].subtitled }}</span>
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].exported > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].exported }}</span>
                     </td>
                     <td style="padding: 3px 6px; text-align: center;">
                         <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].published }}</span>
@@ -259,7 +259,7 @@ function togglePanel(name) {
                     {% endfor %}
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #111827;">{{ totals.count }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
-                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.subtitled }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.exported }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.published }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;">
                         {% set tt_pct = (totals.published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
@@ -300,7 +300,7 @@ function togglePanel(name) {
     <div class="flex items-center gap-2 mb-3">
         <svg width="16" height="16" fill="none" stroke="#FF0000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         <h2 class="text-sm font-bold" style="color: #FF0000;">YouTube Calendar — Plan / Fact</h2>
-        <span class="text-xs text-gray-400 ml-2">(TikTok + 7 days)</span>
+        <span class="text-xs text-gray-400 ml-2">(manual dates from character page)</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full" style="font-size: 11px; border-collapse: collapse;">
@@ -313,9 +313,8 @@ function togglePanel(name) {
                     </th>
                     {% endfor %}
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Total</th>
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Exported</th>
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #FF0000; font-weight: 700; min-width: 34px;">Ready</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Sched'd</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">%</th>
                 </tr>
             </thead>
@@ -329,10 +328,7 @@ function togglePanel(name) {
                     {% set count = day_entries|length %}
                     <td style="padding: 3px 2px; text-align: center;">
                         {% if count > 0 %}
-                            {% set pub_count = day_entries|selectattr('published_youtube')|list|length %}
-                            {% if pub_count == count %}
-                            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-size: 10px; line-height: 16px; font-weight: 700; border: 2px solid #FF0000;">{{ count }}</span>
-                            {% elif day < today %}
+                            {% if day < today %}
                             <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #fef2f2; color: #ef4444; font-size: 10px; line-height: 16px; font-weight: 700; border: 2px solid #FF0000;">{{ count }}</span>
                             {% elif day == today %}
                             <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #FF0000; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; border: 2px solid #cc0000;">{{ count }}</span>
@@ -348,16 +344,13 @@ function togglePanel(name) {
                         <span style="font-size: 10px; font-weight: 700; color: #374151;">{{ schedule[creator].count }}</span>
                     </td>
                     <td style="padding: 3px 6px; text-align: center;">
-                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].photos > 0 %}#8b5cf6{% else %}#d1d5db{% endif %};">{{ schedule[creator].photos }}</span>
+                        <span style="font-size: 10px; font-weight: 700; color: {% if schedule[creator].yt_ready > 0 %}#FF0000{% else %}#d1d5db{% endif %};">{{ schedule[creator].yt_ready }}</span>
                     </td>
                     <td style="padding: 3px 6px; text-align: center;">
-                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].subtitled > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].subtitled }}</span>
+                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].yt_scheduled > 0 %}#0891b2{% else %}#d1d5db{% endif %};">{{ schedule[creator].yt_scheduled }}</span>
                     </td>
                     <td style="padding: 3px 6px; text-align: center;">
-                        <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].yt_published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].yt_published }}</span>
-                    </td>
-                    <td style="padding: 3px 6px; text-align: center;">
-                        {% set yt_pct = (schedule[creator].yt_published * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
+                        {% set yt_pct = (schedule[creator].yt_scheduled * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
                         <span style="font-size: 10px; font-weight: 700; color: {% if yt_pct >= 100 %}#16a34a{% elif yt_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ yt_pct }}%</span>
                     </td>
                 </tr>
@@ -381,11 +374,10 @@ function togglePanel(name) {
                     </td>
                     {% endfor %}
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #111827;">{{ totals.count }}</span></td>
-                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
-                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.subtitled }}</span></td>
-                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.yt_published }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #FF0000;">{{ totals.yt_ready }}</span></td>
+                    <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.yt_scheduled }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;">
-                        {% set yt_total_pct = (totals.yt_published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
+                        {% set yt_total_pct = (totals.yt_scheduled * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
                         <span style="font-size: 10px; font-weight: 800; color: {% if yt_total_pct >= 100 %}#16a34a{% elif yt_total_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ yt_total_pct }}%</span>
                     </td>
                 </tr>
@@ -489,11 +481,11 @@ function togglePanel(name) {
                         </td>
                         <td class="td">
                             {% if entry.yt_date %}
-                                {% if entry.published_youtube %}
-                                <span style="font-size: 11px; font-weight: 600; color: #16a34a;">{{ entry.yt_date.strftime('%b %d') }} ✓</span>
-                                {% elif entry.yt_date == today %}
+                                {% if entry.yt_date == today %}
                                 <span style="font-size: 11px; font-weight: 600; color: #FF0000;">{{ entry.yt_date.strftime('%b %d') }}</span>
                                 <span style="font-size: 8px; color: #FF0000; font-weight: 700;">TODAY</span>
+                                {% elif entry.yt_date < today %}
+                                <span style="font-size: 11px; font-weight: 600; color: #16a34a;">{{ entry.yt_date.strftime('%b %d') }} ✓</span>
                                 {% else %}
                                 <span style="font-size: 11px; font-weight: 600; color: #9ca3af;">{{ entry.yt_date.strftime('%b %d') }}</span>
                                 {% endif %}
