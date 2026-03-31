@@ -263,40 +263,17 @@
         <!-- Publication Dates -->
         <div class="stat-card">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Publication Dates</h2>
-            <div class="space-y-2">
+            <div class="space-y-3">
+                {% for plat, field in [('TikTok', 'published_tiktok'), ('Instagram', 'published_instagram'), ('YouTube', 'published_youtube')] %}
+                {% set dt = script[field] %}
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600 font-medium">TikTok</span>
-                    {% if script.published_tiktok %}
-                    <div class="flex items-center gap-2">
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_tiktok.strftime('%b %d') }}</span>
-                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'tiktok')">Unpublish</button>
-                    </div>
-                    {% else %}
-                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'tiktok')">Publish</button>
-                    {% endif %}
+                    <span class="text-xs text-gray-600 font-medium" style="min-width: 70px;">{{ plat }}</span>
+                    <input type="date"
+                           value="{{ dt.strftime('%Y-%m-%d') if dt else '' }}"
+                           onchange="setPublishDate({{ script.id }}, '{{ plat|lower }}', this.value, this)"
+                           style="font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1.5px solid {{ '#bbf7d0' if dt else '#e2e8f0' }}; background: {{ 'rgba(22,163,74,0.05)' if dt else 'white' }}; color: {{ '#16a34a' if dt else '#9ca3af' }}; font-weight: 600; cursor: pointer; outline: none; width: 150px;">
                 </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600 font-medium">Instagram</span>
-                    {% if script.published_instagram %}
-                    <div class="flex items-center gap-2">
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_instagram.strftime('%b %d') }}</span>
-                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'instagram')">Unpublish</button>
-                    </div>
-                    {% else %}
-                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'instagram')">Publish</button>
-                    {% endif %}
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600 font-medium">YouTube</span>
-                    {% if script.published_youtube %}
-                    <div class="flex items-center gap-2">
-                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a; font-size: 10px;">{{ script.published_youtube.strftime('%b %d') }}</span>
-                        <button class="btn-sm btn-danger" style="font-size: 9px; padding: 2px 6px;" onclick="togglePublish({{ script.id }}, 'youtube')">Unpublish</button>
-                    </div>
-                    {% else %}
-                    <button class="btn-sm btn-secondary" style="font-size: 10px;" onclick="togglePublish({{ script.id }}, 'youtube')">Publish</button>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -386,6 +363,31 @@
 {% block scripts %}
 <script>
 const SCRIPT_ID = {{ script.id }};
+
+// === Publish date picker ===
+async function setPublishDate(scriptId, platform, dateValue, input) {
+    try {
+        const res = await fetch('/api/scripts/' + scriptId + '/publish-date', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({platform: platform, date: dateValue || ''})
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+            if (dateValue) {
+                input.style.borderColor = '#bbf7d0';
+                input.style.background = 'rgba(22,163,74,0.05)';
+                input.style.color = '#16a34a';
+            } else {
+                input.style.borderColor = '#e2e8f0';
+                input.style.background = 'white';
+                input.style.color = '#9ca3af';
+            }
+        }
+    } catch(e) {
+        console.error('Publish date error:', e);
+    }
+}
 
 // === Tab switching ===
 function switchTab(tabName, btn) {
