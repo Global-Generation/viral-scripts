@@ -70,24 +70,64 @@ def search_results_page(
 def scripts_library(
     request: Request,
     category: str = Query(""),
+    creator: str = Query(""),
     db: Session = Depends(get_db)
 ):
-    # Scripts Library shows only unassigned scripts
-    # Assigned scripts (boris/daniel/thomas) have their own tabs
-    base_q = (
-        db.query(Script)
-        .join(Video)
-        .join(Search, Video.search_id == Search.id)
-        .filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
-    )
+    from routers.character import CHARACTERS
+
+    base_q = db.query(Script).join(Video).join(Search, Video.search_id == Search.id)
+
     if category:
         base_q = base_q.filter(Search.category == category)
+    if creator == "unassigned":
+        base_q = base_q.filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
+    elif creator:
+        base_q = base_q.filter(Script.assigned_to == creator)
 
-    q = base_q.order_by(Script.viral_score.desc(), Script.created_at.desc())
-    scripts = q.all()
+    scripts = base_q.order_by(Script.viral_score.desc(), Script.created_at.desc()).all()
+
+    # Stats
+    all_scripts = db.query(Script).join(Video).join(Search, Video.search_id == Search.id).all()
+    total_scripts = len(all_scripts)
+    unassigned_count = sum(1 for s in all_scripts if not s.assigned_to)
+    by_category = {"ai": 0, "finance": 0}
+    by_creator = defaultdict(int)
+    by_status = {"Draft": 0, "Script Ready": 0, "Video Ready": 0, "Published": 0}
+
+    for s in all_scripts:
+        cat = s.video.search.category if s.video and s.video.search else ""
+        if cat in by_category:
+            by_category[cat] += 1
+        if s.assigned_to:
+            by_creator[s.assigned_to] += 1
+        else:
+            by_creator["unassigned"] += 1
+        # Status
+        if s.published_tiktok:
+            by_status["Published"] += 1
+        elif s.final_subtitled_path or s.final_video_path:
+            by_status["Video Ready"] += 1
+        elif s.modified_text:
+            by_status["Script Ready"] += 1
+        else:
+            by_status["Draft"] += 1
+
+    creator_names = list(CHARACTERS.keys())
+
     return templates.TemplateResponse(
         "scripts_library.html",
-        ctx(request, "scripts", scripts=scripts, category=category)
+        ctx(
+            request, "scripts",
+            scripts=scripts,
+            category=category,
+            creator_filter=creator,
+            total_scripts=total_scripts,
+            unassigned_count=unassigned_count,
+            by_category=by_category,
+            by_creator=dict(by_creator),
+            by_status=by_status,
+            creator_names=creator_names,
+        )
     )
 
 

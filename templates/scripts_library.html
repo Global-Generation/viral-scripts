@@ -3,20 +3,66 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900 mb-1" data-i18n="lib.title">Scripts Library</h1>
-    <p class="text-sm text-gray-500" data-i18n="lib.subtitle">Unassigned scripts — assign to Boris, Daniel, or Thomas from script view</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Scripts Library</h1>
+    <p class="text-sm text-gray-500">All scripts — filter by category, creator, or status</p>
 </div>
 
-<!-- Category filter tabs -->
-<div class="flex gap-1 mb-4 border-b border-gray-200">
-    <a href="/scripts" class="prompt-tab {% if not category %}active{% endif %}" data-i18n="tab.all">All</a>
-    <a href="/scripts?category=ai" class="prompt-tab {% if category == 'ai' %}active{% endif %}" data-i18n="tab.ai">AI</a>
-    <a href="/scripts?category=finance" class="prompt-tab {% if category == 'finance' %}active{% endif %}" data-i18n="tab.finance">Finance</a>
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
+    <div class="stat-card" style="text-align: center; padding: 12px;">
+        <div style="font-size: 24px; font-weight: 800; color: #1e293b;">{{ total_scripts }}</div>
+        <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Scripts</div>
+    </div>
+    <div class="stat-card" style="text-align: center; padding: 12px;">
+        <div style="font-size: 24px; font-weight: 800; color: #f59e0b;">{{ unassigned_count }}</div>
+        <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Unassigned</div>
+    </div>
+    <div class="stat-card" style="text-align: center; padding: 12px;">
+        <div style="font-size: 24px; font-weight: 800; color: #8B5CF6;">{{ by_category.get('ai', 0) }}</div>
+        <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">AI</div>
+    </div>
+    <div class="stat-card" style="text-align: center; padding: 12px;">
+        <div style="font-size: 24px; font-weight: 800; color: #34C759;">{{ by_category.get('finance', 0) }}</div>
+        <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Finance</div>
+    </div>
+</div>
+
+<!-- Status breakdown -->
+<div class="stat-card mb-4" style="padding: 10px 14px;">
+    <div style="display: flex; gap: 16px; font-size: 11px;">
+        <span style="color: #9ca3af;"><span style="font-weight: 700; color: #d1d5db;">{{ by_status.get('Draft', 0) }}</span> Draft</span>
+        <span style="color: #9ca3af;"><span style="font-weight: 700; color: #64748b;">{{ by_status.get('Script Ready', 0) }}</span> Script Ready</span>
+        <span style="color: #9ca3af;"><span style="font-weight: 700; color: #2563EB;">{{ by_status.get('Video Ready', 0) }}</span> Video Ready</span>
+        <span style="color: #9ca3af;"><span style="font-weight: 700; color: #16a34a;">{{ by_status.get('Published', 0) }}</span> Published</span>
+        <span style="flex: 1;"></span>
+        {% for name, count in by_creator.items() %}
+        {% if name != 'unassigned' %}
+        <span style="font-size: 10px; color: #64748b;"><span style="font-weight: 700;">{{ count }}</span> {{ name|capitalize }}</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
+    <!-- Category tabs -->
+    <a href="/scripts{% if creator_filter %}?creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
+    <a href="/scripts?category=ai{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
+    <a href="/scripts?category=finance{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+
+    <span style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px;"></span>
+
+    <!-- Creator filter -->
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}" class="prompt-tab {% if not creator_filter %}active{% endif %}">All Creators</a>
+    <a href="/scripts?creator=unassigned{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if creator_filter == 'unassigned' %}active{% endif %}">Unassigned</a>
+    {% for c in creator_names %}
+    <a href="/scripts?creator={{ c }}{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if creator_filter == c %}active{% endif %}" style="font-size: 11px;">{{ c|capitalize }}</a>
+    {% endfor %}
 </div>
 
 {% if not scripts %}
 <div class="stat-card text-center py-12">
-    <p class="text-gray-400 text-sm">No scripts yet. <a href="/" class="text-blue-500">Search for videos</a> and extract their scripts.</p>
+    <p class="text-gray-400 text-sm">No scripts match filters.</p>
 </div>
 {% else %}
 <div class="stat-card">
@@ -25,16 +71,18 @@
             <thead>
                 <tr class="border-b border-gray-100">
                     <th class="th" style="width: 50px;"></th>
-                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;"><span data-i18n="th.video">Video</span> <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;"><span data-i18n="th.category">Category</span> <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;">Video <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
                     <th class="th sortable" data-sort="text" data-col="3" style="cursor:pointer;">Assigned To <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="num" data-col="5" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for script in scripts %}
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
                     <td class="td">
-                        <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
+                        <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()">View</a>
                     </td>
                     <td class="td" style="max-width: 200px;">
                         <p class="text-xs text-gray-500 truncate">{{ script.video.title[:60] if script.video else 'N/A' }}</p>
@@ -63,17 +111,39 @@
                         <span class="status-badge" style="background: rgba(236,72,153,0.1); color: #ec4899;">Natalie</span>
                         {% elif script.assigned_to == 'luna' %}
                         <span class="status-badge" style="background: rgba(20,184,166,0.1); color: #14b8a6;">Luna</span>
+                        {% elif script.assigned_to == 'sophia' %}
+                        <span class="status-badge" style="background: rgba(147,51,234,0.1); color: #9333ea;">Sophia</span>
+                        {% elif script.assigned_to == 'ava' %}
+                        <span class="status-badge" style="background: rgba(219,39,119,0.1); color: #db2777;">Ava</span>
+                        {% else %}
+                        <span style="color: #d1d5db; font-size: 11px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="td">
+                        {% if script.published_tiktok %}
+                        <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a;">Published</span>
+                        {% elif script.final_subtitled_path or script.final_video_path %}
+                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">Video Ready</span>
+                        {% elif script.modified_text %}
+                        <span class="status-badge" style="background: rgba(100,116,139,0.1); color: #64748b;">Script Ready</span>
+                        {% else %}
+                        <span class="status-badge" style="background: rgba(209,213,219,0.1); color: #d1d5db;">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td class="td" style="text-align: center;">
+                        {% if script.viral_score %}
+                        <span style="font-size: 11px; font-weight: 700; color: {% if script.viral_score >= 70 %}#16a34a{% elif script.viral_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ script.viral_score }}</span>
                         {% else %}
                         <span style="color: #d1d5db; font-size: 11px;">—</span>
                         {% endif %}
                     </td>
                 </tr>
                 <tr class="expand-row" id="expand-{{ script.id }}" style="display: none;">
-                    <td colspan="4" style="padding: 0;">
+                    <td colspan="6" style="padding: 0;">
                         <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <div style="display: flex; gap: 24px;">
                                 <div style="flex: 1; min-width: 0;">
-                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; letter-spacing: 0.5px;" data-i18n="sec.provocative">Provocative Version</div>
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; margin-bottom: 6px; letter-spacing: 0.5px;">Provocative Version</div>
                                     <div style="font-size: 12px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ script.modified_text or '— not rewritten yet —' }}</div>
                                 </div>
                             </div>
@@ -90,15 +160,12 @@
 
 {% block scripts %}
 <script>
-// === Expand/collapse provocative text ===
 function toggleExpand(row, event) {
-    // Don't toggle if clicking on interactive elements
     if (event.target.closest('select, input, a, button')) return;
     const id = row.dataset.scriptId;
     const expandRow = document.getElementById('expand-' + id);
     if (!expandRow) return;
     const isOpen = expandRow.style.display !== 'none';
-    // Close all other expanded rows
     document.querySelectorAll('.expand-row').forEach(r => r.style.display = 'none');
     document.querySelectorAll('.script-row').forEach(r => r.style.background = '');
     if (!isOpen) {
@@ -107,7 +174,6 @@ function toggleExpand(row, event) {
     }
 }
 
-// === Sortable table ===
 (function() {
     const table = document.getElementById('scripts-table');
     if (!table) return;
@@ -121,7 +187,6 @@ function toggleExpand(row, event) {
             const asc = (currentSort.col === col) ? !currentSort.asc : true;
             currentSort = { col, asc };
 
-            // Update sort icons
             headers.forEach(h => h.querySelector('.sort-icon').textContent = '');
             this.querySelector('.sort-icon').textContent = asc ? ' \u25B2' : ' \u25BC';
 
@@ -136,14 +201,6 @@ function toggleExpand(row, event) {
                     vb = parseFloat(vb) || 0;
                     return asc ? va - vb : vb - va;
                 }
-                if (type === 'date') {
-                    // Empty dates go last
-                    if (!va && !vb) return 0;
-                    if (!va) return 1;
-                    if (!vb) return -1;
-                    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
-                }
-                // text
                 va = va.toLowerCase();
                 vb = vb.toLowerCase();
                 if (va === vb) return 0;
@@ -160,23 +217,14 @@ function toggleExpand(row, event) {
 
     function getCellValue(row, col, type) {
         const cell = row.children[col];
-        if (type === 'date') {
-            const input = cell.querySelector('input[type="date"]');
-            return input ? input.value : '';
-        }
         if (type === 'num') {
             const span = cell.querySelector('span');
             return span ? span.textContent.replace(/[^0-9.]/g, '') : '0';
         }
-        // For select (status column)
-        const select = cell.querySelector('select');
-        if (select) return select.value;
-        // For badge/text
         const badge = cell.querySelector('.status-badge');
         if (badge) return badge.textContent.trim();
         return cell.textContent.trim();
     }
 })();
-
 </script>
 {% endblock %}
