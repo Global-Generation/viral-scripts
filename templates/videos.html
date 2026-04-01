@@ -96,6 +96,129 @@ function togglePanel(name) {
 }
 </script>
 
+<!-- TikTok Stats Overview -->
+<div class="stat-card mb-4">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            <span style="font-size: 12px; font-weight: 700; color: #1e293b;">TikTok Stats</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="tt-all-status" style="font-size: 10px; color: #9ca3af;"></span>
+            <button id="tt-refresh-all-btn" onclick="refreshAllTiktok()" style="font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.borderColor='#000'; this.style.color='#000'" onmouseleave="this.style.borderColor='#e2e8f0'; this.style.color='#374151'">Refresh All</button>
+        </div>
+    </div>
+
+    <!-- Summary totals -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-followers">{{ "{:,}".format(tt_totals.followers) }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Followers</div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-hearts">{{ "{:,}".format(tt_totals.hearts) }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Likes</div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-videos">{{ tt_totals.videos }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Videos</div>
+        </div>
+    </div>
+
+    <!-- Per-creator table -->
+    <div style="overflow-x: auto;">
+        <table class="w-full" style="font-size: 12px;">
+            <thead>
+                <tr class="border-b border-gray-100">
+                    <th style="text-align: left; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Creator</th>
+                    <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Followers</th>
+                    <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
+                    <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Videos</th>
+                    <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Updated</th>
+                </tr>
+            </thead>
+            <tbody id="tt-all-tbody">
+                {% for c in creators %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50" id="tt-row-{{ c }}">
+                    <td style="padding: 6px 8px;">
+                        <a href="/character/{{ c }}" style="font-weight: 600; color: #1e293b; text-decoration: none; text-transform: capitalize;">{{ c }}</a>
+                    </td>
+                    {% if c in tt_stats %}
+                    <td style="text-align: right; padding: 6px 8px; font-weight: 700; color: #1e293b;" class="tt-cell-followers">{{ "{:,}".format(tt_stats[c].followers) }}</td>
+                    <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-hearts">{{ "{:,}".format(tt_stats[c].hearts) }}</td>
+                    <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-videos">{{ tt_stats[c].videos }}</td>
+                    <td style="text-align: right; padding: 6px 8px; font-size: 10px; color: #9ca3af;" class="tt-cell-updated">{{ tt_stats[c].updated_at or '—' }}</td>
+                    {% else %}
+                    <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-followers">—</td>
+                    <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-hearts">—</td>
+                    <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-videos">—</td>
+                    <td style="text-align: right; padding: 6px 8px; font-size: 10px; color: #d1d5db;" class="tt-cell-updated">—</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function _fmtNum(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return n.toLocaleString();
+}
+
+async function refreshAllTiktok() {
+    var btn = document.getElementById('tt-refresh-all-btn');
+    var status = document.getElementById('tt-all-status');
+    btn.textContent = 'Refreshing...';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    status.textContent = 'Fetching stats for all creators...';
+    try {
+        var res = await fetch('/api/tiktok/refresh-all', { method: 'POST' });
+        var data = await res.json();
+        if (data.ok) {
+            var totalF = 0, totalH = 0, totalV = 0;
+            for (var name in data.stats) {
+                var s = data.stats[name];
+                var row = document.getElementById('tt-row-' + name);
+                if (row) {
+                    row.querySelector('.tt-cell-followers').textContent = _fmtNum(s.followers || 0);
+                    row.querySelector('.tt-cell-followers').style.color = '#1e293b';
+                    row.querySelector('.tt-cell-followers').style.fontWeight = '700';
+                    row.querySelector('.tt-cell-hearts').textContent = _fmtNum(s.hearts || 0);
+                    row.querySelector('.tt-cell-hearts').style.color = '#64748b';
+                    row.querySelector('.tt-cell-videos').textContent = s.videos || 0;
+                    row.querySelector('.tt-cell-videos').style.color = '#64748b';
+                    row.querySelector('.tt-cell-updated').textContent = s.updated_at || 'just now';
+                    row.querySelector('.tt-cell-updated').style.color = '#9ca3af';
+                }
+                totalF += s.followers || 0;
+                totalH += s.hearts || 0;
+                totalV += s.videos || 0;
+            }
+            document.getElementById('tt-all-followers').textContent = _fmtNum(totalF);
+            document.getElementById('tt-all-hearts').textContent = _fmtNum(totalH);
+            document.getElementById('tt-all-videos').textContent = totalV;
+            var msg = Object.keys(data.stats).length + ' updated';
+            if (data.errors && data.errors.length) msg += ', ' + data.errors.length + ' failed';
+            status.textContent = msg;
+            toast('TikTok stats refreshed', 'success');
+        } else {
+            status.textContent = 'Failed';
+            toast('Failed to refresh', 'error');
+        }
+    } catch (e) {
+        status.textContent = 'Error';
+        toast('Failed to refresh TikTok stats', 'error');
+    }
+    btn.textContent = 'Refresh All';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+}
+</script>
+
 <!-- Today's Tasks -->
 {% if todays_tasks %}
 <div class="stat-card mb-6">

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from datetime import date, datetime, timedelta, timezone
@@ -6,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Script, Video, NariVideo, AnnaVideo
+from models import Script, Video, NariVideo, AnnaVideo, TiktokStats
 from routers.character import CHARACTERS
 
 PHOTOS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "photos")
@@ -446,6 +447,18 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         "published_list": published_list,
     }
 
+    # TikTok profile stats (cached)
+    tt_stats = {}
+    tt_totals = {"followers": 0, "hearts": 0, "videos": 0}
+    profile_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "profile").all()
+    for row in profile_rows:
+        data = json.loads(row.data) if row.data else {}
+        data["updated_at"] = row.updated_at.strftime("%Y-%m-%d %H:%M") if row.updated_at else None
+        tt_stats[row.creator] = data
+        tt_totals["followers"] += data.get("followers", 0)
+        tt_totals["hearts"] += data.get("hearts", 0)
+        tt_totals["videos"] += data.get("videos", 0)
+
     return templates.TemplateResponse(
         "videos.html",
         {
@@ -461,5 +474,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "yt_cal_data": yt_cal_data,
             "totals": totals,
             "tiktok_links": {name: info.get("tiktok", "") for name, info in CHARACTERS.items()},
+            "tt_stats": tt_stats,
+            "tt_totals": tt_totals,
         }
     )

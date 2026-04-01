@@ -223,6 +223,38 @@ def refresh_tiktok(name: str, db: Session = Depends(get_db)):
     }
 
 
+@router.post("/api/tiktok/refresh-all")
+def refresh_all_tiktok(db: Session = Depends(get_db)):
+    from services.tiktok_stats import fetch_profile_stats
+
+    now = datetime.now(timezone.utc)
+    results = {}
+    errors = []
+
+    for name, info in CHARACTERS.items():
+        tiktok_url = info.get("tiktok", "")
+        if not tiktok_url:
+            continue
+        profile = fetch_profile_stats(tiktok_url)
+        if profile:
+            row = db.query(TiktokStats).filter(
+                TiktokStats.creator == name, TiktokStats.stat_type == "profile"
+            ).first()
+            if row:
+                row.data = json.dumps(profile)
+                row.updated_at = now
+            else:
+                db.add(TiktokStats(creator=name, stat_type="profile", data=json.dumps(profile), updated_at=now))
+            profile["updated_at"] = now.strftime("%Y-%m-%d %H:%M")
+            results[name] = profile
+        else:
+            errors.append(name)
+
+    db.commit()
+    logger.info(f"Refreshed all TikTok stats: {len(results)} ok, {len(errors)} failed")
+    return {"ok": True, "stats": results, "errors": errors}
+
+
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
