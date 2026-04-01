@@ -12,6 +12,70 @@
     {% endif %}
 </div>
 
+<!-- TikTok Stats Block -->
+{% if tiktok %}
+<div class="stat-card mb-4" id="tiktok-stats-block">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">TikTok Statistics</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            {% if tt_updated %}<span id="tt-updated" style="font-size: 10px; color: #9ca3af;">Updated: {{ tt_updated }}</span>{% else %}<span id="tt-updated" style="font-size: 10px; color: #9ca3af;"></span>{% endif %}
+            <button id="tt-refresh-btn" onclick="refreshTiktokStats()" style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.borderColor='{{ color }}'; this.style.color='{{ color }}'" onmouseleave="this.style.borderColor='#e2e8f0'; this.style.color='#374151'">Refresh</button>
+        </div>
+    </div>
+
+    <!-- Profile stats -->
+    <div id="tt-profile-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+        {% if tt_profile %}
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-followers">{{ "{:,}".format(tt_profile.followers) }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Followers</div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-hearts">{{ "{:,}".format(tt_profile.hearts) }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Likes</div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-videos">{{ tt_profile.videos }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Videos</div>
+        </div>
+        <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-following">{{ "{:,}".format(tt_profile.following) }}</div>
+            <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Following</div>
+        </div>
+        {% else %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 16px; color: #9ca3af; font-size: 12px;" id="tt-no-profile">
+            No stats yet — click <b>Refresh</b> to fetch from TikTok
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Per-video stats table -->
+    <div id="tt-videos-section" style="{% if not tt_videos %}display:none{% endif %}">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 8px;">Video Performance</div>
+        <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+            <table class="w-full" id="tt-videos-table">
+                <thead>
+                    <tr class="border-b border-gray-100" style="position: sticky; top: 0; background: #fff; z-index: 1;">
+                        <th class="th" style="width: 30px;">#</th>
+                        <th class="th" style="min-width: 200px;">Title</th>
+                        <th class="th" style="text-align: right; cursor: pointer;" onclick="sortTtVideos('views')">Views <span class="tt-sort-icon" data-col="views"></span></th>
+                        <th class="th" style="text-align: right; cursor: pointer;" onclick="sortTtVideos('likes')">Likes <span class="tt-sort-icon" data-col="likes"></span></th>
+                        <th class="th" style="text-align: right; cursor: pointer;" onclick="sortTtVideos('comments')">Comments <span class="tt-sort-icon" data-col="comments"></span></th>
+                        <th class="th" style="text-align: right; cursor: pointer;" onclick="sortTtVideos('shares')">Shares <span class="tt-sort-icon" data-col="shares"></span></th>
+                        <th class="th" style="text-align: right; cursor: pointer;" onclick="sortTtVideos('saves')">Saves <span class="tt-sort-icon" data-col="saves"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="tt-videos-tbody">
+                </tbody>
+            </table>
+        </div>
+        <!-- Totals row -->
+        <div id="tt-totals" style="display: flex; gap: 16px; padding: 10px 0; border-top: 2px solid #e2e8f0; margin-top: 4px; font-size: 11px; font-weight: 700; color: #1e293b;">
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Stats row 1: counts -->
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
     <!-- Total Scripts -->
@@ -539,6 +603,119 @@ async function inlineUpdateProduction(scriptId, status) {
     } else {
         toast('Update failed', 'error');
     }
+}
+
+// === TikTok Stats ===
+var _ttVideos = {{ tt_videos_json|safe }};
+var _ttSortCol = 'views';
+var _ttSortAsc = false;
+
+function fmtNum(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+}
+
+function renderTtVideos() {
+    var tbody = document.getElementById('tt-videos-tbody');
+    if (!tbody || !_ttVideos.length) return;
+    var sorted = _ttVideos.slice().sort(function(a, b) {
+        var va = a[_ttSortCol] || 0, vb = b[_ttSortCol] || 0;
+        return _ttSortAsc ? va - vb : vb - va;
+    });
+    var html = '';
+    for (var i = 0; i < sorted.length; i++) {
+        var v = sorted[i];
+        html += '<tr class="border-b border-gray-50 hover:bg-gray-50/50">' +
+            '<td class="td" style="font-size:11px;color:#9ca3af;">' + (i + 1) + '</td>' +
+            '<td class="td" style="max-width:250px;"><a href="' + (v.url || '#') + '" target="_blank" style="font-size:11px;color:#2563EB;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (v.title || '').replace(/"/g, '&quot;') + '">' + (v.title || 'Untitled') + '</a></td>' +
+            '<td class="td" style="text-align:right;font-size:12px;font-weight:700;color:#1e293b;">' + fmtNum(v.views) + '</td>' +
+            '<td class="td" style="text-align:right;font-size:12px;font-weight:600;color:#64748b;">' + fmtNum(v.likes) + '</td>' +
+            '<td class="td" style="text-align:right;font-size:12px;color:#64748b;">' + fmtNum(v.comments) + '</td>' +
+            '<td class="td" style="text-align:right;font-size:12px;color:#64748b;">' + fmtNum(v.shares) + '</td>' +
+            '<td class="td" style="text-align:right;font-size:12px;color:#64748b;">' + fmtNum(v.saves) + '</td>' +
+            '</tr>';
+    }
+    tbody.innerHTML = html;
+    // Totals
+    var totals = { views: 0, likes: 0, comments: 0, shares: 0, saves: 0 };
+    _ttVideos.forEach(function(v) {
+        totals.views += v.views || 0;
+        totals.likes += v.likes || 0;
+        totals.comments += v.comments || 0;
+        totals.shares += v.shares || 0;
+        totals.saves += v.saves || 0;
+    });
+    var totalsEl = document.getElementById('tt-totals');
+    if (totalsEl) {
+        totalsEl.innerHTML =
+            '<span>Total: ' + _ttVideos.length + ' videos</span>' +
+            '<span style="margin-left:auto;">' + fmtNum(totals.views) + ' views</span>' +
+            '<span>' + fmtNum(totals.likes) + ' likes</span>' +
+            '<span>' + fmtNum(totals.comments) + ' comments</span>' +
+            '<span>' + fmtNum(totals.shares) + ' shares</span>' +
+            '<span>' + fmtNum(totals.saves) + ' saves</span>';
+    }
+    // Sort icons
+    document.querySelectorAll('.tt-sort-icon').forEach(function(el) {
+        el.textContent = el.dataset.col === _ttSortCol ? (_ttSortAsc ? ' \u25B2' : ' \u25BC') : '';
+    });
+}
+
+function sortTtVideos(col) {
+    if (_ttSortCol === col) _ttSortAsc = !_ttSortAsc;
+    else { _ttSortCol = col; _ttSortAsc = false; }
+    renderTtVideos();
+}
+
+// Render initial data
+if (_ttVideos && _ttVideos.length) renderTtVideos();
+
+async function refreshTiktokStats() {
+    var btn = document.getElementById('tt-refresh-btn');
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    try {
+        var res = await fetch('/api/character/{{ name }}/refresh-tiktok', { method: 'POST' });
+        var data = await res.json();
+        if (data.ok) {
+            // Update profile stats
+            if (data.profile) {
+                var ps = document.getElementById('tt-profile-stats');
+                ps.innerHTML =
+                    '<div style="text-align:center;padding:10px;background:#f8fafc;border-radius:8px;">' +
+                        '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + fmtNum(data.profile.followers) + '</div>' +
+                        '<div style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:2px;">Followers</div></div>' +
+                    '<div style="text-align:center;padding:10px;background:#f8fafc;border-radius:8px;">' +
+                        '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + fmtNum(data.profile.hearts) + '</div>' +
+                        '<div style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:2px;">Likes</div></div>' +
+                    '<div style="text-align:center;padding:10px;background:#f8fafc;border-radius:8px;">' +
+                        '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + data.profile.videos + '</div>' +
+                        '<div style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:2px;">Videos</div></div>' +
+                    '<div style="text-align:center;padding:10px;background:#f8fafc;border-radius:8px;">' +
+                        '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + fmtNum(data.profile.following) + '</div>' +
+                        '<div style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:2px;">Following</div></div>';
+            }
+            // Update video stats
+            if (data.videos && data.videos.length) {
+                _ttVideos = data.videos;
+                document.getElementById('tt-videos-section').style.display = '';
+                renderTtVideos();
+            }
+            // Update timestamp
+            var upd = document.getElementById('tt-updated');
+            if (upd) upd.textContent = 'Updated: ' + (data.updated_at || 'just now');
+            toast('TikTok stats refreshed', 'success');
+        } else {
+            toast(data.error || 'Failed to refresh', 'error');
+        }
+    } catch (e) {
+        toast('Failed to refresh TikTok stats', 'error');
+    }
+    btn.textContent = 'Refresh';
+    btn.disabled = false;
+    btn.style.opacity = '1';
 }
 
 // === Inline date set ===

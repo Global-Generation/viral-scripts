@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from database import init_db, SessionLocal
 import models  # noqa: F401 — register all models with Base.metadata
-from models import PresetQuery, NariVideo, AnnaVideo, ApiKey
+from models import PresetQuery, NariVideo, AnnaVideo, ApiKey, TiktokStats
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)

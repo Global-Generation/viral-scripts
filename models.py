@@ -210,6 +210,15 @@ def get_prompt(key: str, default: str) -> str:
     return default
 
 
+class TiktokStats(Base):
+    __tablename__ = "tiktok_stats"
+    id = Column(Integer, primary_key=True, index=True)
+    creator = Column(String, nullable=False, index=True)
+    stat_type = Column(String, nullable=False)  # "profile" or "videos"
+    data = Column(Text, default="{}")  # JSON payload
+    updated_at = Column(DateTime, default=utcnow)
+
+
 class ApiUsage(Base):
     __tablename__ = "api_usage"
     id = Column(Integer, primary_key=True, index=True)

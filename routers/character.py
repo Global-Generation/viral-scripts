@@ -1,13 +1,17 @@
 import json
+import logging
 import os
 import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 from fastapi import APIRouter, Request, Depends, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Script, Video, Search
+from models import Script, Video, Search, TiktokStats
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -133,6 +137,17 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
         )
 
+    # TikTok stats from cache
+    profile_row = db.query(TiktokStats).filter(
+        TiktokStats.creator == name, TiktokStats.stat_type == "profile"
+    ).first()
+    videos_row = db.query(TiktokStats).filter(
+        TiktokStats.creator == name, TiktokStats.stat_type == "videos"
+    ).first()
+    tt_profile = json.loads(profile_row.data) if profile_row else None
+    tt_videos = json.loads(videos_row.data) if videos_row else None
+    tt_updated = profile_row.updated_at.strftime("%Y-%m-%d %H:%M") if profile_row and profile_row.updated_at else None
+
     return templates.TemplateResponse(
         "character.html",
         {
@@ -155,8 +170,57 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             "total_photos": len(photos),
             "timeline_json": json.dumps(timeline),
             "photos": photos,
+            "tt_profile": tt_profile,
+            "tt_videos": tt_videos,
+            "tt_videos_json": json.dumps(tt_videos or []),
+            "tt_updated": tt_updated,
         }
     )
+
+
+@router.post("/api/character/{name}/refresh-tiktok")
+def refresh_tiktok(name: str, db: Session = Depends(get_db)):
+    if name not in CHARACTERS:
+        return JSONResponse({"ok": False, "error": "Character not found"}, status_code=404)
+    tiktok_url = CHARACTERS[name].get("tiktok", "")
+    if not tiktok_url:
+        return JSONResponse({"ok": False, "error": "No TikTok URL configured"}, status_code=400)
+
+    from services.tiktok_stats import fetch_profile_stats, fetch_video_stats
+
+    profile = fetch_profile_stats(tiktok_url)
+    videos = fetch_video_stats(tiktok_url)
+    now = datetime.now(timezone.utc)
+
+    if profile:
+        row = db.query(TiktokStats).filter(
+            TiktokStats.creator == name, TiktokStats.stat_type == "profile"
+        ).first()
+        if row:
+            row.data = json.dumps(profile)
+            row.updated_at = now
+        else:
+            db.add(TiktokStats(creator=name, stat_type="profile", data=json.dumps(profile), updated_at=now))
+
+    if videos is not None:
+        row = db.query(TiktokStats).filter(
+            TiktokStats.creator == name, TiktokStats.stat_type == "videos"
+        ).first()
+        if row:
+            row.data = json.dumps(videos)
+            row.updated_at = now
+        else:
+            db.add(TiktokStats(creator=name, stat_type="videos", data=json.dumps(videos), updated_at=now))
+
+    db.commit()
+    logger.info(f"Refreshed TikTok stats for {name}: profile={'yes' if profile else 'no'}, videos={len(videos) if videos else 0}")
+
+    return {
+        "ok": True,
+        "profile": profile,
+        "videos": videos,
+        "updated_at": now.strftime("%Y-%m-%d %H:%M"),
+    }
 
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
