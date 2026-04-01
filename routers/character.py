@@ -225,7 +225,7 @@ def refresh_tiktok(name: str, db: Session = Depends(get_db)):
 
 @router.post("/api/tiktok/refresh-all")
 def refresh_all_tiktok(db: Session = Depends(get_db)):
-    from services.tiktok_stats import fetch_profile_stats
+    from services.tiktok_stats import fetch_profile_stats, fetch_video_stats
 
     now = datetime.now(timezone.utc)
     results = {}
@@ -237,7 +237,7 @@ def refresh_all_tiktok(db: Session = Depends(get_db)):
             continue
         profile = fetch_profile_stats(tiktok_url)
         if profile:
-            # Update cache
+            # Update profile cache
             row = db.query(TiktokStats).filter(
                 TiktokStats.creator == name, TiktokStats.stat_type == "profile"
             ).first()
@@ -256,6 +256,22 @@ def refresh_all_tiktok(db: Session = Depends(get_db)):
                 logged_at=now,
             ))
             profile["updated_at"] = now.strftime("%Y-%m-%d %H:%M")
+
+            # Fetch and cache video stats (views)
+            videos = fetch_video_stats(tiktok_url)
+            if videos is not None:
+                vrow = db.query(TiktokStats).filter(
+                    TiktokStats.creator == name, TiktokStats.stat_type == "videos"
+                ).first()
+                if vrow:
+                    vrow.data = json.dumps(videos)
+                    vrow.updated_at = now
+                else:
+                    db.add(TiktokStats(creator=name, stat_type="videos", data=json.dumps(videos), updated_at=now))
+                profile["views"] = sum(v.get("views", 0) for v in videos)
+            else:
+                profile["views"] = 0
+
             results[name] = profile
         else:
             errors.append(name)

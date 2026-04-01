@@ -186,7 +186,7 @@ async function refreshAllTiktok() {
         var res = await fetch('/api/tiktok/refresh-all', { method: 'POST' });
         var data = await res.json();
         if (data.ok) {
-            var totalF = 0, totalH = 0, totalV = 0;
+            var totalF = 0, totalH = 0, totalV = 0, totalViews = 0;
             for (var name in data.stats) {
                 var s = data.stats[name];
                 var row = document.getElementById('tt-row-' + name);
@@ -194,6 +194,8 @@ async function refreshAllTiktok() {
                     row.querySelector('.tt-cell-followers').textContent = _fmtNum(s.followers || 0);
                     row.querySelector('.tt-cell-followers').style.color = '#1e293b';
                     row.querySelector('.tt-cell-followers').style.fontWeight = '700';
+                    row.querySelector('.tt-cell-views').textContent = _fmtNum(s.views || 0);
+                    row.querySelector('.tt-cell-views').style.color = '#64748b';
                     row.querySelector('.tt-cell-hearts').textContent = _fmtNum(s.hearts || 0);
                     row.querySelector('.tt-cell-hearts').style.color = '#64748b';
                     row.querySelector('.tt-cell-videos').textContent = s.videos || 0;
@@ -204,8 +206,10 @@ async function refreshAllTiktok() {
                 totalF += s.followers || 0;
                 totalH += s.hearts || 0;
                 totalV += s.videos || 0;
+                totalViews += s.views || 0;
             }
             document.getElementById('tt-all-followers').textContent = _fmtNum(totalF);
+            document.getElementById('tt-all-views').textContent = _fmtNum(totalViews);
             document.getElementById('tt-all-hearts').textContent = _fmtNum(totalH);
             document.getElementById('tt-all-videos').textContent = totalV;
             var msg = Object.keys(data.stats).length + ' updated';
