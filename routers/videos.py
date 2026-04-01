@@ -57,8 +57,16 @@ def _build_script_schedule(db, creator, today):
         .all()
     )
 
-    # Locked order: by script ID (matches export numbering 01, 02, 03...)
-    scripts.sort(key=lambda s: s.id)
+    # Sort by readiness: published → video ready → script ready → draft, then by ID
+    def _readiness(s):
+        if s.published_tiktok:
+            return 0
+        if s.final_subtitled_path or s.final_video_path:
+            return 1
+        if s.modified_text:
+            return 2
+        return 3
+    scripts.sort(key=lambda s: (_readiness(s), s.id))
 
     # Never schedule unpublished scripts in the past
     start = max(SCHEDULE_STARTS[creator], today)
