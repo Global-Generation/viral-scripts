@@ -170,8 +170,8 @@ def _build_nari_schedule(db, today):
     else:
         last_pub_date = SCHEDULE_STARTS.get("sophia", today)
         slots_on_last = 0
-    # Never schedule unpublished in the past
-    effective_start = max(last_pub_date, today)
+    # Never schedule unpublished in the past, and respect SCHEDULE_STARTS
+    effective_start = max(last_pub_date, today, SCHEDULE_STARTS.get("sophia", today))
     if effective_start > last_pub_date:
         slots_on_last = 0
     for i, v in enumerate(unpublished):
@@ -275,8 +275,8 @@ def _build_anna_schedule(db, today):
     else:
         last_pub_date = SCHEDULE_STARTS.get("ava", today)
         slots_on_last = 0
-    # Never schedule unpublished in the past
-    effective_start = max(last_pub_date, today)
+    # Never schedule unpublished in the past, and respect SCHEDULE_STARTS
+    effective_start = max(last_pub_date, today, SCHEDULE_STARTS.get("ava", today))
     if effective_start > last_pub_date:
         slots_on_last = 0
     for i, v in enumerate(unpublished):
