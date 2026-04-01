@@ -69,7 +69,7 @@ def fetch_video_stats(tiktok_url: str, max_videos: int = 50) -> Optional[list[di
             videos.append({
                 "id": e.get("id", ""),
                 "title": e.get("title", "")[:80],
-                "url": e.get("url") or e.get("webpage_url", ""),
+                "url": e.get("webpage_url") or e.get("url", ""),
                 "views": e.get("view_count", 0) or 0,
                 "likes": e.get("like_count", 0) or 0,
                 "comments": e.get("comment_count", 0) or 0,

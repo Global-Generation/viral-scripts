@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
-from models import Search, Video, Script, PresetQuery, VideoGeneration, TiktokStatsLog
+from models import Search, Video, Script, PresetQuery, VideoGeneration, TiktokStatsLog, TiktokStats
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -198,6 +198,29 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
             "d1_f": d1_f, "d7_f": d7_f, "d30_f": d30_f, "d7_h": d7_h,
         })
 
+    # Views from cached video stats
+    total_views = 0
+    video_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "videos").all()
+    views_by_creator = {}
+    for row in video_rows:
+        vids = json.loads(row.data) if row.data else []
+        v = sum(v.get("views", 0) for v in vids) if isinstance(vids, list) else 0
+        views_by_creator[row.creator] = v
+        total_views += v
+    for s in creator_stats:
+        s["views"] = views_by_creator.get(s["name"], 0)
+
+    # Last updated time in New York
+    from zoneinfo import ZoneInfo
+    latest_profile = db.query(func.max(TiktokStats.updated_at)).filter(TiktokStats.stat_type == "profile").scalar()
+    if latest_profile:
+        if latest_profile.tzinfo is None:
+            latest_profile = latest_profile.replace(tzinfo=timezone.utc)
+        ny_time = latest_profile.astimezone(ZoneInfo("America/New_York"))
+        last_updated_ny = ny_time.strftime("%b %d, %Y %I:%M %p ET")
+    else:
+        last_updated_ny = "—"
+
     # Chart data: daily followers per creator (last 30 days)
     chart_data = {}
     for c in creators:
@@ -215,9 +238,11 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
             total_followers=total_followers,
             total_hearts=total_hearts,
             total_videos=total_videos,
+            total_views=total_views,
             total_f_7d=total_f_7d,
             total_f_30d=total_f_30d,
             chart_data_json=json.dumps(chart_data),
             creators=creators,
+            last_updated_ny=last_updated_ny,
         )
     )

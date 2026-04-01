@@ -6,14 +6,14 @@
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
             <h1 class="text-xl font-bold text-gray-900 mb-1">TikTok Growth</h1>
-            <p class="text-sm text-gray-500">Auto-updated daily at 02:00 AM EDT</p>
+            <p class="text-sm text-gray-500">Last updated: {{ last_updated_ny }}</p>
         </div>
         <button id="manual-refresh-btn" onclick="manualRefreshAll()" style="font-size: 11px; font-weight: 600; padding: 6px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.borderColor='#000'; this.style.color='#000'" onmouseleave="this.style.borderColor='#e2e8f0'; this.style.color='#374151'">Refresh Now</button>
     </div>
 </div>
 
 <!-- Summary Cards -->
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
     <div class="stat-card" style="text-align: center;">
         <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Followers</div>
         <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ "{:,}".format(total_followers) }}</div>
@@ -22,6 +22,10 @@
             {{ '+' if total_f_7d > 0 else '' }}{{ "{:,}".format(total_f_7d) }} (7d)
         </div>
         {% endif %}
+    </div>
+    <div class="stat-card" style="text-align: center;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Views</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ "{:,}".format(total_views) }}</div>
     </div>
     <div class="stat-card" style="text-align: center;">
         <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Likes</div>
@@ -35,9 +39,26 @@
 
 <!-- Per-Creator Growth Table -->
 <div class="stat-card mb-4">
-    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Growth by Creator</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Growth by Creator</div>
+        <div style="display: flex; gap: 8px;">
+            <select id="filter-speaker" onchange="applyFilters()" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer;">
+                <option value="all">All Speakers</option>
+                {% for c in creators %}
+                <option value="{{ c }}">{{ c|capitalize }}</option>
+                {% endfor %}
+            </select>
+            <select id="filter-sort" onchange="applyFilters()" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer;">
+                <option value="views">Sort: Views</option>
+                <option value="followers">Sort: Followers</option>
+                <option value="likes">Sort: Likes</option>
+                <option value="d7_f">Sort: +7d Followers</option>
+                <option value="d30_f">Sort: +30d Followers</option>
+            </select>
+        </div>
+    </div>
     <div style="overflow-x: auto;">
-        <table class="w-full" style="font-size: 12px;">
+        <table class="w-full" style="font-size: 12px;" id="stats-table">
             <thead>
                 <tr class="border-b border-gray-200">
                     <th style="text-align: left; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Creator</th>
@@ -45,14 +66,15 @@
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+1d</th>
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+7d</th>
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+30d</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Views</th>
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+7d Likes</th>
                     <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Videos</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="stats-tbody">
                 {% for s in creator_stats %}
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50" data-creator="{{ s.name }}" data-followers="{{ s.followers }}" data-views="{{ s.views }}" data-likes="{{ s.hearts }}" data-d7_f="{{ s.d7_f }}" data-d30_f="{{ s.d30_f }}">
                     <td style="padding: 8px;">
                         <a href="/character/{{ s.name }}" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                             <span style="width: 10px; height: 10px; border-radius: 50%; background: {{ s.color }}; display: inline-block; flex-shrink: 0;"></span>
@@ -69,6 +91,7 @@
                     <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d30_f > 0 else ('#ef4444' if s.d30_f < 0 else '#9ca3af') }};">
                         {% if s.d30_f != 0 %}{{ '+' if s.d30_f > 0 else '' }}{{ "{:,}".format(s.d30_f) }}{% else %}—{% endif %}
                     </td>
+                    <td style="text-align: right; padding: 8px; font-weight: 700; color: #1e293b;">{{ "{:,}".format(s.views) if s.views else '—' }}</td>
                     <td style="text-align: right; padding: 8px; color: #64748b;">{{ "{:,}".format(s.hearts) if s.hearts else '—' }}</td>
                     <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d7_h > 0 else ('#ef4444' if s.d7_h < 0 else '#9ca3af') }};">
                         {% if s.d7_h != 0 %}{{ '+' if s.d7_h > 0 else '' }}{{ "{:,}".format(s.d7_h) }}{% else %}—{% endif %}
@@ -93,6 +116,34 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Filters
+function applyFilters() {
+    var speaker = document.getElementById('filter-speaker').value;
+    var sortBy = document.getElementById('filter-sort').value;
+    var tbody = document.getElementById('stats-tbody');
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // Filter
+    rows.forEach(function(row) {
+        if (speaker === 'all' || row.dataset.creator === speaker) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Sort visible rows descending
+    rows.sort(function(a, b) {
+        var va = parseFloat(a.dataset[sortBy]) || 0;
+        var vb = parseFloat(b.dataset[sortBy]) || 0;
+        return vb - va;
+    });
+    rows.forEach(function(row) { tbody.appendChild(row); });
+}
+
+// Initial sort by views
+document.addEventListener('DOMContentLoaded', function() { applyFilters(); });
+
 // Chart
 (function() {
     var chartData = {{ chart_data_json|safe }};
