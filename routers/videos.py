@@ -449,7 +449,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
 
     # TikTok profile stats (cached)
     tt_stats = {}
-    tt_totals = {"followers": 0, "hearts": 0, "videos": 0}
+    tt_totals = {"followers": 0, "hearts": 0, "videos": 0, "views": 0}
     profile_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "profile").all()
     for row in profile_rows:
         data = json.loads(row.data) if row.data else {}
@@ -458,6 +458,17 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         tt_totals["followers"] += data.get("followers", 0)
         tt_totals["hearts"] += data.get("hearts", 0)
         tt_totals["videos"] += data.get("videos", 0)
+
+    # TikTok per-video stats — sum views per creator
+    video_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "videos").all()
+    for row in video_rows:
+        vids = json.loads(row.data) if row.data else []
+        creator_views = sum(v.get("views", 0) for v in vids) if isinstance(vids, list) else 0
+        if row.creator in tt_stats:
+            tt_stats[row.creator]["views"] = creator_views
+        else:
+            tt_stats[row.creator] = {"views": creator_views}
+        tt_totals["views"] += creator_views
 
     return templates.TemplateResponse(
         "videos.html",
