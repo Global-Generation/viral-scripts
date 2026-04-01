@@ -448,12 +448,18 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     }
 
     # TikTok profile stats (cached)
+    from zoneinfo import ZoneInfo
+    ny_tz = ZoneInfo("America/New_York")
     tt_stats = {}
     tt_totals = {"followers": 0, "hearts": 0, "videos": 0, "views": 0}
     profile_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "profile").all()
     for row in profile_rows:
         data = json.loads(row.data) if row.data else {}
-        data["updated_at"] = row.updated_at.strftime("%Y-%m-%d %H:%M") if row.updated_at else None
+        if row.updated_at:
+            ut = row.updated_at.replace(tzinfo=timezone.utc) if row.updated_at.tzinfo is None else row.updated_at
+            data["updated_at"] = ut.astimezone(ny_tz).strftime("%Y-%m-%d %I:%M %p")
+        else:
+            data["updated_at"] = None
         tt_stats[row.creator] = data
         tt_totals["followers"] += data.get("followers", 0)
         tt_totals["hearts"] += data.get("hearts", 0)
