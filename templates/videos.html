@@ -191,7 +191,7 @@ function togglePanel(name) {
                 {% for creator in creators %}
                 <tr>
                     <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
-                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{{ creator }}</td>
+                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{% if tiktok_links.get(creator) %}<a href="{{ tiktok_links[creator] }}" target="_blank" style="color: inherit; text-decoration: none;" title="TikTok Profile">{{ creator }}</a>{% else %}{{ creator }}{% endif %}</td>
                     {% for day in cal_days %}
                     {% set day_entries = cal_data[creator].get(day, []) %}
                     {% set count = day_entries|length %}
@@ -322,7 +322,7 @@ function togglePanel(name) {
                 {% for creator in creators %}
                 <tr>
                     <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
-                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{{ creator }}</td>
+                        {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{% if tiktok_links.get(creator) %}<a href="{{ tiktok_links[creator] }}" target="_blank" style="color: inherit; text-decoration: none;" title="TikTok Profile">{{ creator }}</a>{% else %}{{ creator }}{% endif %}</td>
                     {% for day in yt_cal_days %}
                     {% set day_entries = yt_cal_data[creator].get(day, []) %}
                     {% set count = day_entries|length %}
@@ -415,7 +415,7 @@ function togglePanel(name) {
                     {% elif creator == 'thomas' %}background: #16a34a;
                     {% elif creator == 'sophia' %}background: #9333ea;
                     {% elif creator == 'ava' %}background: #db2777;{% endif %}"></span>
-                {{ creator }}
+                {% if tiktok_links.get(creator) %}<a href="{{ tiktok_links[creator] }}" target="_blank" style="color: inherit; text-decoration: none;">{{ creator }}</a>{% else %}{{ creator }}{% endif %}
             </h2>
             <span class="text-xs text-gray-400">{{ data.count }} videos</span>
         </div>

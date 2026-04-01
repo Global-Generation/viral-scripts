@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Script, Video, NariVideo, AnnaVideo
+from routers.character import CHARACTERS
 
 PHOTOS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "photos")
 
@@ -56,16 +57,8 @@ def _build_script_schedule(db, creator, today):
         .all()
     )
 
-    # Sort: exported/ready first so they get the earliest dates (today)
-    def _readiness(s):
-        if s.published_tiktok:
-            return -1
-        if s.final_subtitled_path or s.final_video_path:
-            return 0
-        if s.modified_text:
-            return 1
-        return 2
-    scripts.sort(key=lambda s: (_readiness(s), s.id))
+    # Locked order: by script ID (matches export numbering 01, 02, 03...)
+    scripts.sort(key=lambda s: s.id)
 
     # Never schedule unpublished scripts in the past
     start = max(SCHEDULE_STARTS[creator], today)
@@ -459,5 +452,6 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "yt_cal_days": yt_cal_days,
             "yt_cal_data": yt_cal_data,
             "totals": totals,
+            "tiktok_links": {name: info.get("tiktok", "") for name, info in CHARACTERS.items()},
         }
     )

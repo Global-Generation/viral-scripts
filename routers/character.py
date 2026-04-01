@@ -16,32 +16,50 @@ CHARACTERS = {
     "daniel": {
         "label": "AI - Daniel",
         "color": "#ea580c",
+        "tiktok": "https://www.tiktok.com/@daniel.foster476",
         "bio": "\U0001f916 AI Finance & Lifestyle Creator\n\U0001f4b0 Smarter money moves, daily tips & real talk\n\U0001f4f2 MyTruv App Ambassador\n\U0001f34e Download MyTruv on the App Store",
     },
     "natalie": {
         "label": "AI - Natalie",
         "color": "#ec4899",
+        "tiktok": "https://www.tiktok.com/@natalie.greene7",
         "bio": "\U0001f916 AI Personal Finance Creator\n\U0001f4b8 Building wealth in the age of AI\n\U0001f4f2 Powered by @MyTruv\n\U0001f34e Download MyTruv on the App Store",
     },
     "boris": {
         "label": "AI - Boris",
         "color": "#2563EB",
+        "tiktok": "https://www.tiktok.com/@boris.johnson365",
         "bio": "\U0001f916 AI Tools & Money Creator\n\U0001f6e0\ufe0f Automation \u00b7 Side hustles \u00b7 Financial hacks\n\U0001f4f2 MyTruv App Ambassador\n\U0001f34e Download MyTruv on the App Store",
     },
     "thomas": {
         "label": "AI - Thomas",
         "color": "#16a34a",
+        "tiktok": "https://www.tiktok.com/@thomas.foust2",
         "bio": "\U0001f916 AI Crypto & Wealth Creator\n\U0001f4c8 Trading, markets & wealth mentality\n\U0001f4f2 Ambassador @MyTruv\n\U0001f34e Download MyTruv on the App Store",
     },
     "zoe": {
         "label": "AI - Zoe",
         "color": "#a855f7",
+        "tiktok": "https://www.tiktok.com/@zoe.carter855",
         "bio": "\U0001f916 AI Tech & Finance Creator\n\u26a1 Tech trends \u00b7 Crypto \u00b7 Financial freedom\n\U0001f4f2 MyTruv Ambassador\n\U0001f34e Download MyTruv on the App Store",
     },
     "luna": {
         "label": "AI - Luna",
         "color": "#14b8a6",
+        "tiktok": "https://www.tiktok.com/@luna.bennett38",
         "bio": "\U0001f916 AI Passive Income Creator\n\U0001f319 Monetize AI, invest smart, earn while you sleep\n\U0001f4f2 Brought to you by @MyTruv\n\U0001f34e Download MyTruv on the App Store",
+    },
+    "sophia": {
+        "label": "AI - Sophia",
+        "color": "#9333ea",
+        "tiktok": "https://www.tiktok.com/@sophia.alvarez.nyc",
+        "bio": "",
+    },
+    "ava": {
+        "label": "AI - Ava",
+        "color": "#db2777",
+        "tiktok": "https://www.tiktok.com/@ava.reynolds.newjersey",
+        "bio": "",
     },
 }
 
@@ -124,6 +142,7 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
             "label": info["label"],
             "color": info["color"],
             "bio": info.get("bio", ""),
+            "tiktok": info.get("tiktok", ""),
             "scripts": scripts,
             "total": total,
             "pub_tt": pub_tt,
