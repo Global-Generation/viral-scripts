@@ -48,6 +48,15 @@ def startup():
     _seed_nari()
     _seed_anna()
     _seed_api_keys()
+    # Start daily TikTok stats scheduler
+    from services.tiktok_scheduler import start_scheduler
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def shutdown():
+    from services.tiktok_scheduler import stop_scheduler
+    stop_scheduler()
 
 
 def _migrate_character_type():

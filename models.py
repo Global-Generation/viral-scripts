@@ -219,6 +219,17 @@ class TiktokStats(Base):
     updated_at = Column(DateTime, default=utcnow)
 
 
+class TiktokStatsLog(Base):
+    __tablename__ = "tiktok_stats_log"
+    id = Column(Integer, primary_key=True, index=True)
+    creator = Column(String, nullable=False, index=True)
+    followers = Column(Integer, default=0)
+    hearts = Column(Integer, default=0)
+    videos = Column(Integer, default=0)
+    following = Column(Integer, default=0)
+    logged_at = Column(DateTime, nullable=False, default=utcnow)
+
+
 class ApiUsage(Base):
     __tablename__ = "api_usage"
     id = Column(Integer, primary_key=True, index=True)

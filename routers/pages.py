@@ -1,10 +1,13 @@
+import json
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone, date
 from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
-from models import Search, Video, Script, PresetQuery, VideoGeneration
+from models import Search, Video, Script, PresetQuery, VideoGeneration, TiktokStatsLog
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -115,4 +118,106 @@ def presets_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         "presets.html",
         ctx(request, "presets", grouped=grouped)
+    )
+
+
+@router.get("/stats", response_class=HTMLResponse)
+def stats_page(request: Request, db: Session = Depends(get_db)):
+    from routers.character import CHARACTERS
+
+    creators = ["daniel", "natalie", "boris", "thomas", "zoe", "luna", "sophia", "ava"]
+    now = datetime.now(timezone.utc)
+    cutoff_30d = now - timedelta(days=30)
+
+    # Get all log entries for last 30 days
+    logs = (
+        db.query(TiktokStatsLog)
+        .filter(TiktokStatsLog.logged_at >= cutoff_30d)
+        .order_by(TiktokStatsLog.logged_at.asc())
+        .all()
+    )
+
+    # Group by creator → sorted list of entries
+    by_creator: dict[str, list] = defaultdict(list)
+    for log in logs:
+        by_creator[log.creator].append(log)
+
+    # Build per-creator stats with deltas
+    creator_stats = []
+    total_followers = 0
+    total_hearts = 0
+    total_videos = 0
+    total_f_7d = 0
+    total_f_30d = 0
+
+    for c in creators:
+        entries = by_creator.get(c, [])
+        if not entries:
+            creator_stats.append({
+                "name": c,
+                "label": CHARACTERS.get(c, {}).get("label", c),
+                "color": CHARACTERS.get(c, {}).get("color", "#6b7280"),
+                "followers": 0, "hearts": 0, "videos": 0,
+                "d1_f": 0, "d7_f": 0, "d30_f": 0, "d7_h": 0,
+            })
+            continue
+
+        latest = entries[-1]
+        total_followers += latest.followers
+        total_hearts += latest.hearts
+        total_videos += latest.videos
+
+        # Find entry closest to 1d, 7d, 30d ago
+        def find_past(days):
+            target = now - timedelta(days=days)
+            best = None
+            for e in entries:
+                if e.logged_at <= target:
+                    best = e
+            return best
+
+        e_1d = find_past(1)
+        e_7d = find_past(7)
+        e_30d = find_past(30) or (entries[0] if entries else None)
+
+        d1_f = (latest.followers - e_1d.followers) if e_1d else 0
+        d7_f = (latest.followers - e_7d.followers) if e_7d else 0
+        d30_f = (latest.followers - e_30d.followers) if e_30d else 0
+        d7_h = (latest.hearts - e_7d.hearts) if e_7d else 0
+
+        total_f_7d += d7_f
+        total_f_30d += d30_f
+
+        creator_stats.append({
+            "name": c,
+            "label": CHARACTERS.get(c, {}).get("label", c),
+            "color": CHARACTERS.get(c, {}).get("color", "#6b7280"),
+            "followers": latest.followers,
+            "hearts": latest.hearts,
+            "videos": latest.videos,
+            "d1_f": d1_f, "d7_f": d7_f, "d30_f": d30_f, "d7_h": d7_h,
+        })
+
+    # Chart data: daily followers per creator (last 30 days)
+    chart_data = {}
+    for c in creators:
+        entries = by_creator.get(c, [])
+        chart_data[c] = [
+            {"date": e.logged_at.strftime("%Y-%m-%d"), "followers": e.followers}
+            for e in entries
+        ]
+
+    return templates.TemplateResponse(
+        "stats.html",
+        ctx(
+            request, "stats",
+            creator_stats=creator_stats,
+            total_followers=total_followers,
+            total_hearts=total_hearts,
+            total_videos=total_videos,
+            total_f_7d=total_f_7d,
+            total_f_30d=total_f_30d,
+            chart_data_json=json.dumps(chart_data),
+            creators=creators,
+        )
     )

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}TikTok Stats{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 mb-1">TikTok Growth</h1>
+            <p class="text-sm text-gray-500">Auto-updated daily at 02:00 AM EDT</p>
+        </div>
+        <button id="manual-refresh-btn" onclick="manualRefreshAll()" style="font-size: 11px; font-weight: 600; padding: 6px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer; transition: all 0.15s;" onmouseenter="this.style.borderColor='#000'; this.style.color='#000'" onmouseleave="this.style.borderColor='#e2e8f0'; this.style.color='#374151'">Refresh Now</button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+    <div class="stat-card" style="text-align: center;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Followers</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ "{:,}".format(total_followers) }}</div>
+        {% if total_f_7d != 0 %}
+        <div style="font-size: 12px; font-weight: 600; margin-top: 4px; color: {{ '#16a34a' if total_f_7d > 0 else '#ef4444' }};">
+            {{ '+' if total_f_7d > 0 else '' }}{{ "{:,}".format(total_f_7d) }} (7d)
+        </div>
+        {% endif %}
+    </div>
+    <div class="stat-card" style="text-align: center;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Likes</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ "{:,}".format(total_hearts) }}</div>
+    </div>
+    <div class="stat-card" style="text-align: center;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">Total Videos</div>
+        <div style="font-size: 28px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ total_videos }}</div>
+    </div>
+</div>
+
+<!-- Per-Creator Growth Table -->
+<div class="stat-card mb-4">
+    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Growth by Creator</div>
+    <div style="overflow-x: auto;">
+        <table class="w-full" style="font-size: 12px;">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th style="text-align: left; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Creator</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Followers</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+1d</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+7d</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+30d</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">+7d Likes</th>
+                    <th style="text-align: right; padding: 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Videos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in creator_stats %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td style="padding: 8px;">
+                        <a href="/character/{{ s.name }}" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: {{ s.color }}; display: inline-block; flex-shrink: 0;"></span>
+                            <span style="font-weight: 600; color: #1e293b; text-transform: capitalize;">{{ s.name }}</span>
+                        </a>
+                    </td>
+                    <td style="text-align: right; padding: 8px; font-weight: 700; color: #1e293b;">{{ "{:,}".format(s.followers) if s.followers else '—' }}</td>
+                    <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d1_f > 0 else ('#ef4444' if s.d1_f < 0 else '#9ca3af') }};">
+                        {% if s.d1_f != 0 %}{{ '+' if s.d1_f > 0 else '' }}{{ "{:,}".format(s.d1_f) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d7_f > 0 else ('#ef4444' if s.d7_f < 0 else '#9ca3af') }};">
+                        {% if s.d7_f != 0 %}{{ '+' if s.d7_f > 0 else '' }}{{ "{:,}".format(s.d7_f) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d30_f > 0 else ('#ef4444' if s.d30_f < 0 else '#9ca3af') }};">
+                        {% if s.d30_f != 0 %}{{ '+' if s.d30_f > 0 else '' }}{{ "{:,}".format(s.d30_f) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 8px; color: #64748b;">{{ "{:,}".format(s.hearts) if s.hearts else '—' }}</td>
+                    <td style="text-align: right; padding: 8px; font-weight: 600; color: {{ '#16a34a' if s.d7_h > 0 else ('#ef4444' if s.d7_h < 0 else '#9ca3af') }};">
+                        {% if s.d7_h != 0 %}{{ '+' if s.d7_h > 0 else '' }}{{ "{:,}".format(s.d7_h) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: right; padding: 8px; color: #64748b;">{{ s.videos if s.videos else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Followers Growth Chart -->
+<div class="stat-card mb-4" id="chart-card">
+    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Followers Over Time (30 days)</div>
+    <div style="position: relative; height: 300px;">
+        <canvas id="growthChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart
+(function() {
+    var chartData = {{ chart_data_json|safe }};
+    var canvas = document.getElementById('growthChart');
+    if (!canvas) return;
+
+    var colors = {
+        daniel: '#ea580c', natalie: '#ec4899', boris: '#2563EB', thomas: '#16a34a',
+        zoe: '#a855f7', luna: '#14b8a6', sophia: '#9333ea', ava: '#db2777'
+    };
+
+    // Collect all unique dates
+    var allDates = new Set();
+    for (var c in chartData) {
+        chartData[c].forEach(function(p) { allDates.add(p.date); });
+    }
+    var dates = Array.from(allDates).sort();
+    if (!dates.length) {
+        document.getElementById('chart-card').style.display = 'none';
+        return;
+    }
+
+    var datasets = [];
+    for (var creator in chartData) {
+        var points = chartData[creator];
+        if (!points.length) continue;
+        var byDate = {};
+        points.forEach(function(p) { byDate[p.date] = p.followers; });
+        // Fill gaps: carry forward last known value
+        var data = [];
+        var last = null;
+        dates.forEach(function(d) {
+            if (byDate[d] !== undefined) last = byDate[d];
+            data.push(last);
+        });
+        datasets.push({
+            label: creator.charAt(0).toUpperCase() + creator.slice(1),
+            data: data,
+            borderColor: colors[creator] || '#6b7280',
+            backgroundColor: (colors[creator] || '#6b7280') + '10',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3,
+            fill: false,
+        });
+    }
+
+    new Chart(canvas, {
+        type: 'line',
+        data: { labels: dates, datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: { font: { size: 10 } },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                },
+                x: {
+                    ticks: { font: { size: 10 }, maxRotation: 45 },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+
+// Manual refresh
+async function manualRefreshAll() {
+    var btn = document.getElementById('manual-refresh-btn');
+    btn.textContent = 'Refreshing...';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    try {
+        var res = await fetch('/api/tiktok/refresh-all', { method: 'POST' });
+        var data = await res.json();
+        if (data.ok) {
+            toast(Object.keys(data.stats).length + ' creators refreshed', 'success');
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            toast('Refresh failed', 'error');
+        }
+    } catch (e) {
+        toast('Refresh failed', 'error');
+    }
+    btn.textContent = 'Refresh Now';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+}
+</script>
+{% endblock %}

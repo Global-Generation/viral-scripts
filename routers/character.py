@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Script, Video, Search, TiktokStats
+from models import Script, Video, Search, TiktokStats, TiktokStatsLog
 
 logger = logging.getLogger(__name__)
 
@@ -237,6 +237,7 @@ def refresh_all_tiktok(db: Session = Depends(get_db)):
             continue
         profile = fetch_profile_stats(tiktok_url)
         if profile:
+            # Update cache
             row = db.query(TiktokStats).filter(
                 TiktokStats.creator == name, TiktokStats.stat_type == "profile"
             ).first()
@@ -245,6 +246,15 @@ def refresh_all_tiktok(db: Session = Depends(get_db)):
                 row.updated_at = now
             else:
                 db.add(TiktokStats(creator=name, stat_type="profile", data=json.dumps(profile), updated_at=now))
+            # Log for history
+            db.add(TiktokStatsLog(
+                creator=name,
+                followers=profile.get("followers", 0),
+                hearts=profile.get("hearts", 0),
+                videos=profile.get("videos", 0),
+                following=profile.get("following", 0),
+                logged_at=now,
+            ))
             profile["updated_at"] = now.strftime("%Y-%m-%d %H:%M")
             results[name] = profile
         else:
