@@ -143,7 +143,7 @@ function togglePanel(name) {
                 </tr>
             </thead>
             <tbody id="tt-all-tbody">
-                {% for c in creators %}
+                {% for c in creators_sorted %}
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50" id="tt-row-{{ c }}">
                     <td style="padding: 6px 8px;">
                         <a href="/character/{{ c }}" style="font-weight: 600; color: #1e293b; text-decoration: none; text-transform: capitalize;">{{ c }}</a>

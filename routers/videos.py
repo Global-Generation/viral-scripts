@@ -470,6 +470,9 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             tt_stats[row.creator] = {"views": creator_views}
         tt_totals["views"] += creator_views
 
+    # Sort creators by views descending for the stats table
+    creators_sorted = sorted(CREATORS, key=lambda c: tt_stats.get(c, {}).get("views", 0), reverse=True)
+
     return templates.TemplateResponse(
         "videos.html",
         {
@@ -487,5 +490,6 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "tiktok_links": {name: info.get("tiktok", "") for name, info in CHARACTERS.items()},
             "tt_stats": tt_stats,
             "tt_totals": tt_totals,
+            "creators_sorted": creators_sorted,
         }
     )

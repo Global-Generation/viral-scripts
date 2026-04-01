@@ -73,17 +73,62 @@ def _refresh_all_daily():
         db.close()
 
 
+def _refresh_video_stats():
+    """Fetch per-video stats (views, likes, etc.) for all creators via yt-dlp."""
+    from database import SessionLocal
+    from models import TiktokStats
+    from routers.character import CHARACTERS
+    from services.tiktok_stats import fetch_video_stats
+
+    db = SessionLocal()
+    now = datetime.now(timezone.utc)
+    ok = 0
+    fail = 0
+
+    try:
+        for name, info in CHARACTERS.items():
+            tiktok_url = info.get("tiktok", "")
+            if not tiktok_url:
+                continue
+
+            videos = fetch_video_stats(tiktok_url)
+            if videos is None:
+                fail += 1
+                logger.warning(f"Scheduler: failed to fetch video stats for {name}")
+                continue
+
+            row = db.query(TiktokStats).filter(
+                TiktokStats.creator == name, TiktokStats.stat_type == "videos"
+            ).first()
+            if row:
+                row.data = json.dumps(videos)
+                row.updated_at = now
+            else:
+                db.add(TiktokStats(creator=name, stat_type="videos", data=json.dumps(videos), updated_at=now))
+            ok += 1
+
+        db.commit()
+        logger.info(f"Scheduler: video stats refreshed — {ok} ok, {fail} failed")
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Scheduler: video stats refresh error: {e}")
+    finally:
+        db.close()
+
+
 def start_scheduler():
     global _scheduler
     if _scheduler is not None:
         return
     _scheduler = BackgroundScheduler()
-    # Run daily at 06:00 UTC (02:00 EDT)
+    # Profile stats: daily at 06:00 UTC (02:00 EDT)
     _scheduler.add_job(_refresh_all_daily, "cron", hour=6, minute=0, id="tiktok_daily")
-    # Also run once on startup (with a 30s delay to let app initialize)
     _scheduler.add_job(_refresh_all_daily, "date", run_date=datetime.now(timezone.utc), id="tiktok_startup")
+    # Video stats (views): every 3 hours
+    _scheduler.add_job(_refresh_video_stats, "interval", hours=3, id="video_stats_3h")
+    _scheduler.add_job(_refresh_video_stats, "date", run_date=datetime.now(timezone.utc), id="video_stats_startup")
     _scheduler.start()
-    logger.info("TikTok stats scheduler started (daily at 06:00 UTC)")
+    logger.info("TikTok stats scheduler started (profile: daily 06:00 UTC, video stats: every 3h)")
 
 
 def stop_scheduler():
