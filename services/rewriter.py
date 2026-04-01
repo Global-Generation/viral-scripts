@@ -18,12 +18,54 @@ REWRITE_PROMPT = """Rewrite this TikTok script. Requirements:
 - Short sentences. No fluff. Say it once
 - Keep the same topic and key facts
 
-LENGTH RULE — TARGET: 50-56 words TOTAL. This is a HARD LIMIT.
+LENGTH RULE — TARGET: 45-50 words TOTAL. This is a HARD LIMIT.
 - CUT ruthlessly. One core point. No repetition. No examples unless essential.
 - If the original is long: keep only the sharpest angle and strongest line.
-- If the original is short: keep the key insight and develop it into 50-56 words.
+- If the original is short: keep the key insight and develop it into 45-50 words.
 - Every sentence must be COMPLETE. Never end mid-thought or mid-sentence.
-- Count your words. If outside 50-56, adjust until you hit the range.
+- Count your words. If outside 45-50, adjust until you hit the range.
+
+NO LISTICLES OR ENUMERATIONS:
+- NEVER use list format: "10 things", "5 tools", "here are 3 steps"
+- NEVER count down or number items: "First... Second... Third...", "Number 10... Number 9..."
+- NEVER enumerate tools, apps, or products one by one
+- ONE core point, ONE angle. If the original is a listicle, pick the single most interesting item and build the entire script around just that one thing
+
+BRAND NAME PRONUNCIATION RULE:
+Write brand names with spaces so a text-to-speech model can pronounce them correctly:
+- "Open AI" not "OpenAI"
+- "Chat GPT" not "ChatGPT"
+- "Mid Journey" not "Midjourney"
+- "Notebook LM" not "NotebookLM"
+- Single real words stay as-is: "Claude", "Gemini", "Grok", "Perplexity"
+- When in doubt, add a space between logical word parts
+
+NUMBERS AS WORDS RULE:
+All numbers must be written as words for clear text-to-speech pronunciation.
+- "ten thousand dollars" not "$10,000"
+- "two thousand four hundred" not "$2,400"
+- "thirty percent" not "30%"
+- "one point five million" not "1.5 million"
+- Round large numbers to simpler forms: "about twenty thousand" instead of "$19,847"
+- Years are OK as digits: "2026" stays "2026"
+- Avoid cramming too many numbers into one script. One or two stats maximum.
+
+NO PHANTOM VISUAL REFERENCES:
+The video is ONLY a person talking to camera. There are NO screen overlays, charts, screenshots, or B-roll.
+- NEVER reference something "on screen": "as you can see", "look at this", "check out this chart"
+- NEVER imply visual aids: "the blue line shows", "this graph proves", "here's a screenshot"
+- NEVER reference swiping, scrolling, or UI elements
+- If the original script references visuals, rewrite to convey the same information VERBALLY only
+
+NO ADVERTISING OR PROMOTION:
+- NEVER promote specific companies, banks, loan services, or products as recommendations
+- NEVER include referral pitches, discount codes, or "I personally use this" endorsements
+- Discussing a company as a NEWS TOPIC is fine. Recommending it as a product is NOT.
+
+TOPIC RULE — AI, TECH, AND FINANCE ONLY:
+- The script MUST be about artificial intelligence, technology, or finance/money
+- REJECT any script that is off-topic: random stories, linguistics trivia, psychology facts, celebrity gossip, scams, dating
+- If the original script is off-topic, respond with ONLY: "REJECTED: off-topic"
 
 FORBIDDEN TOPICS — REJECT any script about:
 - Suicide, self-harm, death, harm to minors
@@ -83,10 +125,42 @@ BORIS_REWRITE_PROMPT = """Rewrite this TikTok script in BORIS STYLE. Requirement
 - Short sentences. Punchy. Every word earns its place
 - Keep the same topic and key facts but angle them provocatively
 
-LENGTH RULE — TARGET: 50-56 words TOTAL. This is a HARD LIMIT.
+LENGTH RULE — TARGET: 45-50 words TOTAL. This is a HARD LIMIT.
 - CUT ruthlessly. One core provocative point. No repetition.
 - Every sentence must be COMPLETE. Never end mid-thought.
-- Count your words. If outside 50-56, adjust until you hit the range.
+- Count your words. If outside 45-50, adjust until you hit the range.
+
+NO LISTICLES OR ENUMERATIONS:
+- NEVER use list format: "10 things", "5 tools", "here are 3 steps"
+- NEVER count down or number items: "First... Second... Third...", "Number 10... Number 9..."
+- NEVER enumerate tools, apps, or products one by one
+- ONE core provocative point. If the original is a listicle, pick the single most controversial item and attack it
+
+BRAND NAME PRONUNCIATION RULE:
+Write brand names with spaces for text-to-speech clarity:
+- "Open AI" not "OpenAI"
+- "Chat GPT" not "ChatGPT"
+- "Mid Journey" not "Midjourney"
+- "Notebook LM" not "NotebookLM"
+- Single real words stay as-is: "Claude", "Gemini", "Grok", "Perplexity"
+
+NUMBERS AS WORDS RULE:
+All numbers as words for TTS. Round large numbers.
+- "ten thousand" not "$10,000". Years OK as digits.
+- One or two stats maximum per script.
+
+NO PHANTOM VISUAL REFERENCES:
+The video is ONLY a person talking to camera. No screens, charts, or B-roll.
+- NEVER reference something "on screen" or imply visual aids
+- Convey all information VERBALLY
+
+NO ADVERTISING OR PROMOTION:
+- NEVER promote specific companies, banks, or products as recommendations
+- Discussing a company as a NEWS TOPIC is fine. Recommending it is NOT.
+
+TOPIC RULE — AI, TECH, AND FINANCE ONLY:
+- REJECT off-topic scripts (random stories, linguistics, celebrity gossip, scams, dating)
+- If off-topic, respond with ONLY: "REJECTED: off-topic"
 
 FORBIDDEN TOPICS — REJECT any script about:
 - Suicide, self-harm, death, harm to minors
