@@ -126,7 +126,7 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
     from routers.character import CHARACTERS
 
     creators = ["daniel", "natalie", "boris", "thomas", "zoe", "luna", "sophia", "ava"]
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()  # naive UTC to match SQLite
     cutoff_30d = now - timedelta(days=30)
 
     # Get all log entries for last 30 days
