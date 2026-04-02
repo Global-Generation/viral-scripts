@@ -109,7 +109,7 @@ def audit_script(script_id, text, assigned_to, category):
     return verdict, issues
 
 
-def generate_pdf(results, output_path):
+def generate_pdf(results, output_path, published=None):
     """Generate landscape PDF audit report."""
     doc = SimpleDocTemplate(
         output_path,
@@ -127,29 +127,36 @@ def generate_pdf(results, output_path):
 
     elements = []
 
+    published = published or []
+
     # ── Summary ──
     total = len(results)
     pass_count = sum(1 for r in results if r['verdict'] == 'PASS')
     rework_count = sum(1 for r in results if r['verdict'] == 'REWORK')
     delete_count = sum(1 for r in results if r['verdict'] == 'DELETE')
+    pub_count = len(published)
 
     elements.append(Paragraph("Viral Scripts — Full Audit Report", title_style))
-    elements.append(Paragraph(f"Total: {total} scripts | PASS: {pass_count} | REWORK: {rework_count} | DELETE: {delete_count}", subtitle_style))
+    elements.append(Paragraph(f"Unpublished: {total} scripts | PASS: {pass_count} | REWORK: {rework_count} | DELETE: {delete_count} | Published: {pub_count}", subtitle_style))
     elements.append(Spacer(1, 8*mm))
 
     # Summary by creator
-    by_creator = defaultdict(lambda: {"PASS": 0, "REWORK": 0, "DELETE": 0, "total": 0})
+    by_creator = defaultdict(lambda: {"PASS": 0, "REWORK": 0, "DELETE": 0, "PUBLISHED": 0, "total": 0})
     for r in results:
         c = r['creator'] or 'unassigned'
         by_creator[c][r['verdict']] += 1
         by_creator[c]['total'] += 1
+    for r in published:
+        c = r['creator'] or 'unassigned'
+        by_creator[c]['PUBLISHED'] += 1
+        by_creator[c]['total'] += 1
 
-    summary_data = [["Creator", "Total", "PASS", "REWORK", "DELETE"]]
+    summary_data = [["Creator", "Total", "PUBLISHED", "PASS", "REWORK", "DELETE"]]
     for c in sorted(by_creator.keys()):
         d = by_creator[c]
-        summary_data.append([c.capitalize(), str(d['total']), str(d['PASS']), str(d['REWORK']), str(d['DELETE'])])
+        summary_data.append([c.capitalize(), str(d['total']), str(d['PUBLISHED']), str(d['PASS']), str(d['REWORK']), str(d['DELETE'])])
 
-    summary_table = Table(summary_data, colWidths=[80, 50, 50, 60, 50])
+    summary_table = Table(summary_data, colWidths=[80, 50, 65, 50, 60, 50])
     summary_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -207,6 +214,44 @@ def generate_pdf(results, output_path):
         elements.append(t)
         elements.append(PageBreak())
 
+    # ── Published section ──
+    if published:
+        elements.append(Paragraph(f"PUBLISHED — {len(published)} scripts", section_style))
+
+        pub_data = [["ID", "Creator", "Cat", "Words", "Score", "Published", "Issues", "First 80 chars"]]
+        for r in published:
+            issues_text = "; ".join(r['issues'][:4]) if r['issues'] else "—"
+            preview = (r['text'][:80] + "...") if r['text'] and len(r['text']) > 80 else (r['text'] or "—")
+            pub_data.append([
+                str(r['id']),
+                (r['creator'] or '—').capitalize(),
+                r['category'] or '—',
+                str(r['word_count']),
+                str(r['score']),
+                r.get('pub_date', '—'),
+                Paragraph(issues_text, cell_style),
+                Paragraph(preview.replace('&', '&amp;').replace('<', '&lt;'), cell_style),
+            ])
+
+        pub_col_widths = [30, 55, 40, 35, 35, 65, 160, 325]
+        pt = Table(pub_data, colWidths=pub_col_widths, repeatRows=1)
+        pt.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('ALIGN', (0, 0), (5, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(pt)
+
     doc.build(elements)
     print(f"PDF saved to {output_path}")
 
@@ -227,6 +272,7 @@ def main():
         FROM scripts s
         LEFT JOIN videos v ON s.video_id = v.id
         LEFT JOIN searches sr ON v.search_id = sr.id
+        WHERE s.published_tiktok IS NULL
         ORDER BY s.assigned_to, s.id
     """)
 
@@ -245,18 +291,50 @@ def main():
             'issues': issues,
         })
 
+    # Fetch published scripts
+    cursor.execute("""
+        SELECT s.id, s.assigned_to, s.modified_text, s.original_text,
+               s.viral_score, s.character_type, s.production_status,
+               s.published_tiktok,
+               v.title as video_title,
+               sr.category
+        FROM scripts s
+        LEFT JOIN videos v ON s.video_id = v.id
+        LEFT JOIN searches sr ON v.search_id = sr.id
+        WHERE s.published_tiktok IS NOT NULL
+        ORDER BY s.assigned_to, s.id
+    """)
+
+    published = []
+    for row in cursor.fetchall():
+        text = row['modified_text'] or row['original_text'] or ""
+        _, issues = audit_script(row['id'], row['modified_text'], row['assigned_to'], row['category'])
+        pub_date = str(row['published_tiktok'] or '')[:10]
+        published.append({
+            'id': row['id'],
+            'creator': row['assigned_to'] or '',
+            'category': row['category'] or '',
+            'text': text,
+            'word_count': len(text.split()) if text else 0,
+            'score': row['viral_score'] or 0,
+            'verdict': 'PUBLISHED',
+            'issues': issues,
+            'pub_date': pub_date,
+        })
+
     db.close()
 
     # Print summary
     pass_c = sum(1 for r in results if r['verdict'] == 'PASS')
     rework_c = sum(1 for r in results if r['verdict'] == 'REWORK')
     delete_c = sum(1 for r in results if r['verdict'] == 'DELETE')
-    print(f"\nAudit complete: {len(results)} scripts")
-    print(f"  PASS:   {pass_c}")
-    print(f"  REWORK: {rework_c}")
-    print(f"  DELETE: {delete_c}")
+    print(f"\nAudit complete: {len(results)} unpublished + {len(published)} published = {len(results)+len(published)} total")
+    print(f"  PASS:      {pass_c}")
+    print(f"  REWORK:    {rework_c}")
+    print(f"  DELETE:    {delete_c}")
+    print(f"  PUBLISHED: {len(published)}")
 
-    generate_pdf(results, output_path)
+    generate_pdf(results, output_path, published=published)
 
 
 if __name__ == "__main__":
