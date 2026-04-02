@@ -192,6 +192,9 @@ def refresh_tiktok(name: str, db: Session = Depends(get_db)):
     videos = fetch_video_stats(tiktok_url)
     now = datetime.now(timezone.utc)
 
+    if videos is not None and profile:
+        profile["videos"] = len(videos)  # override unreliable videoCount
+
     if profile:
         row = db.query(TiktokStats).filter(
             TiktokStats.creator == name, TiktokStats.stat_type == "profile"
@@ -269,6 +272,13 @@ def refresh_all_tiktok(db: Session = Depends(get_db)):
                 else:
                     db.add(TiktokStats(creator=name, stat_type="videos", data=json.dumps(videos), updated_at=now))
                 profile["views"] = sum(v.get("views", 0) for v in videos)
+                profile["videos"] = len(videos)  # override unreliable videoCount
+                # Re-save profile cache with corrected video count
+                row = db.query(TiktokStats).filter(
+                    TiktokStats.creator == name, TiktokStats.stat_type == "profile"
+                ).first()
+                if row:
+                    row.data = json.dumps({k: v for k, v in profile.items() if k != "updated_at"})
             else:
                 profile["views"] = 0
 

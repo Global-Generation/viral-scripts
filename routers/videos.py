@@ -503,8 +503,15 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
     ny_tz = ZoneInfo("America/New_York")
     tt_stats = {}
     tt_totals = {"followers": 0, "hearts": 0, "videos": 0, "views": 0}
-    profile_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "profile").all()
+    profile_rows = (
+        db.query(TiktokStats)
+        .filter(TiktokStats.stat_type == "profile")
+        .order_by(TiktokStats.updated_at.desc())
+        .all()
+    )
     for row in profile_rows:
+        if row.creator in tt_stats:
+            continue  # skip older duplicates
         data = json.loads(row.data) if row.data else {}
         if row.updated_at:
             ut = row.updated_at.replace(tzinfo=timezone.utc) if row.updated_at.tzinfo is None else row.updated_at
