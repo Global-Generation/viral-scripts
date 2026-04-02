@@ -105,7 +105,7 @@ def scripts_library(
         # Status
         if s.published_tiktok:
             by_status["Published"] += 1
-        elif s.final_subtitled_path or s.final_video_path:
+        elif s.final_subtitled_path:
             by_status["Video Ready"] += 1
         elif s.modified_text:
             by_status["Script Ready"] += 1

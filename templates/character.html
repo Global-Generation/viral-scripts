@@ -210,12 +210,12 @@
                     <td class="td" style="font-size: 11px; color: #64748b; font-weight: 600;">#{{ script.id }}</td>
                     <td class="td" style="white-space: nowrap;">
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()" data-i18n="btn.view">View</a>
-                        {% if script.final_subtitled_path or script.final_video_path %}
+                        {% if script.final_subtitled_path %}
                         <button class="btn-sm" onclick="event.stopPropagation(); playVideo({{ script.id }})" style="background: #16a34a; color: #fff; border: none; cursor: pointer; margin-left: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">Play</button>
                         {% endif %}
                     </td>
                     <td class="td" style="padding: 2px 4px;" onclick="event.stopPropagation()">
-                        {% if script.final_subtitled_path or script.final_video_path %}
+                        {% if script.final_subtitled_path %}
                         <img src="/api/scripts/{{ script.id }}/thumbnail" alt="" style="width: 32px; height: 56px; object-fit: cover; border-radius: 4px; display: block;" loading="lazy" onerror="this.style.display='none'">
                         {% endif %}
                     </td>
@@ -236,7 +236,7 @@
                     <td class="td">
                         {% if script.published_tiktok %}
                         <span class="status-badge" style="background: rgba(22,163,74,0.1); color: #16a34a;">Published</span>
-                        {% elif script.final_subtitled_path or script.final_video_path %}
+                        {% elif script.final_subtitled_path %}
                         <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">Video Ready</span>
                         {% elif script.modified_text %}
                         <span class="status-badge" style="background: rgba(156,163,175,0.1); color: #9ca3af;">Script Ready</span>

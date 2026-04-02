@@ -41,7 +41,7 @@ def _script_status(script):
     """
     if script.published_tiktok:
         return "Published", "#16a34a"
-    if script.final_subtitled_path or script.final_video_path:
+    if script.final_subtitled_path:
         return "Video Ready", "#2563eb"
     if script.modified_text:
         return "Script Ready", "#9ca3af"
@@ -83,7 +83,7 @@ def _build_script_schedule(db, creator, today):
             "script_id": script.id,
             "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
             "tiktok_date": tt_date,
-            "has_final": bool(script.final_video_path or script.final_subtitled_path),
+            "has_final": bool(script.final_subtitled_path),
             "slot": slot,
             "published_tiktok": True,
             "published_youtube": script.published_youtube,
@@ -107,7 +107,7 @@ def _build_script_schedule(db, creator, today):
 
     # --- Unpublished scripts: sequential schedule from today ---
     def _readiness(s):
-        if s.final_subtitled_path or s.final_video_path:
+        if s.final_subtitled_path:
             return 0
         if s.modified_text:
             return 1
@@ -138,7 +138,7 @@ def _build_script_schedule(db, creator, today):
             "script_id": script.id,
             "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
             "tiktok_date": tt_date,
-            "has_final": bool(script.final_video_path or script.final_subtitled_path),
+            "has_final": bool(script.final_subtitled_path),
             "slot": slot,
             "published_tiktok": False,
             "published_youtube": script.published_youtube,

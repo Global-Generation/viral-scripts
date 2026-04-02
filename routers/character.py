@@ -84,7 +84,7 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
     def status_order(s):
         if s.published_tiktok:
             return 3  # Published
-        if s.final_subtitled_path or s.final_video_path:
+        if s.final_subtitled_path:
             return 2  # Video Ready
         if s.modified_text:
             return 1  # Script Ready
@@ -97,7 +97,7 @@ def character_page(name: str, request: Request, db: Session = Depends(get_db)):
     pub_tt = sum(1 for s in scripts if s.published_tiktok)
     pub_ig = sum(1 for s in scripts if s.published_instagram)
     pub_yt = sum(1 for s in scripts if s.published_youtube)
-    ready_videos = sum(1 for s in scripts if s.final_video_path or s.final_subtitled_path)
+    ready_videos = sum(1 for s in scripts if s.final_subtitled_path)
 
     ai_count = 0
     finance_count = 0
