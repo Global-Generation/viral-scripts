@@ -375,58 +375,68 @@ def regenerate_v2(script_id: int, db: Session = Depends(get_db)):
 
 @router.post("/batch-fix-angles")
 def batch_fix_angles(db: Session = Depends(get_db)):
-    """Regenerate V1+V2 for all assigned scripts (boris/thomas/zoe/natalie/luna).
-    For daniel: only regenerate V2 for specific script IDs."""
-    from services.prompter import _detect_first_angle
-    daniel_v2_only = [2, 8, 28, 30, 31, 305]
-    full_regen_creators = ["boris", "thomas", "zoe", "natalie", "luna"]
+    """Find and regenerate all scripts with broken prompts (missing angles, jump cuts, or CTA).
 
-    fixed = 0
-    errors = 0
+    A prompt is broken if V1 or V2:
+    - Has only one camera angle (no variation)
+    - Missing jump cut
+    - V2 missing 'Link in bio'
+    """
+    from services.prompter import _has_angle_variation, _has_jump_cut
 
-    # Daniel: regenerate V2 only for specific scripts
-    for sid in daniel_v2_only:
-        script = db.query(Script).get(sid)
-        if not script or not script.video1_prompt:
-            continue
-        text = script.modified_text or script.original_text
-        if not text:
-            continue
-        try:
-            new_v2 = generate_video2_only(text, script.video1_prompt)
-            script.video2_prompt = new_v2
-            script.video_prompt = script.video1_prompt + "\n\n" + new_v2
-            db.commit()
-            fixed += 1
-            logger.info(f"Fixed V2 angle for daniel #{script.id}")
-        except Exception as e:
-            errors += 1
-            logger.error(f"V2 regen failed for #{script.id}: {e}")
-
-    # Other creators: full V1+V2 regeneration
     scripts = db.query(Script).filter(
-        Script.assigned_to.in_(full_regen_creators),
+        Script.assigned_to != "",
+        Script.assigned_to.isnot(None),
         Script.video1_prompt != "",
         Script.video1_prompt.isnot(None),
     ).all()
+
+    fixed = 0
+    errors = 0
+    skipped = 0
+    details = []
+
     for script in scripts:
+        v1 = script.video1_prompt or ""
+        v2 = script.video2_prompt or ""
         text = script.modified_text or script.original_text
         if not text:
+            skipped += 1
             continue
+
+        # Check if V1 is broken
+        v1_broken = not _has_angle_variation(v1) or not _has_jump_cut(v1)
+        # Check if V2 is broken
+        v2_broken = not _has_angle_variation(v2) or not _has_jump_cut(v2) or "link in bio" not in v2.lower()
+
+        if not v1_broken and not v2_broken:
+            skipped += 1
+            continue
+
         try:
-            result = generate_video_prompt(text)
-            script.video1_prompt = result["video1"]
-            script.video2_prompt = result["video2"]
-            script.video3_prompt = ""
-            script.video_prompt = result["video1"] + "\n\n" + result["video2"]
+            if v1_broken:
+                # V1 is broken — regenerate both V1 and V2
+                result = generate_video_prompt(text)
+                script.video1_prompt = result["video1"]
+                script.video2_prompt = result["video2"]
+                script.video3_prompt = ""
+                script.video_prompt = result["video1"] + "\n\n" + result["video2"]
+                details.append({"id": script.id, "speaker": script.assigned_to, "fix": "V1+V2"})
+            else:
+                # Only V2 is broken — regenerate V2 only
+                new_v2 = generate_video2_only(text, script.video1_prompt)
+                script.video2_prompt = new_v2
+                script.video_prompt = script.video1_prompt + "\n\n" + new_v2
+                details.append({"id": script.id, "speaker": script.assigned_to, "fix": "V2 only"})
             db.commit()
             fixed += 1
-            logger.info(f"Regenerated V1+V2 for {script.assigned_to} #{script.id}")
+            logger.info(f"Fixed prompts for {script.assigned_to} #{script.id}")
         except Exception as e:
             errors += 1
             logger.error(f"Regen failed for #{script.id}: {e}")
+            db.rollback()
 
-    return {"ok": True, "fixed": fixed, "errors": errors}
+    return {"ok": True, "fixed": fixed, "errors": errors, "skipped": skipped, "details": details}
 
 
 class GenerateVideoRequest(BaseModel):

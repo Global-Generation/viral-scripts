@@ -154,30 +154,52 @@ def _strip_label(text: str, video_num: int) -> str:
     return text
 
 
+def _find_angle_occurrences(text: str) -> list[tuple[int, str]]:
+    """Find all camera angle occurrences in text, resolving substring ambiguity.
+    Returns sorted list of (position, angle_name)."""
+    import re
+    text_upper = text.upper()
+    occurrences = []
+    # Find OFFSET MEDIUM SHOT first (longest), mark those positions
+    offset_positions = set()
+    for m in re.finditer("OFFSET MEDIUM SHOT", text_upper):
+        occurrences.append((m.start(), "OFFSET MEDIUM SHOT"))
+        # Mark the MEDIUM SHOT substring positions to exclude
+        offset_positions.add(m.start() + 7)  # "OFFSET " = 7 chars
+    for m in re.finditer("CLOSE-UP", text_upper):
+        occurrences.append((m.start(), "CLOSE-UP"))
+    for m in re.finditer("MEDIUM SHOT", text_upper):
+        if m.start() not in offset_positions:  # Skip if part of OFFSET MEDIUM SHOT
+            occurrences.append((m.start(), "MEDIUM SHOT"))
+    occurrences.sort(key=lambda x: x[0])
+    return occurrences
+
+
 def _detect_last_angle(prompt_text: str) -> str:
     """Detect the last camera angle used in a video prompt."""
-    text_upper = prompt_text.upper()
-    last_angle = "MEDIUM SHOT"
-    last_pos = -1
-    for angle in ("MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"):
-        pos = text_upper.rfind(angle)
-        if pos > last_pos:
-            last_pos = pos
-            last_angle = angle
-    return last_angle
+    occ = _find_angle_occurrences(prompt_text)
+    return occ[-1][1] if occ else "MEDIUM SHOT"
 
 
 def _detect_first_angle(prompt_text: str) -> str:
     """Detect the first camera angle used in a video prompt."""
+    occ = _find_angle_occurrences(prompt_text)
+    return occ[0][1] if occ else "MEDIUM SHOT"
+
+
+def _has_angle_variation(prompt_text: str) -> bool:
+    """Check if prompt contains at least 2 different camera angles."""
     text_upper = prompt_text.upper()
-    first_angle = "MEDIUM SHOT"
-    first_pos = len(text_upper)
+    angles_found = set()
     for angle in ("MEDIUM SHOT", "CLOSE-UP", "OFFSET MEDIUM SHOT"):
-        pos = text_upper.find(angle)
-        if 0 <= pos < first_pos:
-            first_pos = pos
-            first_angle = angle
-    return first_angle
+        if angle in text_upper:
+            angles_found.add(angle)
+    return len(angles_found) >= 2
+
+
+def _has_jump_cut(prompt_text: str) -> bool:
+    """Check if prompt contains a jump cut transition."""
+    return "jump cut" in prompt_text.lower()
 
 
 def _split_at_sentence_boundary(text: str) -> tuple[str, str]:
@@ -230,19 +252,40 @@ def generate_video_prompt(script_text: str) -> dict:
     v1_angle_str = f"1. {v1_pair[0]}\n2. {v1_pair[1]}"
     v2_angle_str = f"1. {v2_pair[0]}\n2. {v2_pair[1]}"
 
-    # Step 1: Generate Video 1
-    response1 = client.messages.create(
-        model=CLAUDE_MODEL,
-        max_tokens=700,
-        temperature=0.3,
-        system=SYSTEM_VIDEO1,
-        messages=[{"role": "user", "content": USER_VIDEO1.format(
-            script=script_text, word_count=len(script_text.split()),
-            target_words=len(script_text.split()) // 2,
-            v1_angle_pair=v1_angle_str
-        )}]
-    )
-    video1_text = _strip_label(response1.content[0].text.strip(), 1)
+    # Step 1: Generate Video 1 (with retry for angle compliance)
+    video1_text = None
+    for attempt in range(3):
+        temp = 0.3 if attempt == 0 else 0.7 + attempt * 0.1
+        response1 = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=700,
+            temperature=temp,
+            system=SYSTEM_VIDEO1,
+            messages=[{"role": "user", "content": USER_VIDEO1.format(
+                script=script_text, word_count=len(script_text.split()),
+                target_words=len(script_text.split()) // 2,
+                v1_angle_pair=v1_angle_str
+            )}]
+        )
+        video1_text = _strip_label(response1.content[0].text.strip(), 1)
+        _log_usage("prompt")
+
+        # Validate: must have 2 angles, jump cut, and end on OFFSET
+        angles_ok = _has_angle_variation(video1_text)
+        jump_ok = _has_jump_cut(video1_text)
+        last_angle = _detect_last_angle(video1_text)
+        end_ok = last_angle == "OFFSET MEDIUM SHOT"
+
+        if angles_ok and jump_ok and end_ok:
+            break
+        issues = []
+        if not angles_ok:
+            issues.append("missing angle variation")
+        if not jump_ok:
+            issues.append("no jump cut")
+        if not end_ok:
+            issues.append(f"ends on {last_angle} instead of OFFSET MEDIUM SHOT")
+        logger.warning(f"V1 issues ({', '.join(issues)}), retry {attempt+1}/2")
 
     # Count V1 dialogue words to enforce balance in V2
     import re
@@ -271,18 +314,34 @@ def generate_video_prompt(script_text: str) -> dict:
         video2_text = _strip_label(response2.content[0].text.strip(), 2)
         _log_usage("prompt")
 
-        # Check word balance and angle
+        # Check word balance, angles, jump cut, and CTA
         v2_dialogue_words = sum(len(m.split()) for m in re.findall(r'"([^"]+)"', video2_text))
         v2_first = _detect_first_angle(video2_text)
+        v2_last = _detect_last_angle(video2_text)
         word_ok = v1_dialogue_words == 0 or v1_min <= v2_dialogue_words <= v1_max
-        angle_ok = v2_first == "MEDIUM SHOT"
-        if word_ok and angle_ok:
+        start_ok = v2_first == "MEDIUM SHOT"
+        angles_ok = _has_angle_variation(video2_text)
+        jump_ok = _has_jump_cut(video2_text)
+        end_ok = v2_last != "MEDIUM SHOT"
+        cta_ok = "link in bio" in video2_text.lower()
+
+        if word_ok and start_ok and angles_ok and jump_ok and end_ok and cta_ok:
             break
-        if not angle_ok:
-            logger.warning(f"V2 starts with {v2_first} instead of MEDIUM SHOT, retry {attempt+1}/2")
+        issues = []
+        if not start_ok:
+            issues.append(f"starts with {v2_first} instead of MEDIUM SHOT")
+        if not angles_ok:
+            issues.append("missing angle variation")
+        if not jump_ok:
+            issues.append("no jump cut")
+        if not end_ok:
+            issues.append(f"ends on MEDIUM SHOT")
+        if not cta_ok:
+            issues.append("missing 'Link in bio' CTA")
         if not word_ok:
-            ratio = v2_dialogue_words / v1_dialogue_words * 100
-            logger.warning(f"V2 word balance off ({ratio:.0f}%): V1={v1_dialogue_words}w V2={v2_dialogue_words}w, retry {attempt+1}/2")
+            ratio = v2_dialogue_words / v1_dialogue_words * 100 if v1_dialogue_words else 0
+            issues.append(f"word balance {ratio:.0f}%")
+        logger.warning(f"V2 issues ({', '.join(issues)}), retry {attempt+1}/2")
 
     _log_usage("prompt")
     return {
@@ -324,8 +383,26 @@ def generate_video2_only(script_text: str, existing_v1: str) -> str:
         _log_usage("prompt_v2_regen")
 
         v2_first = _detect_first_angle(video2_text)
-        if v2_first == "MEDIUM SHOT":
+        v2_last = _detect_last_angle(video2_text)
+        start_ok = v2_first == "MEDIUM SHOT"
+        angles_ok = _has_angle_variation(video2_text)
+        jump_ok = _has_jump_cut(video2_text)
+        end_ok = v2_last != "MEDIUM SHOT"
+        cta_ok = "link in bio" in video2_text.lower()
+
+        if start_ok and angles_ok and jump_ok and end_ok and cta_ok:
             break
-        logger.warning(f"V2 regen starts with {v2_first}, retry {attempt+1}/2")
+        issues = []
+        if not start_ok:
+            issues.append(f"starts with {v2_first}")
+        if not angles_ok:
+            issues.append("missing angle variation")
+        if not jump_ok:
+            issues.append("no jump cut")
+        if not end_ok:
+            issues.append("ends on MEDIUM SHOT")
+        if not cta_ok:
+            issues.append("missing 'Link in bio'")
+        logger.warning(f"V2 regen issues ({', '.join(issues)}), retry {attempt+1}/2")
 
     return video2_text
