@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Script, Video, NariVideo, AnnaVideo, TiktokStats
+from models import Script, Video, NariVideo, AnnaVideo, TiktokStats, TiktokStatsLog
 from routers.character import CHARACTERS
 
 PHOTOS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "photos")
@@ -529,6 +529,56 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
 
     # Sort creators by views descending for the stats table
     creators_sorted = sorted(CREATORS, key=lambda c: tt_stats.get(c, {}).get("views", 0), reverse=True)
+
+    # --- Deltas: since last refresh + since yesterday ---
+    now_utc = datetime.now(timezone.utc)
+    target_24h = now_utc - timedelta(hours=24)
+    tt_totals["d_refresh"] = {"followers": 0, "hearts": 0, "videos": 0}
+    tt_totals["d_day"] = {"followers": 0, "hearts": 0, "videos": 0}
+
+    for c in CREATORS:
+        if c not in tt_stats:
+            continue
+        logs = (
+            db.query(TiktokStatsLog)
+            .filter(TiktokStatsLog.creator == c)
+            .order_by(TiktokStatsLog.logged_at.desc())
+            .limit(50)
+            .all()
+        )
+        if not logs:
+            continue
+
+        cur = logs[0]  # most recent log entry
+
+        # Delta since last refresh (compare to second-most-recent)
+        if len(logs) >= 2:
+            prev = logs[1]
+            dr = {
+                "followers": cur.followers - prev.followers,
+                "hearts": cur.hearts - prev.hearts,
+                "videos": cur.videos - prev.videos,
+            }
+            tt_stats[c]["d_refresh"] = dr
+            for k in dr:
+                tt_totals["d_refresh"][k] += dr[k]
+
+        # Delta since ~24h ago
+        past = None
+        for log in logs:
+            log_at = log.logged_at.replace(tzinfo=timezone.utc) if log.logged_at.tzinfo is None else log.logged_at
+            if log_at <= target_24h:
+                past = log
+                break
+        if past:
+            dd = {
+                "followers": cur.followers - past.followers,
+                "hearts": cur.hearts - past.hearts,
+                "videos": cur.videos - past.videos,
+            }
+            tt_stats[c]["d_day"] = dd
+            for k in dd:
+                tt_totals["d_day"][k] += dd[k]
 
     return templates.TemplateResponse(
         "videos.html",

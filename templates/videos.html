@@ -110,10 +110,14 @@ function togglePanel(name) {
     </div>
 
     <!-- Summary totals -->
+    {% macro delta_badge(val) %}{% if val and val > 0 %}<span style="font-size: 10px; font-weight: 600; color: #16a34a;">+{{ val }}</span>{% elif val and val < 0 %}<span style="font-size: 10px; font-weight: 600; color: #ef4444;">{{ val }}</span>{% endif %}{% endmacro %}
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
         <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
             <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-followers">{{ "{:,}".format(tt_totals.followers) }}</div>
             <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Followers</div>
+            {% if tt_totals.d_day.followers or tt_totals.d_refresh.followers %}
+            <div style="margin-top: 3px;">{{ delta_badge(tt_totals.d_day.followers) }} <span style="font-size: 9px; color: #d1d5db;">24h</span> {{ delta_badge(tt_totals.d_refresh.followers) }} <span style="font-size: 9px; color: #d1d5db;">ref</span></div>
+            {% endif %}
         </div>
         <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
             <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-views">{{ "{:,}".format(tt_totals.views) }}</div>
@@ -122,43 +126,70 @@ function togglePanel(name) {
         <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
             <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-hearts">{{ "{:,}".format(tt_totals.hearts) }}</div>
             <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Likes</div>
+            {% if tt_totals.d_day.hearts or tt_totals.d_refresh.hearts %}
+            <div style="margin-top: 3px;">{{ delta_badge(tt_totals.d_day.hearts) }} <span style="font-size: 9px; color: #d1d5db;">24h</span> {{ delta_badge(tt_totals.d_refresh.hearts) }} <span style="font-size: 9px; color: #d1d5db;">ref</span></div>
+            {% endif %}
         </div>
         <div style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 8px;">
             <div style="font-size: 22px; font-weight: 800; color: #1e293b;" id="tt-all-videos">{{ tt_totals.videos }}</div>
             <div style="font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px;">Total Videos</div>
+            {% if tt_totals.d_day.videos or tt_totals.d_refresh.videos %}
+            <div style="margin-top: 3px;">{{ delta_badge(tt_totals.d_day.videos) }} <span style="font-size: 9px; color: #d1d5db;">24h</span> {{ delta_badge(tt_totals.d_refresh.videos) }} <span style="font-size: 9px; color: #d1d5db;">ref</span></div>
+            {% endif %}
         </div>
     </div>
 
     <!-- Per-creator table -->
+    {% macro d(val) %}{% if val and val > 0 %}<span style="color: #16a34a; font-weight: 600;">+{{ val }}</span>{% elif val and val < 0 %}<span style="color: #ef4444; font-weight: 600;">{{ val }}</span>{% else %}<span style="color: #e5e7eb;">—</span>{% endif %}{% endmacro %}
     <div style="overflow-x: auto;">
         <table class="w-full" style="font-size: 12px;">
             <thead>
                 <tr class="border-b border-gray-100">
                     <th style="text-align: left; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Creator</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Followers</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change since last refresh">Δ Ref</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change in last 24 hours">Δ 24h</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Views</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change since last refresh">Δ Ref</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change in last 24 hours">Δ 24h</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Videos</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change since last refresh">Δ Ref</th>
+                    <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change in last 24 hours">Δ 24h</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Updated</th>
                 </tr>
             </thead>
             <tbody id="tt-all-tbody">
                 {% for c in creators_sorted %}
+                {% set dr = tt_stats.get(c, {}).get("d_refresh", {}) %}
+                {% set dd = tt_stats.get(c, {}).get("d_day", {}) %}
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50" id="tt-row-{{ c }}">
                     <td style="padding: 6px 8px;">
                         <a href="/character/{{ c }}" style="font-weight: 600; color: #1e293b; text-decoration: none; text-transform: capitalize;">{{ c }}</a>
                     </td>
                     {% if c in tt_stats %}
                     <td style="text-align: right; padding: 6px 8px; font-weight: 700; color: #1e293b;" class="tt-cell-followers">{{ "{:,}".format(tt_stats[c].followers) }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-df">{{ d(dr.get("followers")) }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dd-f">{{ d(dd.get("followers")) }}</td>
                     <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-views">{{ "{:,}".format(tt_stats[c].get("views", 0)) }}</td>
                     <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-hearts">{{ "{:,}".format(tt_stats[c].hearts) }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dh">{{ d(dr.get("hearts")) }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dd-h">{{ d(dd.get("hearts")) }}</td>
                     <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-videos">{{ tt_stats[c].videos }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dv">{{ d(dr.get("videos")) }}</td>
+                    <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dd-v">{{ d(dd.get("videos")) }}</td>
                     <td style="text-align: right; padding: 6px 8px; font-size: 10px; color: #9ca3af;" class="tt-cell-updated">{{ tt_stats[c].updated_at or '—' }}</td>
                     {% else %}
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-followers">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-df">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dd-f">—</td>
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-views">—</td>
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-hearts">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dh">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dd-h">—</td>
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-videos">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dv">—</td>
+                    <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dd-v">—</td>
                     <td style="text-align: right; padding: 6px 8px; font-size: 10px; color: #d1d5db;" class="tt-cell-updated">—</td>
                     {% endif %}
                 </tr>
