@@ -123,6 +123,42 @@ class ScriptUpdate(BaseModel):
     video3_prompt: str = None
 
 
+class CreateScriptRequest(BaseModel):
+    original_text: str
+    assigned_to: str
+    character_type: str = ""
+    modified_text: str = ""
+    production_status: str = ""
+    title: str = ""
+
+
+@router.post("/create")
+def create_script(data: CreateScriptRequest, db: Session = Depends(get_db)):
+    """Create a script directly (with a placeholder Video record)."""
+    if data.assigned_to and data.assigned_to not in VALID_ASSIGNEES:
+        raise HTTPException(status_code=400, detail=f"Invalid assignee: {data.assigned_to}")
+    video = Video(
+        tiktok_url=f"manual://{data.assigned_to}/{data.title or 'untitled'}",
+        title=data.title,
+        status="manual",
+    )
+    db.add(video)
+    db.flush()
+    script = Script(
+        video_id=video.id,
+        original_text=data.original_text,
+        modified_text=data.modified_text or data.original_text,
+        assigned_to=data.assigned_to,
+        character_type=data.character_type or data.assigned_to,
+        production_status=data.production_status or "ready",
+        status="extracted",
+    )
+    db.add(script)
+    db.commit()
+    db.refresh(script)
+    return {"ok": True, "script_id": script.id, "video_id": video.id}
+
+
 @router.put("/{script_id}")
 def update_script(script_id: int, data: ScriptUpdate, db: Session = Depends(get_db)):
     script = db.query(Script).get(script_id)
