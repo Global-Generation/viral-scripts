@@ -230,74 +230,6 @@ async function refreshAllTiktok() {
 }
 </script>
 
-<!-- Today's Tasks -->
-{% if todays_tasks %}
-<div class="stat-card mb-6">
-    <div class="flex items-center gap-2 mb-3">
-        <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <h2 class="text-sm font-bold text-gray-900">Today — {{ today.strftime('%B %d, %Y') }}</h2>
-    </div>
-
-    {% set morning_tasks = todays_tasks|selectattr('slot', 'equalto', 'morning')|list %}
-    {% set evening_tasks = todays_tasks|selectattr('slot', 'equalto', 'evening')|list %}
-
-    {% if morning_tasks %}
-    <div style="margin-bottom: 12px;">
-        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Morning</div>
-        <div class="space-y-2">
-            {% for task in morning_tasks %}
-            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fffbeb; border-radius: 8px;">
-                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
-                    {% if task.published %}checked{% endif %}
-                    style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
-                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
-                    {% if task.platform == 'TikTok' %}color: #000;
-                    {% elif task.platform == 'Instagram' %}color: #E1306C;
-                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
-                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
-                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
-                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
-                <span style="font-size: 9px; font-weight: 600; color: {{ task.status_color }}; background: {{ task.status_color }}15; padding: 2px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid {{ task.status_color }}30;">{{ task.status }}</span>
-                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if evening_tasks %}
-    <div>
-        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6366f1; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Evening</div>
-        <div class="space-y-2">
-            {% for task in evening_tasks %}
-            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #eef2ff; border-radius: 8px;">
-                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
-                    {% if task.published %}checked{% endif %}
-                    style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
-                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
-                    {% if task.platform == 'TikTok' %}color: #000;
-                    {% elif task.platform == 'Instagram' %}color: #E1306C;
-                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
-                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
-                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
-                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
-                <span style="font-size: 9px; font-weight: 600; color: {{ task.status_color }}; background: {{ task.status_color }}15; padding: 2px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid {{ task.status_color }}30;">{{ task.status }}</span>
-                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-</div>
-{% else %}
-<div class="stat-card mb-6">
-    <div class="flex items-center gap-2">
-        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        <span class="text-sm text-gray-400">No publications scheduled for today ({{ today.strftime('%B %d') }})</span>
-    </div>
-</div>
-{% endif %}
-
 <!-- Calendar Plan/Fact -->
 <div class="stat-card mb-6">
     <div class="flex items-center gap-2 mb-3">
@@ -535,6 +467,74 @@ async function refreshAllTiktok() {
         <span style="font-size: 11px; color: #9ca3af;">2 scripts/day per creator</span>
     </div>
 </div>
+
+<!-- Today's Tasks -->
+{% if todays_tasks %}
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-2 mb-3">
+        <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <h2 class="text-sm font-bold text-gray-900">Today — {{ today.strftime('%B %d, %Y') }}</h2>
+    </div>
+
+    {% set morning_tasks = todays_tasks|selectattr('slot', 'equalto', 'morning')|list %}
+    {% set evening_tasks = todays_tasks|selectattr('slot', 'equalto', 'evening')|list %}
+
+    {% if morning_tasks %}
+    <div style="margin-bottom: 12px;">
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Morning</div>
+        <div class="space-y-2">
+            {% for task in morning_tasks %}
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fffbeb; border-radius: 8px;">
+                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
+                    {% if task.published %}checked{% endif %}
+                    style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
+                    {% if task.platform == 'TikTok' %}color: #000;
+                    {% elif task.platform == 'Instagram' %}color: #E1306C;
+                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
+                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
+                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
+                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
+                <span style="font-size: 9px; font-weight: 600; color: {{ task.status_color }}; background: {{ task.status_color }}15; padding: 2px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid {{ task.status_color }}30;">{{ task.status }}</span>
+                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if evening_tasks %}
+    <div>
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6366f1; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 4px;">Evening</div>
+        <div class="space-y-2">
+            {% for task in evening_tasks %}
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #eef2ff; border-radius: 8px;">
+                <input type="checkbox" onchange="togglePublishCb('{{ task.publish_url }}', '{{ task.platform|lower }}', this)"
+                    {% if task.published %}checked{% endif %}
+                    style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; flex-shrink: 0;">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 70px;
+                    {% if task.platform == 'TikTok' %}color: #000;
+                    {% elif task.platform == 'Instagram' %}color: #E1306C;
+                    {% else %}color: #FF0000;{% endif %}">{{ task.platform }}</span>
+                <span style="font-size: 11px; font-weight: 600; text-transform: capitalize; color:
+                    {% if task.creator == 'daniel' %}#ea580c{% elif task.creator == 'boris' %}#2563EB{% elif task.creator == 'thomas' %}#16a34a{% elif task.creator == 'sophia' %}#9333ea{% elif task.creator == 'ava' %}#db2777{% else %}#6b7280{% endif %}; min-width: 60px;">{{ task.creator }}</span>
+                <span class="text-xs text-gray-700 truncate" style="flex: 1;">{{ task.title }}</span>
+                <span style="font-size: 9px; font-weight: 600; color: {{ task.status_color }}; background: {{ task.status_color }}15; padding: 2px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid {{ task.status_color }}30;">{{ task.status }}</span>
+                <a href="{{ task.link }}" style="font-size: 10px; font-weight: 600; color: #3b82f6; background: #dbeafe; padding: 3px 10px; border-radius: 6px; white-space: nowrap; text-decoration: none;">Open</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="stat-card mb-6">
+    <div class="flex items-center gap-2">
+        <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        <span class="text-sm text-gray-400">No publications scheduled for today ({{ today.strftime('%B %d') }})</span>
+    </div>
+</div>
+{% endif %}
 
 <!-- Schedule per Creator -->
 <div class="space-y-4">
