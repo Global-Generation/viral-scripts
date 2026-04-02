@@ -49,7 +49,9 @@ def _script_status(script):
 
 
 def _build_script_schedule(db, creator, today):
-    """Build schedule for script-based creators (daniel, boris, thomas)."""
+    """Build schedule for script-based creators (daniel, boris, thomas, etc.).
+    Published scripts use actual pub dates; unpublished start from today at 2/day.
+    """
     scripts = (
         db.query(Script)
         .options(joinedload(Script.video))
@@ -58,24 +60,74 @@ def _build_script_schedule(db, creator, today):
         .all()
     )
 
-    # Sort by readiness: published → video ready → script ready → draft, then by ID
-    def _readiness(s):
-        if s.published_tiktok:
-            return 0
-        if s.final_subtitled_path or s.final_video_path:
-            return 1
-        if s.modified_text:
-            return 2
-        return 3
-    scripts.sort(key=lambda s: (_readiness(s), s.id))
+    published = [s for s in scripts if s.published_tiktok]
+    unpublished = [s for s in scripts if not s.published_tiktok]
+    published.sort(key=lambda s: s.published_tiktok)
 
-    # Never schedule unpublished scripts in the past
-    start = max(SCHEDULE_STARTS[creator], today)
     entries = []
     tasks = []
-    for i, script in enumerate(scripts):
-        base_date = start + timedelta(days=i // 2)
-        slot = "morning" if i % 2 == 0 else "evening"
+
+    # --- Published scripts: use actual published_tiktok dates ---
+    date_slots = {}
+    for script in published:
+        tt_date = script.published_tiktok.date() if hasattr(script.published_tiktok, 'date') else script.published_tiktok
+        slot_n = date_slots.get(tt_date, 0)
+        slot = "morning" if slot_n % 2 == 0 else "evening"
+        date_slots[tt_date] = slot_n + 1
+
+        s_label, s_color = _script_status(script)
+        title = script.pub_title_tiktok or (script.video.title if script.video else None) or f"Script #{script.id}"
+        entries.append({
+            "title": title[:55],
+            "link": f"/scripts/{script.id}",
+            "script_id": script.id,
+            "has_raw_video": bool(script.raw_video1_path or script.final_video_path),
+            "tiktok_date": tt_date,
+            "has_final": bool(script.final_video_path or script.final_subtitled_path),
+            "slot": slot,
+            "published_tiktok": True,
+            "published_youtube": script.published_youtube,
+            "status": s_label,
+            "status_color": s_color,
+        })
+        if tt_date == today:
+            tasks.append({
+                "creator": creator,
+                "title": title[:60],
+                "link": f"/scripts/{script.id}",
+                "platform": "TikTok",
+                "date": tt_date,
+                "slot": slot,
+                "script_id": script.id,
+                "publish_url": f"/api/scripts/{script.id}/publish",
+                "published": True,
+                "status": s_label,
+                "status_color": s_color,
+            })
+
+    # --- Unpublished scripts: sequential schedule from today ---
+    def _readiness(s):
+        if s.final_subtitled_path or s.final_video_path:
+            return 0
+        if s.modified_text:
+            return 1
+        return 2
+    unpublished.sort(key=lambda s: (_readiness(s), s.id))
+
+    if date_slots:
+        last_pub_date = max(date_slots.keys())
+        slots_on_last = date_slots[last_pub_date]
+    else:
+        last_pub_date = SCHEDULE_STARTS[creator]
+        slots_on_last = 0
+    effective_start = max(last_pub_date, today, SCHEDULE_STARTS[creator])
+    if effective_start > last_pub_date:
+        slots_on_last = 0
+
+    for i, script in enumerate(unpublished):
+        adj_i = i + slots_on_last
+        base_date = effective_start + timedelta(days=adj_i // 2)
+        slot = "morning" if adj_i % 2 == 0 else "evening"
         tt_date = base_date
 
         s_label, s_color = _script_status(script)
@@ -88,12 +140,11 @@ def _build_script_schedule(db, creator, today):
             "tiktok_date": tt_date,
             "has_final": bool(script.final_video_path or script.final_subtitled_path),
             "slot": slot,
-            "published_tiktok": bool(script.published_tiktok),
-            "published_youtube": script.published_youtube,  # datetime or None
+            "published_tiktok": False,
+            "published_youtube": script.published_youtube,
             "status": s_label,
             "status_color": s_color,
         })
-
         if tt_date == today:
             tasks.append({
                 "creator": creator,
@@ -104,7 +155,7 @@ def _build_script_schedule(db, creator, today):
                 "slot": slot,
                 "script_id": script.id,
                 "publish_url": f"/api/scripts/{script.id}/publish",
-                "published": bool(script.published_tiktok),
+                "published": False,
                 "status": s_label,
                 "status_color": s_color,
             })
