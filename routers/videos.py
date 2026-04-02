@@ -549,19 +549,21 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
         if not logs:
             continue
 
-        cur = logs[0]  # most recent log entry
+        # Current values from live cache (not from log — log may lag behind)
+        cur_f = tt_stats[c].get("followers", 0)
+        cur_h = tt_stats[c].get("hearts", 0)
+        cur_v = tt_stats[c].get("videos", 0)
 
-        # Delta since last refresh (compare to second-most-recent)
-        if len(logs) >= 2:
-            prev = logs[1]
-            dr = {
-                "followers": cur.followers - prev.followers,
-                "hearts": cur.hearts - prev.hearts,
-                "videos": cur.videos - prev.videos,
-            }
-            tt_stats[c]["d_refresh"] = dr
-            for k in dr:
-                tt_totals["d_refresh"][k] += dr[k]
+        # Delta since last refresh (compare to most recent log entry)
+        prev = logs[0]
+        dr = {
+            "followers": cur_f - prev.followers,
+            "hearts": cur_h - prev.hearts,
+            "videos": cur_v - prev.videos,
+        }
+        tt_stats[c]["d_refresh"] = dr
+        for k in dr:
+            tt_totals["d_refresh"][k] += dr[k]
 
         # Delta since ~24h ago
         past = None
@@ -572,9 +574,9 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
                 break
         if past:
             dd = {
-                "followers": cur.followers - past.followers,
-                "hearts": cur.hearts - past.hearts,
-                "videos": cur.videos - past.videos,
+                "followers": cur_f - past.followers,
+                "hearts": cur_h - past.hearts,
+                "videos": cur_v - past.videos,
             }
             tt_stats[c]["d_day"] = dd
             for k in dd:
