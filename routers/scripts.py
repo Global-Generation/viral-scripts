@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
-from models import Video, Script, Avatar, VideoGeneration
+from models import Video, Script, Avatar, VideoGeneration, Search
 from services.pipeline import extract_script_for_video
 from services.higgsfield import generate_video, check_status as hf_check_status
 from services.rewriter import rewrite_provocative, rewrite_provocative_boris
@@ -130,6 +130,7 @@ class CreateScriptRequest(BaseModel):
     modified_text: str = ""
     production_status: str = ""
     title: str = ""
+    category: str = ""
 
 
 @router.post("/create")
@@ -137,10 +138,26 @@ def create_script(data: CreateScriptRequest, db: Session = Depends(get_db)):
     """Create a script directly (with a placeholder Video record)."""
     if data.assigned_to and data.assigned_to not in VALID_ASSIGNEES:
         raise HTTPException(status_code=400, detail=f"Invalid assignee: {data.assigned_to}")
+    # Auto-detect category from character_type if not provided
+    category = data.category
+    if not category and data.character_type:
+        category = "ai" if data.character_type == "techguy" else "finance" if data.character_type == "grandpa" else ""
+    # Auto-generate title from modified_text if not provided
+    title = data.title
+    if not title and (data.modified_text or data.original_text):
+        text = data.modified_text or data.original_text
+        title = text[:80].rsplit(" ", 1)[0] + "..." if len(text) > 80 else text
+    # Create Search record for category tag
+    search = None
+    if category:
+        search = Search(query=f"manual:{data.assigned_to}", category=category)
+        db.add(search)
+        db.flush()
     video = Video(
-        tiktok_url=f"manual://{data.assigned_to}/{data.title or 'untitled'}",
-        title=data.title,
+        tiktok_url=f"manual://{data.assigned_to}/{title or 'untitled'}",
+        title=title,
         status="manual",
+        search_id=search.id if search else None,
     )
     db.add(video)
     db.flush()

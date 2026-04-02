@@ -220,17 +220,19 @@
                         {% endif %}
                     </td>
                     <td class="td" style="max-width: 200px;">
-                        <p class="text-xs text-gray-500 truncate">{{ script.video.title[:60] if script.video else 'N/A' }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ (script.video.title[:60] if script.video and script.video.title else (script.modified_text[:60] + '...' if script.modified_text else 'N/A')) }}</p>
                     </td>
                     <td class="td">
-                        {% if script.video and script.video.search %}
-                            {% if script.video.search.category == 'ai' %}
+                        {% set cat = (script.video.search.category if script.video and script.video.search else none) %}
+                        {% if not cat and script.character_type %}
+                            {% if script.character_type == 'techguy' %}{% set cat = 'ai' %}{% elif script.character_type == 'grandpa' %}{% set cat = 'finance' %}{% endif %}
+                        {% endif %}
+                        {% if cat == 'ai' %}
                             <span class="status-badge" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">AI</span>
-                            {% elif script.video.search.category == 'finance' %}
+                        {% elif cat == 'finance' %}
                             <span class="status-badge" style="background: rgba(52,199,89,0.1); color: #34C759;">Finance</span>
-                            {% else %}
+                        {% elif cat %}
                             <span class="status-badge status-queued">General</span>
-                            {% endif %}
                         {% endif %}
                     </td>
                     <td class="td">
