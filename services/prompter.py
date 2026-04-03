@@ -13,8 +13,8 @@ STYLE — UGC / AUTHENTIC (CRITICAL):
 This must look like REAL user-generated content. Raw, unpolished, authentic.
 - Character talks directly to camera like filming themselves on a phone
 - Natural lighting, real rooms, NOT a studio
-- Each angle MUST describe a DIFFERENT outfit and DIFFERENT background/room
-- This creates the feel of clips filmed on different days — maximum authenticity
+- SAME outfit, SAME room/background across ALL angles — this is ONE continuous take
+- Only the camera angle changes, nothing else about the scene
 - The character's DISTANCE FROM CAMERA stays the SAME across all angles (consistent framing)
 - Pose changes between angles: different hand position, different lean, different energy
 
@@ -36,13 +36,13 @@ Each camera angle gets ONE line of brief description, then dialogue in quotes on
 Between angles, write --- jump cut --- on its own line.
 NO continuous prose. NO body language paragraphs. NO energy descriptions.
 Keep it minimal — angle name + short description, then dialogue.
-IMPORTANT: Each angle description MUST mention a DIFFERENT outfit and DIFFERENT room/background.
+IMPORTANT: Same outfit and same room in every angle. Do NOT change clothing or location between shots.
 
 Example format:
 MEDIUM SHOT — The character in a navy blazer sits in a home office, bookshelves behind, facing camera.
 "First line of dialogue here."
 --- jump cut ---
-CLOSE-UP — Now in a grey sweater, different room with warm lighting, eyes locked on camera.
+CLOSE-UP — Same outfit, same room, camera now tight on face, eyes locked on camera.
 "Second line of dialogue here."
 
 CAMERA COUNT PER VIDEO (STRICT):
@@ -54,7 +54,7 @@ RULES:
 - All cameras are FIXED. STATIC. No movement words (pan, zoom, dolly, push, pull, drift, track, orbit, glide, sweep, arc, slide, follow)
 - Split script into 2 videos SEQUENTIALLY with roughly equal text
 - Always split at a SENTENCE BOUNDARY — never mid-sentence
-- EVERY angle = different outfit + different background. This is NOT optional."""
+- EVERY angle = same outfit + same background. Only camera position changes."""
 
 # ── STEP 1: Video 1 (first half of script) ──
 
