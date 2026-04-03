@@ -150,6 +150,7 @@ function togglePanel(name) {
                     <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change since last refresh">Δ Ref</th>
                     <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change in last 24 hours">Δ 24h</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Views</th>
+                    <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Avg Views</th>
                     <th style="text-align: right; padding: 6px 8px; font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
                     <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change since last refresh">Δ Ref</th>
                     <th style="text-align: right; padding: 6px 4px; font-size: 9px; font-weight: 600; color: #9ca3af;" title="Change in last 24 hours">Δ 24h</th>
@@ -172,6 +173,8 @@ function togglePanel(name) {
                     <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-df">{{ d(dr.get("followers")) }}</td>
                     <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dd-f">{{ d(dd.get("followers")) }}</td>
                     <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-views">{{ "{:,}".format(tt_stats[c].get("views", 0)) }}</td>
+                    {% set avg_views = (tt_stats[c].get("views", 0) // tt_stats[c].videos) if tt_stats[c].videos > 0 else 0 %}
+                    <td style="text-align: right; padding: 6px 8px; font-weight: 700; color: #1e293b;">{{ "{:,}".format(avg_views) }}</td>
                     <td style="text-align: right; padding: 6px 8px; color: #64748b;" class="tt-cell-hearts">{{ "{:,}".format(tt_stats[c].hearts) }}</td>
                     <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dh">{{ d(dr.get("hearts")) }}</td>
                     <td style="text-align: right; padding: 6px 4px; font-size: 10px;" class="tt-cell-dd-h">{{ d(dd.get("hearts")) }}</td>
@@ -184,6 +187,7 @@ function togglePanel(name) {
                     <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-df">—</td>
                     <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dd-f">—</td>
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-views">—</td>
+                    <td style="text-align: right; padding: 6px 8px; color: #d1d5db;">—</td>
                     <td style="text-align: right; padding: 6px 8px; color: #d1d5db;" class="tt-cell-hearts">—</td>
                     <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dh">—</td>
                     <td style="text-align: right; padding: 6px 4px; color: #d1d5db;" class="tt-cell-dd-h">—</td>
