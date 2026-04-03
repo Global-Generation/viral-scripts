@@ -595,7 +595,7 @@ def videos_page(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "active_page": "videos",
             "schedule": schedule,
-            "creators": CREATORS,
+            "creators": sorted(CREATORS, key=lambda c: schedule[c]["published"]),
             "todays_tasks": todays_tasks,
             "today": today,
             "cal_days": cal_days,

@@ -34,10 +34,11 @@ NO LISTICLES OR ENUMERATIONS:
 BRAND NAME PRONUNCIATION RULE:
 Write brand names with spaces so a text-to-speech model can pronounce them correctly:
 - "Open AI" not "OpenAI"
-- "Chat GPT" not "ChatGPT"
+- "Chat G P T" not "ChatGPT" — spell out G P T with spaces so TTS pronounces each letter
 - "Mid Journey" not "Midjourney"
 - "Notebook LM" not "NotebookLM"
 - Single real words stay as-is: "Claude", "Gemini", "Grok", "Perplexity"
+- Abbreviations that don't sound like words must be spaced: "G P T", "L L M" — but "AI" stays as "AI"
 - When in doubt, add a space between logical word parts
 
 NUMBERS AS WORDS RULE:
@@ -139,10 +140,11 @@ NO LISTICLES OR ENUMERATIONS:
 BRAND NAME PRONUNCIATION RULE:
 Write brand names with spaces for text-to-speech clarity:
 - "Open AI" not "OpenAI"
-- "Chat GPT" not "ChatGPT"
+- "Chat G P T" not "ChatGPT" — spell out G P T with spaces so TTS pronounces each letter
 - "Mid Journey" not "Midjourney"
 - "Notebook LM" not "NotebookLM"
 - Single real words stay as-is: "Claude", "Gemini", "Grok", "Perplexity"
+- Abbreviations that don't sound like words must be spaced: "G P T", "L L M" — but "AI" stays as "AI"
 
 NUMBERS AS WORDS RULE:
 All numbers as words for TTS. Round large numbers.
