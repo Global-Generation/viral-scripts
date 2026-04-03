@@ -63,17 +63,13 @@ def get_script(script_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/by-speaker/{speaker_name}")
-def get_scripts_by_speaker(speaker_name: str, db: Session = Depends(get_db)):
-    """Return all scripts assigned to a speaker that have video1_prompt."""
+def get_scripts_by_speaker(speaker_name: str, all: bool = False, db: Session = Depends(get_db)):
+    """Return scripts assigned to a speaker. Use ?all=true to include scripts without prompts."""
     speaker = speaker_name.lower().strip()
-    scripts = (
-        db.query(Script)
-        .filter(Script.assigned_to == speaker)
-        .filter(Script.video1_prompt != "")
-        .filter(Script.video1_prompt.isnot(None))
-        .order_by(Script.id)
-        .all()
-    )
+    query = db.query(Script).filter(Script.assigned_to == speaker)
+    if not all:
+        query = query.filter(Script.video1_prompt != "").filter(Script.video1_prompt.isnot(None))
+    scripts = query.order_by(Script.id).all()
     return [
         {
             "id": s.id,
