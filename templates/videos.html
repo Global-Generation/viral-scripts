@@ -272,6 +272,7 @@ async function refreshAllTiktok() {
             <thead>
                 <tr>
                     <th style="font-size: 10px; padding: 4px 6px; text-align: left; color: #9ca3af; width: 70px;">Creator</th>
+                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">%</th>
                     {% for day in cal_days %}
                     <th style="font-size: 9px; padding: 4px 3px; text-align: center; color: {% if day == today %}#3b82f6{% elif day.weekday() >= 5 %}#d1d5db{% else %}#9ca3af{% endif %}; font-weight: {% if day == today %}700{% else %}500{% endif %}; min-width: 32px;">
                         {{ day.strftime('%d') }}<br>{{ day.strftime('%a')[:2] }}
@@ -281,7 +282,6 @@ async function refreshAllTiktok() {
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Photos</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Exported</th>
                     <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">Pub'd</th>
-                    <th style="font-size: 9px; padding: 4px 6px; text-align: center; color: #6b7280; font-weight: 700; min-width: 34px;">%</th>
                 </tr>
             </thead>
             <tbody>
@@ -289,6 +289,10 @@ async function refreshAllTiktok() {
                 <tr>
                     <td style="padding: 4px 6px; font-weight: 600; text-transform: capitalize; color:
                         {% if creator == 'daniel' %}#ea580c{% elif creator == 'boris' %}#2563EB{% elif creator == 'thomas' %}#16a34a{% elif creator == 'sophia' %}#9333ea{% elif creator == 'ava' %}#db2777{% else %}#6b7280{% endif %};">{% if tiktok_links.get(creator) %}<a href="{{ tiktok_links[creator] }}" target="_blank" style="color: inherit; text-decoration: none;" title="TikTok Profile">{{ creator }}</a>{% else %}{{ creator }}{% endif %}</td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set pct = (schedule[creator].published * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 700; color: {% if pct >= 100 %}#16a34a{% elif pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ pct }}%</span>
+                    </td>
                     {% for day in cal_days %}
                     {% set day_entries = cal_data[creator].get(day, []) %}
                     {% set count = day_entries|length %}
@@ -329,16 +333,16 @@ async function refreshAllTiktok() {
                     <td style="padding: 3px 6px; text-align: center;">
                         <span style="font-size: 10px; font-weight: 600; color: {% if schedule[creator].published > 0 %}#16a34a{% else %}#d1d5db{% endif %};">{{ schedule[creator].published }}</span>
                     </td>
-                    <td style="padding: 3px 6px; text-align: center;">
-                        {% set pct = (schedule[creator].published * 100 / schedule[creator].count) | round | int if schedule[creator].count > 0 else 0 %}
-                        <span style="font-size: 10px; font-weight: 700; color: {% if pct >= 100 %}#16a34a{% elif pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ pct }}%</span>
-                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
             <tfoot>
                 <tr style="border-top: 2px solid #e5e7eb;">
                     <td style="padding: 6px; font-weight: 700; font-size: 10px; color: #374151;">TOTAL</td>
+                    <td style="padding: 3px 6px; text-align: center;">
+                        {% set tt_pct = (totals.published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
+                        <span style="font-size: 10px; font-weight: 800; color: {% if tt_pct >= 100 %}#16a34a{% elif tt_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ tt_pct }}%</span>
+                    </td>
                     {% for day in cal_days %}
                     <td style="padding: 3px 2px; text-align: center;">
                         {% set ns = namespace(day_total=0, day_pub=0) %}
@@ -358,10 +362,6 @@ async function refreshAllTiktok() {
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #8b5cf6;">{{ totals.photos }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #0891b2;">{{ totals.exported }}</span></td>
                     <td style="padding: 3px 6px; text-align: center;"><span style="font-size: 10px; font-weight: 800; color: #16a34a;">{{ totals.published }}</span></td>
-                    <td style="padding: 3px 6px; text-align: center;">
-                        {% set tt_pct = (totals.published * 100 / totals.count) | round | int if totals.count > 0 else 0 %}
-                        <span style="font-size: 10px; font-weight: 800; color: {% if tt_pct >= 100 %}#16a34a{% elif tt_pct > 0 %}#f59e0b{% else %}#d1d5db{% endif %};">{{ tt_pct }}%</span>
-                    </td>
                 </tr>
             </tfoot>
         </table>
