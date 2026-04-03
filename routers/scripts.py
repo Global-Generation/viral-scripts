@@ -80,6 +80,8 @@ def get_scripts_by_speaker(speaker_name: str, all: bool = False, db: Session = D
             "assigned_to": s.assigned_to or "",
             "production_status": s.production_status or "",
             "modified_text": s.modified_text or "",
+            "has_video": bool(s.final_subtitled_path and s.final_subtitled_path.strip()),
+            "published_tiktok": str(s.published_tiktok) if s.published_tiktok else "",
         }
         for s in scripts
     ]
