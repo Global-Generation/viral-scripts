@@ -238,17 +238,51 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
             "d1_f": d1_f, "d7_f": d7_f, "d30_f": d30_f, "d7_h": d7_h,
         })
 
-    # Views from cached video stats
+    # Views from cached video stats + per-video data
     total_views = 0
     video_rows = db.query(TiktokStats).filter(TiktokStats.stat_type == "videos").all()
     views_by_creator = {}
+    all_videos = []
+    per_creator_videos = {}
     for row in video_rows:
         vids = json.loads(row.data) if row.data else []
-        v = sum(v.get("views", 0) for v in vids) if isinstance(vids, list) else 0
+        if not isinstance(vids, list):
+            vids = []
+        v = sum(vid.get("views", 0) for vid in vids)
         views_by_creator[row.creator] = v
         total_views += v
+        # Enrich each video with creator info
+        creator_vids = []
+        for vid in vids:
+            vid["creator"] = row.creator
+            vid["creator_color"] = CHARACTERS.get(row.creator, {}).get("color", "#6b7280")
+            views = vid.get("views", 0)
+            likes = vid.get("likes", 0)
+            comments = vid.get("comments", 0)
+            vid["engagement"] = round((likes + comments) / views * 100, 1) if views > 0 else 0
+            all_videos.append(vid)
+            creator_vids.append(vid)
+        per_creator_videos[row.creator] = creator_vids
     for s in creator_stats:
         s["views"] = views_by_creator.get(s["name"], 0)
+
+    # Per-creator video aggregates
+    for s in creator_stats:
+        vids = per_creator_videos.get(s["name"], [])
+        s["vid_count"] = len(vids)
+        s["total_views"] = sum(v.get("views", 0) for v in vids)
+        s["avg_views"] = round(s["total_views"] / len(vids)) if vids else 0
+        s["total_likes"] = sum(v.get("likes", 0) for v in vids)
+        s["total_comments"] = sum(v.get("comments", 0) for v in vids)
+        s["engagement"] = round((s["total_likes"] + s["total_comments"]) / s["total_views"] * 100, 1) if s["total_views"] > 0 else 0
+        s["best_video"] = max(vids, key=lambda v: v.get("views", 0))["title"] if vids else "—"
+
+    # Top videos
+    top_by_views = sorted(all_videos, key=lambda v: v.get("views", 0), reverse=True)[:10]
+    top_by_engagement = sorted(
+        [v for v in all_videos if v.get("views", 0) >= 100],
+        key=lambda v: v.get("engagement", 0), reverse=True
+    )[:10]
 
     # Last updated time in New York
     from zoneinfo import ZoneInfo
@@ -284,5 +318,8 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
             chart_data_json=json.dumps(chart_data),
             creators=creators,
             last_updated_ny=last_updated_ny,
+            all_videos_json=json.dumps(all_videos),
+            top_by_views=top_by_views,
+            top_by_engagement=top_by_engagement,
         )
     )

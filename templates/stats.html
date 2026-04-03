@@ -111,6 +111,107 @@
         <canvas id="growthChart"></canvas>
     </div>
 </div>
+
+<!-- Per-Speaker Video Breakdown -->
+<div class="stat-card mb-4">
+    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Video Performance by Creator</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+        {% for s in creator_stats %}
+        {% if s.vid_count > 0 %}
+        <div style="border: 1px solid #f1f5f9; border-radius: 10px; padding: 14px; border-left: 3px solid {{ s.color }};">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ s.color }};"></span>
+                <span style="font-weight: 700; font-size: 13px; color: #1e293b; text-transform: capitalize;">{{ s.name }}</span>
+                <span style="font-size: 10px; color: #9ca3af; margin-left: auto;">{{ s.vid_count }} videos</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
+                <div>
+                    <div style="color: #9ca3af; font-size: 9px; text-transform: uppercase;">Total Views</div>
+                    <div style="font-weight: 700; color: #1e293b;">{{ "{:,}".format(s.total_views) }}</div>
+                </div>
+                <div>
+                    <div style="color: #9ca3af; font-size: 9px; text-transform: uppercase;">Avg / Video</div>
+                    <div style="font-weight: 700; color: #1e293b;">{{ "{:,}".format(s.avg_views) }}</div>
+                </div>
+                <div>
+                    <div style="color: #9ca3af; font-size: 9px; text-transform: uppercase;">Engagement</div>
+                    <div style="font-weight: 700; color: {{ '#16a34a' if s.engagement >= 5 else '#f59e0b' if s.engagement >= 2 else '#ef4444' }};">{{ s.engagement }}%</div>
+                </div>
+                <div>
+                    <div style="color: #9ca3af; font-size: 9px; text-transform: uppercase;">Likes</div>
+                    <div style="font-weight: 700; color: #1e293b;">{{ "{:,}".format(s.total_likes) }}</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; font-size: 10px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ s.best_video }}">
+                Top: {{ s.best_video }}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Top 10 Videos by Views -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Top 10 by Views</div>
+        {% for v in top_by_views %}
+        <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f8fafc; font-size: 11px;">
+            <span style="font-weight: 800; color: #d1d5db; width: 16px; text-align: right; flex-shrink: 0;">{{ loop.index }}</span>
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ v.creator_color }}; flex-shrink: 0;"></span>
+            <a href="{{ v.url }}" target="_blank" style="text-decoration: none; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" title="{{ v.title }}">{{ v.title or 'Untitled' }}</a>
+            <span style="font-weight: 700; color: #1e293b; flex-shrink: 0;">{{ "{:,}".format(v.views) }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="stat-card">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 12px;">Top 10 by Engagement</div>
+        {% for v in top_by_engagement %}
+        <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f8fafc; font-size: 11px;">
+            <span style="font-weight: 800; color: #d1d5db; width: 16px; text-align: right; flex-shrink: 0;">{{ loop.index }}</span>
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ v.creator_color }}; flex-shrink: 0;"></span>
+            <a href="{{ v.url }}" target="_blank" style="text-decoration: none; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" title="{{ v.title }}">{{ v.title or 'Untitled' }}</a>
+            <span style="font-weight: 700; color: #16a34a; flex-shrink: 0;">{{ v.engagement }}%</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- All Videos Table -->
+<div class="stat-card mb-4">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px;">All Videos</div>
+        <div style="display: flex; gap: 8px;">
+            <input id="video-search" type="text" placeholder="Search title..." oninput="filterVideos()" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; width: 160px;">
+            <select id="video-speaker" onchange="filterVideos()" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; cursor: pointer;">
+                <option value="all">All Speakers</option>
+                {% for c in creators %}
+                <option value="{{ c }}">{{ c|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="w-full" style="font-size: 11px;" id="videos-table">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th onclick="sortVideos('creator')" style="cursor:pointer; text-align: left; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Creator</th>
+                    <th onclick="sortVideos('title')" style="cursor:pointer; text-align: left; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Title</th>
+                    <th onclick="sortVideos('views')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Views</th>
+                    <th onclick="sortVideos('likes')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Likes</th>
+                    <th onclick="sortVideos('comments')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Comments</th>
+                    <th onclick="sortVideos('shares')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Shares</th>
+                    <th onclick="sortVideos('saves')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Saves</th>
+                    <th onclick="sortVideos('engagement')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Eng%</th>
+                    <th onclick="sortVideos('duration')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Dur</th>
+                    <th onclick="sortVideos('date')" style="cursor:pointer; text-align: right; padding: 6px 8px; font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase;">Date</th>
+                </tr>
+            </thead>
+            <tbody id="videos-tbody"></tbody>
+        </table>
+    </div>
+    <div id="videos-count" style="font-size: 10px; color: #9ca3af; margin-top: 8px;"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -141,8 +242,7 @@ function applyFilters() {
     rows.forEach(function(row) { tbody.appendChild(row); });
 }
 
-// Initial sort by views
-document.addEventListener('DOMContentLoaded', function() { applyFilters(); });
+// Initial sort by views (handled in combined DOMContentLoaded below)
 
 // Chart
 (function() {
@@ -214,6 +314,66 @@ document.addEventListener('DOMContentLoaded', function() { applyFilters(); });
         }
     });
 })();
+
+// === All Videos Table ===
+var allVideos = {{ all_videos_json|safe }};
+var videoSortKey = 'views';
+var videoSortAsc = false;
+
+function renderVideos(vids) {
+    var tbody = document.getElementById('videos-tbody');
+    tbody.innerHTML = '';
+    vids.forEach(function(v) {
+        var dur = v.duration ? (Math.floor(v.duration/60) + ':' + String(v.duration%60).padStart(2,'0')) : '—';
+        var dateStr = v.date ? v.date.substring(0, 10) : '—';
+        var engColor = v.engagement >= 5 ? '#16a34a' : (v.engagement >= 2 ? '#f59e0b' : '#ef4444');
+        var row = '<tr class="border-b border-gray-50 hover:bg-gray-50/50">' +
+            '<td style="padding:5px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (v.creator_color||'#6b7280') + ';margin-right:4px;vertical-align:middle;"></span><span style="text-transform:capitalize;">' + v.creator + '</span></td>' +
+            '<td style="padding:5px 8px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="' + (v.url||'#') + '" target="_blank" style="text-decoration:none;color:#1e293b;" title="' + (v.title||'').replace(/"/g,'&quot;') + '">' + (v.title||'Untitled') + '</a></td>' +
+            '<td style="text-align:right;padding:5px 8px;font-weight:700;">' + (v.views||0).toLocaleString() + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;">' + (v.likes||0).toLocaleString() + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;">' + (v.comments||0).toLocaleString() + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;">' + (v.shares||0).toLocaleString() + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;">' + (v.saves||0).toLocaleString() + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;font-weight:600;color:' + engColor + ';">' + v.engagement + '%</td>' +
+            '<td style="text-align:right;padding:5px 8px;color:#9ca3af;">' + dur + '</td>' +
+            '<td style="text-align:right;padding:5px 8px;color:#9ca3af;">' + dateStr + '</td>' +
+            '</tr>';
+        tbody.innerHTML += row;
+    });
+    document.getElementById('videos-count').textContent = vids.length + ' videos';
+}
+
+function getFilteredVideos() {
+    var speaker = document.getElementById('video-speaker').value;
+    var search = document.getElementById('video-search').value.toLowerCase();
+    var filtered = allVideos.filter(function(v) {
+        if (speaker !== 'all' && v.creator !== speaker) return false;
+        if (search && !(v.title||'').toLowerCase().includes(search)) return false;
+        return true;
+    });
+    filtered.sort(function(a, b) {
+        var va = a[videoSortKey] || 0;
+        var vb = b[videoSortKey] || 0;
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb||'').toLowerCase(); }
+        if (videoSortAsc) return va > vb ? 1 : va < vb ? -1 : 0;
+        return vb > va ? 1 : vb < va ? -1 : 0;
+    });
+    return filtered;
+}
+
+function filterVideos() { renderVideos(getFilteredVideos()); }
+
+function sortVideos(key) {
+    if (videoSortKey === key) videoSortAsc = !videoSortAsc;
+    else { videoSortKey = key; videoSortAsc = false; }
+    filterVideos();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    applyFilters();
+    filterVideos();
+});
 
 // Manual refresh
 async function manualRefreshAll() {
