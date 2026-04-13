@@ -2,6 +2,21 @@
 {% block title %}Videos & Schedule{% endblock %}
 
 {% block content %}
+<!-- PIN Lock Overlay -->
+<div class="pin-lock-screen" id="pinLockScreen">
+    <div class="pin-lock-box">
+        <h2>Viral Scripts</h2>
+        <p>Enter PIN to access</p>
+        <div class="pin-input-group" id="pinInputGroup">
+            <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+            <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+            <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+            <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+        </div>
+        <div class="pin-lock-error" id="pinLockError"></div>
+    </div>
+</div>
+
 <div class="mb-6">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Publication Schedule</h1>
     <p class="text-sm text-gray-500">Two per day per creator (morning + evening).</p>
@@ -673,4 +688,86 @@ async function refreshAllTiktok() {
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var PIN = '1532';
+    var STORAGE_KEY = 'viral_videos_auth';
+
+    function checkAuth() {
+        if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
+            unlock();
+            return;
+        }
+        document.getElementById('pinLockScreen').classList.remove('hidden');
+        setupPinInputs();
+    }
+
+    function unlock() {
+        sessionStorage.setItem(STORAGE_KEY, 'true');
+        document.getElementById('pinLockScreen').classList.add('hidden');
+    }
+
+    function setupPinInputs() {
+        var inputs = document.querySelectorAll('#pinInputGroup input');
+        inputs[0].focus();
+
+        inputs.forEach(function(input, i) {
+            input.addEventListener('input', function(e) {
+                var val = e.target.value;
+                if (val.length > 1) e.target.value = val.slice(-1);
+                if (val && i < inputs.length - 1) {
+                    inputs[i + 1].focus();
+                }
+                if (i === inputs.length - 1 && val) {
+                    var pin = Array.from(inputs).map(function(inp) { return inp.value; }).join('');
+                    if (pin.length === 4) {
+                        if (pin === PIN) {
+                            unlock();
+                        } else {
+                            document.getElementById('pinLockError').textContent = 'Wrong PIN';
+                            inputs.forEach(function(inp) { inp.classList.add('error'); inp.value = ''; });
+                            setTimeout(function() {
+                                inputs.forEach(function(inp) { inp.classList.remove('error'); });
+                                inputs[0].focus();
+                            }, 500);
+                        }
+                    }
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !e.target.value && i > 0) {
+                    inputs[i - 1].focus();
+                    inputs[i - 1].value = '';
+                }
+            });
+
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 4);
+                pasted.split('').forEach(function(ch, idx) {
+                    if (inputs[idx]) inputs[idx].value = ch;
+                });
+                if (pasted.length === 4) {
+                    if (pasted === PIN) {
+                        unlock();
+                    } else {
+                        document.getElementById('pinLockError').textContent = 'Wrong PIN';
+                        inputs.forEach(function(inp) { inp.classList.add('error'); inp.value = ''; });
+                        setTimeout(function() {
+                            inputs.forEach(function(inp) { inp.classList.remove('error'); });
+                            inputs[0].focus();
+                        }, 500);
+                    }
+                }
+            });
+        });
+    }
+
+    checkAuth();
+})();
+</script>
 {% endblock %}
