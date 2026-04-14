@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% block title %}Pipeline — Script #{{ script.id }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/scripts/{{ script.id }}" class="text-sm text-gray-400 hover:text-gray-600 mb-2 inline-block">&larr; Back to Script #{{ script.id }}</a>
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Script Pipeline</h1>
+    {% if video %}
+    <p class="text-sm text-gray-500">{{ video.title }}</p>
+    {% endif %}
+</div>
+
+<!-- Stage Stepper -->
+<div class="stat-card mb-4">
+    <div class="flex items-center justify-between gap-2" id="stage-stepper">
+        {% for stage_name, label in [('intro', 'Intro'), ('part1', 'Part 1'), ('part2', 'Part 2'), ('part3', 'Part 3')] %}
+        <button onclick="selectStage('{{ stage_name }}')"
+                id="step-{{ stage_name }}"
+                class="flex-1 py-3 px-4 rounded-lg text-center transition-all cursor-pointer"
+                style="border: 2px solid #e2e8f0; background: white;">
+            <div class="text-xs font-bold text-gray-400 uppercase mb-1" id="step-status-{{ stage_name }}">Pending</div>
+            <div class="text-sm font-semibold text-gray-700">{{ label }}</div>
+        </button>
+        {% if not loop.last %}
+        <svg width="20" height="20" fill="none" stroke="#d1d5db" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Active Stage Content -->
+<div id="stage-content" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- Left: Prompt + Result -->
+    <div class="lg:col-span-2 space-y-4">
+        <!-- Prompt Editor -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold text-gray-700">
+                    Prompt <span id="prompt-custom-badge" class="status-badge status-queued ml-2" style="display:none; font-size:9px;">Custom</span>
+                </h2>
+                <div class="flex gap-2">
+                    <button class="btn-sm btn-secondary" onclick="togglePrompt()" id="toggle-prompt-btn">Show Prompt</button>
+                </div>
+            </div>
+            <div id="prompt-editor" style="display: none;">
+                <textarea id="prompt-text" class="w-full input" rows="10" style="font-family: monospace; font-size: 11px; line-height: 1.5;"></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button class="btn-sm btn-primary" onclick="savePrompt()">Save Prompt Forever</button>
+                    <button class="btn-sm btn-secondary" onclick="resetPrompt()">Reset to Default</button>
+                    <span id="prompt-saved-msg" class="text-xs text-green-600 font-medium self-center" style="display:none;">Saved!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold text-gray-700">
+                    Result
+                    <span id="attempt-counter" class="text-xs text-gray-400 ml-2"></span>
+                </h2>
+                <div class="flex gap-2" id="attempt-nav" style="display:none;">
+                    <button class="btn-sm btn-secondary" onclick="prevAttempt()" id="prev-btn" disabled>&larr;</button>
+                    <button class="btn-sm btn-secondary" onclick="nextAttempt()" id="next-btn" disabled>&rarr;</button>
+                </div>
+            </div>
+            <div id="result-area">
+                <div id="result-loading" style="display:none; text-align:center; padding: 24px;">
+                    <svg class="animate-spin mx-auto mb-2" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#d1d5db" stroke-width="3"/><path d="M12 2a10 10 0 0110 10" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/></svg>
+                    <p class="text-sm text-gray-500">Generating...</p>
+                </div>
+                <div id="result-empty" style="text-align:center; padding: 24px; color: #9ca3af;">
+                    <p class="text-sm font-medium">No result yet</p>
+                    <p class="text-xs mt-1">Click "Generate" to create content for this stage</p>
+                </div>
+                <div id="result-text-container" style="display:none;">
+                    <div id="result-text" style="font-size: 14px; line-height: 1.8; color: #1e293b; white-space: pre-wrap; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; min-height: 80px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Actions -->
+    <div class="space-y-4">
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Actions</h2>
+            <div class="space-y-2">
+                <button id="btn-generate" class="btn btn-primary w-full justify-center" onclick="generateStage()">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Generate
+                </button>
+                <button id="btn-accept" class="btn btn-secondary w-full justify-center" onclick="acceptStage()" disabled style="background: rgba(22,163,74,0.1); color: #16a34a; border-color: rgba(22,163,74,0.3);">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                    Accept & Next
+                </button>
+            </div>
+        </div>
+
+        <!-- Fact-Check (shown after all 4 stages accepted) -->
+        <div id="factcheck-panel" class="stat-card" style="display: none;">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Fact-Check & Finalize</h2>
+            <div class="space-y-2">
+                <button id="btn-factcheck" class="btn btn-secondary w-full justify-center" onclick="runFactCheck()">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Run Fact-Check
+                </button>
+                <button id="btn-finalize" class="btn btn-primary w-full justify-center" onclick="finalizeScript()" disabled>
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    Generate Final Script
+                </button>
+            </div>
+            <div id="factcheck-results" class="mt-3" style="display:none;"></div>
+        </div>
+
+        <!-- Info -->
+        <div class="stat-card">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Info</h2>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Script ID</span>
+                    <span class="text-gray-700 font-medium">#{{ script.id }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Channel</span>
+                    <span class="text-gray-700 font-medium">{{ (script.channel or '—')|upper }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Assigned To</span>
+                    <span class="text-gray-700 font-medium" style="text-transform:capitalize;">{{ script.assigned_to or '—' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Original Text (collapsed) -->
+<details class="stat-card mt-4">
+    <summary class="text-sm font-semibold text-gray-700 cursor-pointer">Original Transcript</summary>
+    <div class="mt-3" style="font-size: 12px; color: #6b7280; line-height: 1.6; white-space: pre-wrap;">{{ script.original_text or 'No transcript available' }}</div>
+</details>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Utility functions
+async function api(url, method = 'GET', body = null) {
+    try {
+        const opts = {method, headers: {}};
+        if (body) {
+            opts.headers['Content-Type'] = 'application/json';
+            opts.body = JSON.stringify(body);
+        }
+        const resp = await fetch(url, opts);
+        return await resp.json();
+    } catch (e) {
+        console.error('API error:', e);
+        return {error: e.message};
+    }
+}
+
+function toast(message, type = 'info') {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;transition:opacity 0.3s;max-width:400px;';
+    if (type === 'success') { el.style.background = '#dcfce7'; el.style.color = '#166534'; }
+    else if (type === 'error') { el.style.background = '#fef2f2'; el.style.color = '#991b1b'; }
+    else { el.style.background = '#f0f9ff'; el.style.color = '#1e40af'; }
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+const SCRIPT_ID = {{ script.id }};
+const STAGES = ['intro', 'part1', 'part2', 'part3'];
+const STAGE_LABELS = {intro: 'Intro', part1: 'Part 1', part2: 'Part 2', part3: 'Part 3'};
+
+let currentStage = 'intro';
+let stageData = {};  // {stage_name: {attempts: [], accepted: null, status: ''}}
+let currentAttemptIdx = 0;
+let pollingTimer = null;
+
+// Load pipeline data
+async function loadPipeline() {
+    const data = await api('/api/pipeline/' + SCRIPT_ID + '/stages');
+    if (!data || data.error) return;
+    stageData = {};
+    for (const s of data.stages) {
+        stageData[s.stage_name] = s;
+    }
+    updateStepper();
+    renderStage();
+    checkFactCheckReady();
+}
+
+function updateStepper() {
+    for (const stage of STAGES) {
+        const el = document.getElementById('step-' + stage);
+        const statusEl = document.getElementById('step-status-' + stage);
+        const sd = stageData[stage];
+        if (!sd) continue;
+
+        if (sd.status === 'accepted') {
+            el.style.borderColor = '#16a34a';
+            el.style.background = 'rgba(22,163,74,0.05)';
+            statusEl.textContent = 'Accepted';
+            statusEl.style.color = '#16a34a';
+        } else if (sd.status === 'generating') {
+            el.style.borderColor = '#3b82f6';
+            el.style.background = 'rgba(59,130,246,0.05)';
+            statusEl.textContent = 'Generating...';
+            statusEl.style.color = '#3b82f6';
+        } else if (sd.status === 'draft') {
+            el.style.borderColor = '#f59e0b';
+            el.style.background = 'rgba(245,158,11,0.05)';
+            statusEl.textContent = 'Draft';
+            statusEl.style.color = '#f59e0b';
+        } else {
+            el.style.borderColor = '#e2e8f0';
+            el.style.background = 'white';
+            statusEl.textContent = 'Pending';
+            statusEl.style.color = '#9ca3af';
+        }
+
+        // Highlight current
+        if (stage === currentStage) {
+            el.style.boxShadow = '0 0 0 2px #3b82f6';
+        } else {
+            el.style.boxShadow = 'none';
+        }
+    }
+}
+
+function selectStage(stage) {
+    currentStage = stage;
+    currentAttemptIdx = 0;
+    updateStepper();
+    renderStage();
+    loadPrompt();
+}
+
+function renderStage() {
+    const sd = stageData[currentStage];
+    const attempts = sd ? sd.attempts : [];
+    const resultLoading = document.getElementById('result-loading');
+    const resultEmpty = document.getElementById('result-empty');
+    const resultContainer = document.getElementById('result-text-container');
+    const resultText = document.getElementById('result-text');
+    const counter = document.getElementById('attempt-counter');
+    const nav = document.getElementById('attempt-nav');
+    const btnAccept = document.getElementById('btn-accept');
+
+    // Stop any previous polling
+    if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+
+    if (!attempts.length) {
+        resultLoading.style.display = 'none';
+        resultEmpty.style.display = '';
+        resultContainer.style.display = 'none';
+        counter.textContent = '';
+        nav.style.display = 'none';
+        btnAccept.disabled = true;
+        return;
+    }
+
+    // Check if any are generating
+    const generating = attempts.find(a => a.status === 'generating');
+    if (generating) {
+        resultLoading.style.display = '';
+        resultEmpty.style.display = 'none';
+        resultContainer.style.display = 'none';
+        counter.textContent = '';
+        nav.style.display = 'none';
+        btnAccept.disabled = true;
+        // Poll for completion
+        pollingTimer = setInterval(() => pollStage(generating.id), 2000);
+        return;
+    }
+
+    // Show current attempt
+    if (currentAttemptIdx >= attempts.length) currentAttemptIdx = attempts.length - 1;
+    if (currentAttemptIdx < 0) currentAttemptIdx = 0;
+    const attempt = attempts[currentAttemptIdx];
+
+    resultLoading.style.display = 'none';
+    resultEmpty.style.display = 'none';
+    resultContainer.style.display = '';
+    resultText.textContent = attempt.result_text || '';
+
+    // Style based on status
+    if (attempt.status === 'accepted') {
+        resultText.style.borderColor = '#bbf7d0';
+        resultText.style.background = 'rgba(22,163,74,0.03)';
+    } else if (attempt.status === 'failed') {
+        resultText.style.borderColor = '#fca5a5';
+        resultText.style.background = 'rgba(239,68,68,0.03)';
+    } else {
+        resultText.style.borderColor = '#e2e8f0';
+        resultText.style.background = '#f8fafc';
+    }
+
+    counter.textContent = `Attempt ${attempt.attempt_number} of ${attempts.length}`;
+    nav.style.display = attempts.length > 1 ? '' : 'none';
+    document.getElementById('prev-btn').disabled = currentAttemptIdx <= 0;
+    document.getElementById('next-btn').disabled = currentAttemptIdx >= attempts.length - 1;
+    btnAccept.disabled = attempt.status === 'accepted' || attempt.status === 'failed';
+}
+
+async function pollStage(stageId) {
+    const data = await api('/api/pipeline/' + SCRIPT_ID + '/stage-status/' + stageId);
+    if (!data) return;
+    if (data.status !== 'generating') {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+        await loadPipeline();
+    }
+}
+
+function prevAttempt() {
+    if (currentAttemptIdx > 0) { currentAttemptIdx--; renderStage(); }
+}
+function nextAttempt() {
+    const attempts = (stageData[currentStage] || {}).attempts || [];
+    if (currentAttemptIdx < attempts.length - 1) { currentAttemptIdx++; renderStage(); }
+}
+
+async function generateStage() {
+    const btn = document.getElementById('btn-generate');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Generating...';
+
+    const result = await api('/api/pipeline/' + SCRIPT_ID + '/generate/' + currentStage, 'POST');
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Generate';
+
+    if (result && result.ok) {
+        await loadPipeline();
+        // Move to latest attempt
+        const attempts = (stageData[currentStage] || {}).attempts || [];
+        currentAttemptIdx = attempts.length - 1;
+        renderStage();
+    } else {
+        toast(result?.error || 'Generation failed', 'error');
+    }
+}
+
+async function acceptStage() {
+    const attempts = (stageData[currentStage] || {}).attempts || [];
+    if (!attempts.length) return;
+    const attempt = attempts[currentAttemptIdx];
+    if (!attempt) return;
+
+    const result = await api('/api/pipeline/' + SCRIPT_ID + '/accept/' + currentStage + '/' + attempt.id, 'POST');
+    if (result && result.ok) {
+        toast(STAGE_LABELS[currentStage] + ' accepted!', 'success');
+        // Auto-advance to next stage
+        const idx = STAGES.indexOf(currentStage);
+        if (idx < STAGES.length - 1) {
+            currentStage = STAGES[idx + 1];
+            currentAttemptIdx = 0;
+        }
+        await loadPipeline();
+    }
+}
+
+// Prompt management
+let promptVisible = false;
+function togglePrompt() {
+    promptVisible = !promptVisible;
+    document.getElementById('prompt-editor').style.display = promptVisible ? '' : 'none';
+    document.getElementById('toggle-prompt-btn').textContent = promptVisible ? 'Hide Prompt' : 'Show Prompt';
+    if (promptVisible) loadPrompt();
+}
+
+async function loadPrompt() {
+    const data = await api('/api/pipeline/prompts/' + currentStage);
+    if (!data) return;
+    document.getElementById('prompt-text').value = data.prompt || '';
+    document.getElementById('prompt-custom-badge').style.display = data.is_custom ? '' : 'none';
+}
+
+async function savePrompt() {
+    const value = document.getElementById('prompt-text').value;
+    const result = await api('/api/pipeline/prompts/' + currentStage, 'PUT', {value});
+    if (result && result.ok) {
+        const msg = document.getElementById('prompt-saved-msg');
+        msg.style.display = '';
+        setTimeout(() => msg.style.display = 'none', 2000);
+        document.getElementById('prompt-custom-badge').style.display = '';
+    }
+}
+
+async function resetPrompt() {
+    if (!confirm('Reset this prompt to the default?')) return;
+    const data = await api('/api/pipeline/prompts/' + currentStage);
+    if (data && data.default) {
+        document.getElementById('prompt-text').value = data.default;
+        await api('/api/pipeline/prompts/' + currentStage, 'PUT', {value: data.default});
+        document.getElementById('prompt-custom-badge').style.display = 'none';
+        toast('Prompt reset to default', 'success');
+    }
+}
+
+// Fact-check & Finalize
+function checkFactCheckReady() {
+    const allAccepted = STAGES.every(s => stageData[s] && stageData[s].status === 'accepted');
+    document.getElementById('factcheck-panel').style.display = allAccepted ? '' : 'none';
+}
+
+async function runFactCheck() {
+    const btn = document.getElementById('btn-factcheck');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Checking facts...';
+
+    const result = await api('/api/pipeline/' + SCRIPT_ID + '/fact-check', 'POST');
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Run Fact-Check';
+
+    if (result && result.ok) {
+        renderFactCheckResults(result.report);
+        document.getElementById('btn-finalize').disabled = false;
+        toast('Fact-check complete!', 'success');
+    } else {
+        toast('Fact-check failed', 'error');
+    }
+}
+
+function renderFactCheckResults(report) {
+    const el = document.getElementById('factcheck-results');
+    el.style.display = '';
+    if (!report || !report.facts || !report.facts.length) {
+        el.innerHTML = '<p class="text-xs text-gray-400">No verifiable facts found.</p>';
+        return;
+    }
+    const verdictColors = {verified: '#16a34a', 'false': '#ef4444', partial: '#f59e0b', unverifiable: '#9ca3af'};
+    const verdictLabels = {verified: 'VERIFIED', 'false': 'FALSE', partial: 'PARTIAL', unverifiable: 'UNVERIFIABLE'};
+    let html = '<div class="space-y-2">';
+    html += `<div class="text-xs text-gray-500 mb-2">Found ${report.facts.length} facts: ${report.summary.verified} verified, ${report.summary.false} false, ${report.summary.partial} partial</div>`;
+    for (const fact of report.facts) {
+        const color = verdictColors[fact.verdict] || '#9ca3af';
+        const label = verdictLabels[fact.verdict] || fact.verdict;
+        html += `<div style="padding: 8px; border-radius: 6px; border: 1px solid ${color}30; background: ${color}08; font-size: 11px;">`;
+        html += `<span style="font-weight:700; color:${color};">[${label}]</span> `;
+        html += `<span style="color:#374151;">${fact.claim}</span>`;
+        if (fact.correction) {
+            html += `<div style="margin-top: 4px; color: ${color}; font-style: italic;">Suggested: ${fact.correction}</div>`;
+        }
+        html += '</div>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+async function finalizeScript() {
+    const btn = document.getElementById('btn-finalize');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Finalizing...';
+
+    const result = await api('/api/pipeline/' + SCRIPT_ID + '/finalize', 'POST');
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>Generate Final Script';
+
+    if (result && result.ok) {
+        toast('Final script generated! View it in the "Final Script" tab.', 'success');
+    } else {
+        toast('Finalization failed: ' + (result?.error || ''), 'error');
+    }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    loadPipeline();
+    loadPrompt();
+});
+</script>
+{% endblock %}

@@ -15,10 +15,12 @@
 </div>
 
 <!-- Tabs -->
-<div style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0;">
+<div style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0; flex-wrap: wrap;">
+    <a href="/scripts/{{ script.id }}/pipeline" class="sv-tab" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-decoration: none;">Pipeline</a>
     <button class="sv-tab sv-tab-active" data-tab="scenario" onclick="switchTab('scenario', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #1e293b; border-bottom: 2px solid #3b82f6; margin-bottom: -2px; transition: all 0.15s;">Scenario</button>
     <button class="sv-tab" data-tab="video" onclick="switchTab('video', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Video</button>
     <button class="sv-tab" data-tab="publication" onclick="switchTab('publication', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Publication</button>
+    <button class="sv-tab" data-tab="final" onclick="switchTab('final', this)" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #9ca3af; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;">Final Script</button>
 </div>
 
 <!-- ==================== TAB 1: SCENARIO ==================== -->
@@ -94,60 +96,30 @@
         <div class="space-y-4">
             <!-- Actions -->
             <div class="stat-card">
-                <h2 class="text-sm font-semibold text-gray-700 mb-3" data-i18n="sec.actions">Actions</h2>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-700" data-i18n="sec.actions">Actions</h2>
+                    <!-- More menu -->
+                    <div style="position: relative;">
+                        <button onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'" class="btn-sm btn-secondary" style="padding: 4px 8px;">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                        <div style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; min-width: 160px; overflow: hidden;">
+                            <button onclick="deleteScript({{ script.id }})" style="width: 100%; padding: 8px 12px; font-size: 12px; color: #ef4444; text-align: left; border: none; background: none; cursor: pointer; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Delete Script
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="space-y-2">
                     <button class="btn btn-secondary w-full justify-center" onclick="saveScript({{ script.id }})">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                         <span data-i18n="btn.save">Save Changes</span>
                     </button>
-                    <button class="btn btn-danger w-full justify-center" onclick="deleteScript({{ script.id }})">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        <span data-i18n="btn.delete">Delete</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Viral Score -->
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-gray-700">Viral Score</h2>
-                    <button class="btn-sm btn-secondary" onclick="scoreScript({{ script.id }})">Score</button>
-                </div>
-                <div id="viral-score-display" class="text-center py-2">
-                    {% if script.viral_score %}
-                    {% set s = script.viral_score %}
-                    {% if s >= 70 %}
-                    <span style="font-size:32px;font-weight:800;color:#16a34a;">{{ s }}</span><span style="font-size:12px;color:#16a34a;display:block;">HIGH POTENTIAL</span>
-                    {% elif s >= 50 %}
-                    <span style="font-size:32px;font-weight:800;color:#ca8a04;">{{ s }}</span><span style="font-size:12px;color:#ca8a04;display:block;">MODERATE</span>
-                    {% else %}
-                    <span style="font-size:32px;font-weight:800;color:#9ca3af;">{{ s }}</span><span style="font-size:12px;color:#9ca3af;display:block;">LOW</span>
-                    {% endif %}
-                    {% else %}
-                    <span style="font-size: 14px; color: #9ca3af;">Click Score to analyze</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Character Classification -->
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-gray-700">Character</h2>
-                    <button class="btn-sm btn-secondary" onclick="classifyScript({{ script.id }})">Classify</button>
-                </div>
-                <div id="character-badge" class="text-center py-2">
-                    {% if script.character_type %}
-                    {% set ct = script.character_type %}
-                    {% if ct == 'grandpa' %}
-                    <span class="status-badge" style="background: rgba(234,179,8,0.1); color: #B45309; font-size: 13px; padding: 6px 12px;">&#x1F474; Wall Street Grandpa</span>
-                    {% elif ct == 'techguy' %}
-                    <span class="status-badge" style="background: rgba(59,130,246,0.1); color: #2563EB; font-size: 13px; padding: 6px 12px;">&#x1F468;&#x200D;&#x1F4BB; IT Tech Guy</span>
-                    {% else %}
-                    <span class="status-badge" style="background: rgba(168,85,247,0.1); color: #7C3AED; font-size: 13px; padding: 6px 12px;">&#x1F3AC; Cartoon</span>
-                    {% endif %}
-                    {% else %}
-                    <span style="font-size: 14px; color: #9ca3af;">Click Classify</span>
-                    {% endif %}
+                    <a href="/api/scripts/{{ script.id }}/export-word" download class="btn btn-secondary w-full justify-center" style="text-decoration: none;">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Download Word
+                    </a>
                 </div>
             </div>
 
@@ -356,6 +328,42 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- ==================== TAB 5: FINAL SCRIPT ==================== -->
+<div id="tab-final" class="sv-tab-content" style="display: none;">
+    {% if script.final_text %}
+    <div class="stat-card mb-4">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-gray-700">Final Script</h2>
+            <div class="flex gap-2">
+                <button class="btn-sm btn-secondary" onclick="copyText('final-script-text')">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    Copy
+                </button>
+                <a href="/api/scripts/{{ script.id }}/export-word" download class="btn-sm btn-secondary" style="text-decoration:none;">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Word
+                </a>
+            </div>
+        </div>
+        <div id="final-script-text" style="font-size: 14px; line-height: 1.8; color: #1e293b; white-space: pre-wrap; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">{{ script.final_text }}</div>
+    </div>
+
+    {% if script.fact_check_report %}
+    <div class="stat-card">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Fact-Check Summary</h2>
+        <div id="final-factcheck" class="space-y-2 text-xs"></div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="stat-card" style="text-align: center; padding: 48px 16px; color: #9ca3af;">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; opacity: 0.4;"><path stroke-linecap="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p style="font-size: 14px; font-weight: 600; color: #6b7280;">Final script not ready yet</p>
+        <p style="font-size: 12px; margin-top: 6px;">Complete the <a href="/scripts/{{ script.id }}/pipeline" style="color: #3b82f6; text-decoration: underline;">Pipeline</a> to generate the final script.</p>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -71,6 +71,7 @@ def scripts_library(
     request: Request,
     category: str = Query(""),
     creator: str = Query(""),
+    channel: str = Query(""),
     db: Session = Depends(get_db)
 ):
     from routers.character import CHARACTERS
@@ -79,6 +80,8 @@ def scripts_library(
 
     if category:
         base_q = base_q.filter(Search.category == category)
+    if channel:
+        base_q = base_q.filter(Script.channel == channel)
     if creator == "unassigned":
         base_q = base_q.filter((Script.assigned_to == "") | (Script.assigned_to.is_(None)))
     elif creator:
@@ -121,6 +124,7 @@ def scripts_library(
             scripts=scripts,
             category=category,
             creator_filter=creator,
+            channel_filter=channel,
             total_scripts=total_scripts,
             unassigned_count=unassigned_count,
             by_category=by_category,
@@ -141,6 +145,45 @@ def script_view(script_id: int, request: Request, db: Session = Depends(get_db))
     return templates.TemplateResponse(
         "script_view.html",
         ctx(request, "scripts", script=script, video=video, search=search)
+    )
+
+
+@router.get("/scripts/{script_id}/pipeline", response_class=HTMLResponse)
+def pipeline_page(script_id: int, request: Request, db: Session = Depends(get_db)):
+    from models import PipelineStage
+    script = db.query(Script).get(script_id)
+    if not script:
+        return HTMLResponse("Script not found", status_code=404)
+    video = db.query(Video).get(script.video_id)
+    return templates.TemplateResponse(
+        "pipeline.html",
+        ctx(request, "scripts", script=script, video=video)
+    )
+
+
+@router.get("/akb", response_class=HTMLResponse)
+def akb_data_page(request: Request, db: Session = Depends(get_db)):
+    from services.akb_data import (
+        get_clients, get_reviews, get_success_stories,
+        get_mentors, get_sales_stats,
+    )
+    clients = get_clients(db, 200)
+    reviews = get_reviews(db, 100)
+    stories = get_success_stories(db, 100)
+    mentors = get_mentors(db, 100)
+    sales_stats = get_sales_stats(db)
+
+    return templates.TemplateResponse(
+        "akb_data.html",
+        ctx(
+            request, "akb",
+            connected=True,
+            clients=clients,
+            reviews=reviews,
+            stories=stories,
+            mentors=mentors,
+            sales_stats=sales_stats,
+        )
     )
 
 
@@ -276,6 +319,9 @@ def stats_page(request: Request, db: Session = Depends(get_db)):
         s["total_comments"] = sum(v.get("comments", 0) for v in vids)
         s["engagement"] = round((s["total_likes"] + s["total_comments"]) / s["total_views"] * 100, 1) if s["total_views"] > 0 else 0
         s["best_video"] = max(vids, key=lambda v: v.get("views", 0))["title"] if vids else "—"
+
+    # Sort creators by engagement (highest first)
+    creator_stats.sort(key=lambda s: s.get("engagement", 0), reverse=True)
 
     # Top videos
     top_by_views = sorted(all_videos, key=lambda v: v.get("views", 0), reverse=True)[:10]

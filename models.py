@@ -75,7 +75,32 @@ class Script(Base):
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
+    # Channel (american / european)
+    channel = Column(String, default="")
+    # Final unified text (after pipeline + fact-checking + Claude unification)
+    final_text = Column(Text, default="")
+    # Fact-check report (JSON)
+    fact_check_report = Column(Text, default="")
+
     video = relationship("Video", back_populates="script")
+    pipeline_stages = relationship("PipelineStage", back_populates="script",
+                                   cascade="all, delete-orphan",
+                                   order_by="PipelineStage.id")
+
+
+class PipelineStage(Base):
+    """Stores each generation attempt for each stage of the script pipeline."""
+    __tablename__ = "pipeline_stages"
+    id = Column(Integer, primary_key=True, index=True)
+    script_id = Column(Integer, ForeignKey("scripts.id"), nullable=False, index=True)
+    stage_name = Column(String, nullable=False)  # intro, part1, part2, part3, enrichment
+    prompt_used = Column(Text, default="")
+    result_text = Column(Text, default="")
+    status = Column(String, default="pending")  # pending, generating, accepted, rejected
+    attempt_number = Column(Integer, default=1)
+    created_at = Column(DateTime, default=utcnow)
+
+    script = relationship("Script", back_populates="pipeline_stages")
 
 
 class NariVideo(Base):
@@ -239,4 +264,95 @@ class ApiUsage(Base):
     request_type = Column(String, default="")
     request_id = Column(String, default="")
     status = Column(String, default="")
+    created_at = Column(DateTime, default=utcnow)
+
+
+# ── AKB LOCAL TABLES (copy-paste from Mentorship-AKB) ────────────
+
+class AkbClient(Base):
+    __tablename__ = "akb_clients"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    mentor_name = Column(String, default="")
+    responsible_name = Column(String, default="")
+    status = Column(String, default="")
+    tariff_type = Column(String, default="")
+    tariff_price = Column(Float, nullable=True)
+    currency = Column(String, default="RUB")
+    payment_method = Column(String, default="")
+    product_type = Column(String, default="")
+    target_country = Column(String, default="")
+    target_year = Column(Integer, nullable=True)
+    telegram = Column(String, default="")
+    age = Column(Integer, nullable=True)
+    last_payment_date = Column(String, default="")
+    agreement_status = Column(String, default="")
+    is_akb = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class AkbMentor(Base):
+    __tablename__ = "akb_mentors"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    university = Column(String, default="")
+    degree = Column(String, default="")
+    major = Column(String, default="")
+    graduation_year = Column(Integer, nullable=True)
+    specializations = Column(Text, default="[]")   # JSON list
+    countries = Column(Text, default="[]")          # JSON list
+    universities_expertise = Column(Text, default="[]")  # JSON list
+    students_helped = Column(Integer, default=0)
+    success_rate = Column(Float, nullable=True)
+    avg_scholarship_usd = Column(Integer, nullable=True)
+    bio_short = Column(Text, default="")
+    mentor_type = Column(String, default="")
+    track_type = Column(String, default="")
+    is_active = Column(Boolean, default=True)
+    is_paused = Column(Boolean, default=False)
+    is_featured = Column(Boolean, default=False)
+    email = Column(String, default="")
+    created_at = Column(DateTime, default=utcnow)
+
+
+class AkbReview(Base):
+    __tablename__ = "akb_reviews"
+    id = Column(Integer, primary_key=True, index=True)
+    university = Column(String, default="")
+    student_name = Column(String, default="")
+    student_country = Column(String, default="")
+    rating = Column(Integer, nullable=True)
+    text = Column(Text, default="")
+    year = Column(Integer, nullable=True)
+    is_verified = Column(Boolean, default=False)
+    category = Column(String, default="")
+    source = Column(String, default="")
+    scholarship_amount = Column(Integer, nullable=True)
+    offers_count = Column(Integer, nullable=True)
+    mentor_name = Column(String, default="")
+    program_level = Column(String, default="")
+    created_at = Column(DateTime, default=utcnow)
+
+
+class AkbSuccessStory(Base):
+    __tablename__ = "akb_success_stories"
+    id = Column(Integer, primary_key=True, index=True)
+    student_name = Column(String, default="")
+    student_country = Column(String, default="")
+    university = Column(String, default="")
+    program = Column(String, default="")
+    degree = Column(String, default="")
+    admission_year = Column(Integer, nullable=True)
+    admission_type = Column(String, default="")
+    scholarship_usd = Column(Integer, nullable=True)
+    scholarship_percent = Column(Float, nullable=True)
+    financial_aid_total_usd = Column(Integer, nullable=True)
+    story_short = Column(Text, default="")
+    story_full = Column(Text, default="")
+    quote = Column(Text, default="")
+    highlights = Column(Text, default="[]")  # JSON list
+    offers_received = Column(Integer, nullable=True)
+    is_featured = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=utcnow)

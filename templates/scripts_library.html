@@ -45,19 +45,31 @@
 
 <!-- Filters -->
 <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
+    <!-- Channel filter -->
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if not channel_filter %}active{% endif %}">All Channels</a>
+    <a href="/scripts?channel=american{% if category %}&category={{ category }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if channel_filter == 'american' %}active{% endif %}">American</a>
+    <a href="/scripts?channel=european{% if category %}&category={{ category }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if channel_filter == 'european' %}active{% endif %}">European</a>
+
+    <span style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px;"></span>
+
     <!-- Category tabs -->
-    <a href="/scripts{% if creator_filter %}?creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
-    <a href="/scripts?category=ai{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
-    <a href="/scripts?category=finance{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
+    <a href="/scripts{% if channel_filter %}?channel={{ channel_filter }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if not category %}active{% endif %}">All</a>
+    <a href="/scripts?category=ai{% if channel_filter %}&channel={{ channel_filter }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'ai' %}active{% endif %}">AI</a>
+    <a href="/scripts?category=finance{% if channel_filter %}&channel={{ channel_filter }}{% endif %}{% if creator_filter %}&creator={{ creator_filter }}{% endif %}" class="prompt-tab {% if category == 'finance' %}active{% endif %}">Finance</a>
 
     <span style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px;"></span>
 
     <!-- Creator filter -->
-    <a href="/scripts{% if category %}?category={{ category }}{% endif %}" class="prompt-tab {% if not creator_filter %}active{% endif %}">All Creators</a>
-    <a href="/scripts?creator=unassigned{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if creator_filter == 'unassigned' %}active{% endif %}">Unassigned</a>
+    <a href="/scripts{% if category %}?category={{ category }}{% endif %}{% if channel_filter %}&channel={{ channel_filter }}{% endif %}" class="prompt-tab {% if not creator_filter %}active{% endif %}">All Creators</a>
+    <a href="/scripts?creator=unassigned{% if category %}&category={{ category }}{% endif %}{% if channel_filter %}&channel={{ channel_filter }}{% endif %}" class="prompt-tab {% if creator_filter == 'unassigned' %}active{% endif %}">Unassigned</a>
     {% for c in creator_names %}
-    <a href="/scripts?creator={{ c }}{% if category %}&category={{ category }}{% endif %}" class="prompt-tab {% if creator_filter == c %}active{% endif %}" style="font-size: 11px;">{{ c|capitalize }}</a>
+    <a href="/scripts?creator={{ c }}{% if category %}&category={{ category }}{% endif %}{% if channel_filter %}&channel={{ channel_filter }}{% endif %}" class="prompt-tab {% if creator_filter == c %}active{% endif %}" style="font-size: 11px;">{{ c|capitalize }}</a>
     {% endfor %}
+</div>
+
+<!-- Search -->
+<div style="margin-bottom: 14px;">
+    <input type="text" id="script-search" class="input" placeholder="Search scripts by title or text..." style="max-width: 360px; font-size: 12px;" oninput="filterSearch(this.value)">
 </div>
 
 {% if not scripts %}
@@ -72,20 +84,33 @@
                 <tr class="border-b border-gray-100">
                     <th class="th" style="width: 50px;"></th>
                     <th class="th sortable" data-sort="text" data-col="1" style="cursor:pointer;">Video <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="3" style="cursor:pointer;">Assigned To <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
-                    <th class="th sortable" data-sort="num" data-col="5" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="2" style="cursor:pointer;">Ch <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="3" style="cursor:pointer;">Category <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="4" style="cursor:pointer;">Assigned To <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="text" data-col="5" style="cursor:pointer;">Status <span class="sort-icon"></span></th>
+                    <th class="th sortable" data-sort="num" data-col="6" style="cursor:pointer;">Score <span class="sort-icon"></span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for script in scripts %}
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 script-row" data-script-id="{{ script.id }}" style="cursor: pointer;" onclick="toggleExpand(this, event)">
-                    <td class="td">
+                    <td class="td" style="white-space: nowrap;">
                         <a href="/scripts/{{ script.id }}" class="btn-sm btn-primary" onclick="event.stopPropagation()">View</a>
+                        <a href="/api/scripts/{{ script.id }}/export-word" download class="btn-sm btn-secondary" onclick="event.stopPropagation()" title="Download Word" style="padding: 4px 6px; margin-left: 2px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </a>
                     </td>
                     <td class="td" style="max-width: 200px;">
                         <p class="text-xs text-gray-500 truncate">{{ script.video.title[:60] if script.video else 'N/A' }}</p>
+                    </td>
+                    <td class="td">
+                        {% if script.channel == 'american' %}
+                        <span class="status-badge" style="background: rgba(37,99,235,0.1); color: #2563EB;">US</span>
+                        {% elif script.channel == 'european' %}
+                        <span class="status-badge" style="background: rgba(234,88,12,0.1); color: #ea580c;">EU</span>
+                        {% else %}
+                        <span style="color: #d1d5db; font-size: 11px;">—</span>
+                        {% endif %}
                     </td>
                     <td class="td">
                         {% if script.video and script.video.search %}
@@ -139,7 +164,7 @@
                     </td>
                 </tr>
                 <tr class="expand-row" id="expand-{{ script.id }}" style="display: none;">
-                    <td colspan="6" style="padding: 0;">
+                    <td colspan="7" style="padding: 0;">
                         <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <div style="display: flex; gap: 24px;">
                                 <div style="flex: 1; min-width: 0;">
@@ -226,5 +251,18 @@ function toggleExpand(row, event) {
         return cell.textContent.trim();
     }
 })();
+
+function filterSearch(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('#scripts-table tbody tr.script-row');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const expandRow = document.getElementById('expand-' + row.dataset.scriptId);
+        const expandText = expandRow ? expandRow.textContent.toLowerCase() : '';
+        const match = !q || text.includes(q) || expandText.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (expandRow && !match) expandRow.style.display = 'none';
+    });
+}
 </script>
 {% endblock %}

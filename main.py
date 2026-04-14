@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Viral Scripts")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from routers import pages, search, scripts, presets, nari, anna, character, avatars, videos, settings
+from routers import pages, search, scripts, presets, nari, anna, character, avatars, videos, settings, pipeline_router, akb_router
 app.include_router(pages.router)
 app.include_router(search.router)
 app.include_router(scripts.router)
@@ -24,6 +24,8 @@ app.include_router(character.router)
 app.include_router(avatars.router)
 app.include_router(videos.router)
 app.include_router(settings.router)
+app.include_router(pipeline_router.router)
+app.include_router(akb_router.router)
 
 
 @app.get("/health")
@@ -44,6 +46,7 @@ def startup():
     _migrate_pipeline_fields()
     _migrate_nari_anna_pub()
     _migrate_script_subtitle_and_raw()
+    _migrate_channel_and_pipeline()
     _seed_presets()
     _seed_nari()
     _seed_anna()
@@ -280,6 +283,30 @@ def _migrate_script_subtitle_and_raw():
             db.execute(text(sql))
             db.commit()
             logging.info(f"Migrated: added {col} column to scripts")
+    db.close()
+
+
+def _migrate_channel_and_pipeline():
+    """Add channel, final_text, fact_check_report to scripts; create pipeline_stages table."""
+    from sqlalchemy import text, inspect
+    db = SessionLocal()
+    # Scripts table: new columns
+    for col, sql in [
+        ("channel", "ALTER TABLE scripts ADD COLUMN channel VARCHAR DEFAULT ''"),
+        ("final_text", "ALTER TABLE scripts ADD COLUMN final_text TEXT DEFAULT ''"),
+        ("fact_check_report", "ALTER TABLE scripts ADD COLUMN fact_check_report TEXT DEFAULT ''"),
+    ]:
+        try:
+            db.execute(text(f"SELECT {col} FROM scripts LIMIT 1"))
+        except Exception:
+            db.rollback()
+            db.execute(text(sql))
+            db.commit()
+            logging.info(f"Migrated: added {col} column to scripts")
+    # pipeline_stages table created by init_db() via Base.metadata.create_all
+    inspector = inspect(db.bind)
+    if "pipeline_stages" not in inspector.get_table_names():
+        logging.info("Pipeline stages table created")
     db.close()
 
 

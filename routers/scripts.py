@@ -956,6 +956,23 @@ def final_video_status(script_id: int, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/{script_id}/export-word")
+def export_word(script_id: int, db: Session = Depends(get_db)):
+    """Export script as Word document."""
+    script = db.query(Script).get(script_id)
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    video = db.query(Video).get(script.video_id) if script.video_id else None
+    from services.word_export import generate_script_docx
+    buffer = generate_script_docx(script, video)
+    filename = f"script_{script_id}.docx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/{script_id}/download-final")
 def download_final(script_id: int, subtitled: bool = False, db: Session = Depends(get_db)):
     script = db.query(Script).get(script_id)
