@@ -693,21 +693,61 @@ async function refreshAllTiktok() {
 {% block scripts %}
 <script>
 (function() {
-    var PIN = '1532';
-    var STORAGE_KEY = 'viral_videos_auth';
-
     function checkAuth() {
-        if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
-            unlock();
-            return;
-        }
-        document.getElementById('pinLockScreen').classList.remove('hidden');
-        setupPinInputs();
+        fetch('/api/auth/check')
+            .then(function(res) {
+                if (res.ok) {
+                    unlock();
+                } else {
+                    document.getElementById('pinLockScreen').classList.remove('hidden');
+                    setupPinInputs();
+                }
+            })
+            .catch(function() {
+                document.getElementById('pinLockScreen').classList.remove('hidden');
+                setupPinInputs();
+            });
     }
 
     function unlock() {
-        sessionStorage.setItem(STORAGE_KEY, 'true');
         document.getElementById('pinLockScreen').classList.add('hidden');
+    }
+
+    function submitPin(pin) {
+        fetch('/api/auth/verify-pin', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({pin: pin})
+        })
+        .then(function(res) {
+            if (res.ok) {
+                unlock();
+            } else if (res.status === 429) {
+                res.json().then(function(data) {
+                    document.getElementById('pinLockError').textContent = data.detail || 'Too many attempts. Wait 1 minute.';
+                }).catch(function() {
+                    document.getElementById('pinLockError').textContent = 'Too many attempts. Wait 1 minute.';
+                });
+                var inputs = document.querySelectorAll('#pinInputGroup input');
+                inputs.forEach(function(inp) { inp.value = ''; inp.disabled = true; });
+                setTimeout(function() {
+                    inputs.forEach(function(inp) { inp.disabled = false; });
+                    inputs[0].focus();
+                    document.getElementById('pinLockError').textContent = '';
+                }, 30000);
+            } else {
+                document.getElementById('pinLockError').textContent = 'Wrong PIN';
+                var inputs = document.querySelectorAll('#pinInputGroup input');
+                inputs.forEach(function(inp) { inp.classList.add('error'); inp.value = ''; });
+                setTimeout(function() {
+                    inputs.forEach(function(inp) { inp.classList.remove('error'); });
+                    inputs[0].focus();
+                }, 500);
+            }
+        })
+        .catch(function() {
+            document.getElementById('pinLockError').textContent = 'Network error';
+        });
     }
 
     function setupPinInputs() {
@@ -723,18 +763,7 @@ async function refreshAllTiktok() {
                 }
                 if (i === inputs.length - 1 && val) {
                     var pin = Array.from(inputs).map(function(inp) { return inp.value; }).join('');
-                    if (pin.length === 4) {
-                        if (pin === PIN) {
-                            unlock();
-                        } else {
-                            document.getElementById('pinLockError').textContent = 'Wrong PIN';
-                            inputs.forEach(function(inp) { inp.classList.add('error'); inp.value = ''; });
-                            setTimeout(function() {
-                                inputs.forEach(function(inp) { inp.classList.remove('error'); });
-                                inputs[0].focus();
-                            }, 500);
-                        }
-                    }
+                    if (pin.length === 4) submitPin(pin);
                 }
             });
 
@@ -751,18 +780,7 @@ async function refreshAllTiktok() {
                 pasted.split('').forEach(function(ch, idx) {
                     if (inputs[idx]) inputs[idx].value = ch;
                 });
-                if (pasted.length === 4) {
-                    if (pasted === PIN) {
-                        unlock();
-                    } else {
-                        document.getElementById('pinLockError').textContent = 'Wrong PIN';
-                        inputs.forEach(function(inp) { inp.classList.add('error'); inp.value = ''; });
-                        setTimeout(function() {
-                            inputs.forEach(function(inp) { inp.classList.remove('error'); });
-                            inputs[0].focus();
-                        }, 500);
-                    }
-                }
+                if (pasted.length === 4) submitPin(pasted);
             });
         });
     }
