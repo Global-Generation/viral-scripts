@@ -7,6 +7,13 @@ from models import get_prompt
 
 logger = logging.getLogger(__name__)
 
+
+class SafeFormatDict(dict):
+    """Dict subclass that returns empty string for missing keys in str.format_map().
+    Prevents KeyError when custom DB prompts lack {host_name} etc."""
+    def __missing__(self, key):
+        return ""
+
 # Default prompts for each stage
 DEFAULT_PROMPTS = {
     "intro": """You are a TikTok content strategist. Generate a powerful HOOK / INTRO for a viral short-form video.
@@ -18,6 +25,12 @@ CONTEXT: The original transcript is provided below. Your job is to create a 10-1
 - Clean, calm, slightly provocative tone
 - ONE sentence only
 - Must relate directly to the topic
+
+HOST/SPEAKER CONTEXT:
+The speaker is {host_name}. Gender: {host_gender}.
+{host_bio}
+Write the hook in this person's voice and personality. Do NOT include a self-introduction — no "Hey I'm..." or name drops. Just match their tone.
+If no speaker is specified, write in a neutral voice.
 
 BRAND NAME PRONUNCIATION: Write compound brand names with spaces for TTS: "Open AI", "Chat G P T", "Mid Journey". Single real words stay: "Claude", "Gemini".
 NUMBERS AS WORDS: "ten thousand dollars" not "$10,000". Years OK as digits.
@@ -39,6 +52,8 @@ CONTEXT: This is the FIRST third of the script body (after the intro hook). It s
 - NO emotional amplifiers, NO fake urgency
 - NO listicles or enumerations
 
+HOST/SPEAKER: {host_name} ({host_gender}). Write in their voice and personality.
+
 BRAND NAME PRONUNCIATION: Compound names spaced for TTS. Single words stay.
 NUMBERS AS WORDS: Written out for TTS. Years OK as digits.
 NO PHANTOM VISUALS: Person talking to camera only. No "as you can see" or screen references.
@@ -55,6 +70,8 @@ CONTEXT: This is the MIDDLE third of the script body. It should:
 - 15-20 words
 - Build on the momentum
 - Same tone: calm, factual, dry wit
+
+HOST/SPEAKER: {host_name} ({host_gender}). Maintain their voice.
 
 BRAND NAME PRONUNCIATION: Compound names spaced for TTS.
 NUMBERS AS WORDS: Written out. Years OK as digits.
@@ -73,6 +90,8 @@ CONTEXT: This is the FINAL third. It should:
 - 10-15 words
 - Land the message cleanly
 - End with "Link in bio." as the very last sentence
+
+HOST/SPEAKER: {host_name} ({host_gender}). Close in their voice.
 
 BRAND NAME PRONUNCIATION: Compound names spaced for TTS.
 NUMBERS AS WORDS: Written out. Years OK as digits.
@@ -94,6 +113,10 @@ RULES:
 - Fix any awkward joins
 - Ensure every fact mentioned is accurate (use the fact-check report if provided)
 - Output ONLY the final script text, no labels or headers
+
+HOST/SPEAKER: {host_name} ({host_gender}).
+{host_bio}
+Ensure the unified script sounds like THIS person delivering it. Match their personality throughout.
 
 Intro: {intro_text}
 Part 1: {part1_text}
@@ -136,8 +159,11 @@ def generate_stage(stage_name: str, original_text: str, context: dict = None) ->
         "part2_text": context.get("part2_text", ""),
         "part3_text": context.get("part3_text", ""),
         "fact_check_context": context.get("fact_check_context", ""),
+        "host_name": context.get("host_name", ""),
+        "host_bio": context.get("host_bio", ""),
+        "host_gender": context.get("host_gender", ""),
     }
-    user_prompt = prompt_template.format(**format_vars)
+    user_prompt = prompt_template.format_map(SafeFormatDict(format_vars))
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     response = client.messages.create(

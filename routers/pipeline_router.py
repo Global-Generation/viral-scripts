@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from models import Script, PipelineStage, SystemPrompt
+from routers.character import get_host_info
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/pipeline", tags=["pipeline"])
@@ -112,12 +113,14 @@ def generate_stage(script_id: int, stage_name: str, db: Session = Depends(get_db
 
             # Build context for prompt
             gen_context = _get_stage_context(gen_db, script_id)
+            host_info = get_host_info(gen_script.assigned_to)
             prompt_context = {
                 "original_text": gen_script.original_text or "",
                 "intro_text": gen_context.get("intro", ""),
                 "part1_text": gen_context.get("part1", ""),
                 "part2_text": gen_context.get("part2", ""),
                 "part3_text": gen_context.get("part3", ""),
+                **host_info,
             }
 
             prompt_template = get_stage_prompt(stage_name)
@@ -240,12 +243,14 @@ def finalize_script(script_id: int, db: Session = Depends(get_db)):
 
     # Generate unified text
     from services.pipeline_generator import generate_stage
+    host_info = get_host_info(script.assigned_to)
     enrichment_context = {
         "intro_text": context.get("intro", ""),
         "part1_text": context.get("part1", ""),
         "part2_text": context.get("part2", ""),
         "part3_text": context.get("part3", ""),
         "fact_check_context": fact_context,
+        **host_info,
     }
 
     final_text = generate_stage("enrichment", script.original_text or "", enrichment_context)
